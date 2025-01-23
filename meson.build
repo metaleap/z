@@ -14,6 +14,8 @@ add_global_arguments(
     language: ['c'],
 )
 
+add_global_link_arguments('-lm', language: ['c'])
+
 dep_sdl2 = dependency('SDL2', include_type: 'system', static: false)
 dep_pthread = dependency('threads')
 

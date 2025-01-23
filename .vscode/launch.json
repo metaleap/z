@@ -5,7 +5,7 @@
             "name": "Run",
             "type": "gdb",
             "request": "launch",
-            "target": "wi04_charactercontroller.exec",
+            "target": "fged.exec",
             "cwd": "${fileWorkspaceFolder}/.build/debug",
             "valuesFormatting": "disabled",
             "preLaunchTask": "mesonBuildDebug",
