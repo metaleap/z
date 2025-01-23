@@ -1,0 +1,3 @@
+{
+    "Checks": "readability-implicit-bool-conversion,boost-use-to-string,bugprone-assert-side-effect,bugprone-assignment-in-if-condition,bugprone-bool-pointer-implicit-conversion,bugprone-branch-clone,bugprone-casting-through-void,bugprone-compare-pointer-to-member-virtual-function,modernize-use-nullptr"
+}

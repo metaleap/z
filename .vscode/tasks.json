@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "mesonBuildDebug",
+            "command": "time meson compile -C .build/debug && cp .build/debug/compile_commands.json .",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "label": "mesonBuildReleaseGcc",
+            "command": "time meson compile -C .build/release_gcc",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "type": "shell",
+            "label": "mesonBuildReleaseClang",
+            "command": "time meson compile -C .build/release_clang",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        }
+    ]
+}
