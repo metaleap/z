@@ -10,5 +10,23 @@
     "command": "ccache cc -Ifged.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ fged.exec.p/fged_vec3.c.o -MF fged.exec.p/fged_vec3.c.o.d -o fged.exec.p/fged_vec3.c.o -c ../../fged/vec3.c",
     "file": "../../fged/vec3.c",
     "output": "fged.exec.p/fged_vec3.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ifged.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ fged.exec.p/fged_mat3.c.o -MF fged.exec.p/fged_mat3.c.o.d -o fged.exec.p/fged_mat3.c.o -c ../../fged/mat3.c",
+    "file": "../../fged/mat3.c",
+    "output": "fged.exec.p/fged_mat3.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ifged.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ fged.exec.p/fged_vec4.c.o -MF fged.exec.p/fged_vec4.c.o.d -o fged.exec.p/fged_vec4.c.o -c ../../fged/vec4.c",
+    "file": "../../fged/vec4.c",
+    "output": "fged.exec.p/fged_vec4.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ifged.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ fged.exec.p/fged_mat4.c.o -MF fged.exec.p/fged_mat4.c.o.d -o fged.exec.p/fged_mat4.c.o -c ../../fged/mat4.c",
+    "file": "../../fged/mat4.c",
+    "output": "fged.exec.p/fged_mat4.c.o"
   }
 ]

@@ -23,5 +23,11 @@ executable(
     'fged.exec',
     dependencies: [dep_sdl2, dep_pthread],
     link_language: 'c',
-    sources: ['fged/main.c', 'fged/vec3.c'],
+    sources: [
+        'fged/main.c',
+        'fged/vec3.c',
+        'fged/mat3.c',
+        'fged/vec4.c',
+        'fged/mat4.c',
+    ],
 )
