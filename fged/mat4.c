@@ -105,4 +105,6 @@ inline Mat4 Mat4_inverse(Mat4* m) {
   Vec3 uc       = Vec3_cross(&u, c);
   Vec3 sz       = Vec3_mul(&s, z);
   Vec3 r3       = Vec3_add(&uc, &sz);
+  return Mat4_newF(r0.x, r0.y, r0.z, -Vec3_dot(b, &t), r1.x, r1.y, r1.z, Vec3_dot(a, &t), r2.x, r2.y, r2.z, -Vec3_dot(d, &s), r3.x, r3.y, r3.z,
+                   Vec3_dot(c, &s));
 }

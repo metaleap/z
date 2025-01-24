@@ -1,4 +1,5 @@
 #include "./fged.h"
+#include <math.h>
 
 
 
@@ -20,6 +21,24 @@ inline Mat3 Mat3_newF(float n00, float n01, float n02, float n10, float n11, flo
   ret.at[2][1] = n12;
   ret.at[2][2] = n22;
   return ret;
+}
+
+inline Mat3 Mat3_rotX(float angle) {
+  float c = cosf(angle);
+  float s = sinf(angle);
+  return Mat3_newF(1, 0, 0, 0, c, -s, 0, s, c);
+}
+
+inline Mat3 Mat3_rotY(float angle) {
+  float c = cosf(angle);
+  float s = sinf(angle);
+  return Mat3_newF(c, 0, s, 0, 1, 0, -s, 0, c);
+}
+
+inline Mat3 Mat3_rotZ(float angle) {
+  float c = cosf(angle);
+  float s = sinf(angle);
+  return Mat3_newF(c, -s, 0, s, c, 0, 0, 0, 1);
 }
 
 inline Mat3 Mat3_identity() {
