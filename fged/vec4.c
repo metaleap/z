@@ -6,28 +6,58 @@
 
 
 inline Vec4 Vec4_new(float x, float y, float z, float w) {
-  return (Vec4) {.x = x, .y = y, .z = z, .w = w};
+  return (Vec4) {
+      .x = x,
+      .y = y,
+      .z = z,
+      .w = w,
+  };
 }
 
 inline Vec4 Vec4_neg(Vec4* v) {
-  return (Vec4) {.x = (-v->x), .y = (-v->y), .z = (-v->z), .w = (-v->w)};
+  return (Vec4) {
+      .x = (-v->x),
+      .y = (-v->y),
+      .z = (-v->z),
+      .w = (-v->w),
+  };
 }
 
 inline Vec4 Vec4_mul(Vec4* v, float n) {
-  return (Vec4) {.x = (v->x * n), .y = (v->y * n), .z = (v->z * n), .w = (v->w * n)};
+  return (Vec4) {
+      .x = (v->x * n),
+      .y = (v->y * n),
+      .z = (v->z * n),
+      .w = (v->w * n),
+  };
 }
 
 inline Vec4 Vec4_div(Vec4* v, float n) {
   assert(n != 0.0f);
-  return (Vec4) {.x = (v->x / n), .y = (v->y / n), .z = (v->z / n), .w = (v->w / n)};
+  return (Vec4) {
+      .x = (v->x / n),
+      .y = (v->y / n),
+      .z = (v->z / n),
+      .w = (v->w / n),
+  };
 }
 
 inline Vec4 Vec4_add(Vec4* v1, Vec4* v2) {
-  return (Vec4) {.x = (v1->x + v2->x), .y = (v1->y + v2->y), .z = (v1->z + v2->z), .w = (v1->w + v2->w)};
+  return (Vec4) {
+      .x = (v1->x + v2->x),
+      .y = (v1->y + v2->y),
+      .z = (v1->z + v2->z),
+      .w = (v1->w + v2->w),
+  };
 }
 
 inline Vec4 Vec4_sub(Vec4* v1, Vec4* v2) {
-  return (Vec4) {.x = (v1->x - v2->x), .y = (v1->y - v2->y), .z = (v1->z - v2->z), .w = (v1->w - v2->w)};
+  return (Vec4) {
+      .x = (v1->x - v2->x),
+      .y = (v1->y - v2->y),
+      .z = (v1->z - v2->z),
+      .w = (v1->w - v2->w),
+  };
 }
 
 inline float Vec4_len(Vec4* v) {

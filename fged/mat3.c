@@ -23,25 +23,82 @@ inline Mat3 Mat3_newF(float n00, float n01, float n02, float n10, float n11, flo
   return ret;
 }
 
-inline Mat3 Mat3_rotX(float angle) {
+inline Mat3 Mat3_newRotX(float angle) {
   float c = cosf(angle);
   float s = sinf(angle);
   return Mat3_newF(1, 0, 0, 0, c, -s, 0, s, c);
 }
 
-inline Mat3 Mat3_rotY(float angle) {
+inline Mat3 Mat3_newRotY(float angle) {
   float c = cosf(angle);
   float s = sinf(angle);
   return Mat3_newF(c, 0, s, 0, 1, 0, -s, 0, c);
 }
 
-inline Mat3 Mat3_rotZ(float angle) {
+inline Mat3 Mat3_newRotZ(float angle) {
   float c = cosf(angle);
   float s = sinf(angle);
   return Mat3_newF(c, -s, 0, s, c, 0, 0, 0, 1);
 }
 
-inline Mat3 Mat3_identity() {
+inline Mat3 Mat3_newRot(Vec3* normAxis, float angle) {
+  float c  = cosf(angle);
+  float s  = sinf(angle);
+  float d  = 1.0f - c;
+  float x  = normAxis->x * d;
+  float y  = normAxis->y * d;
+  float z  = normAxis->z * d;
+  float xy = x * normAxis->y;
+  float xz = x * normAxis->z;
+  float yz = y * normAxis->z;
+  return Mat3_newF(c + (x * normAxis->x), xy - (s * normAxis->z), xz + (s * normAxis->y), xy + (s * normAxis->z), c + (y * normAxis->y),
+                   yz - (s * normAxis->x), xz - (s * normAxis->y), yz + (s * normAxis->x), c + (z * normAxis->z));
+}
+
+inline Mat3 Mat3_newRefl(Vec3* normPlane) {
+  float x  = normPlane->x * -2.0f;
+  float y  = normPlane->y * -2.0f;
+  float z  = normPlane->z * -2.0f;
+  float xy = x * normPlane->y;
+  float xz = x * normPlane->z;
+  float yz = y * normPlane->z;
+  return Mat3_newF((x * normPlane->x) + 1.0f, xy, xz, xy, (y * normPlane->y) + 1.0f, yz, xz, yz, (z * normPlane->z) + 1.0f);
+}
+
+inline Mat3 Mat3_newInvol(Vec3* norm) {
+  float x  = norm->x * 2.0f;
+  float y  = norm->y * 2.0f;
+  float z  = norm->z * 2.0f;
+  float xy = x * norm->y;
+  float xz = x * norm->z;
+  float yz = y * norm->z;
+  return Mat3_newF((x * norm->x) - 1.0f, xy, xz, xy, (y * norm->y) - 1.0f, yz, xz, yz, (z * norm->z) - 1.0f);
+}
+
+inline Mat3 Mat3_newScaleF(float scaleX, float scaleY, float scaleZ) {
+  return Mat3_newF(scaleX, 0, 0, 0, scaleY, 0, 0, 0, scaleZ);
+}
+
+inline Mat3 Mat3_newScaleV(float scale, Vec3* normDir) {
+  scale    -= 1.0f;
+  float x   = normDir->x * scale;
+  float y   = normDir->y * scale;
+  float z   = normDir->z * scale;
+  float xy  = x * normDir->y;
+  float xz  = x * normDir->z;
+  float yz  = y * normDir->z;
+  return Mat3_newF((x * normDir->x) + 1.0f, xy, xz, xy, (y * normDir->y) + 1.0f, yz, xz, yz, (z * normDir->z) + 1.0f);
+}
+
+inline Mat3 Mat3_newSkew(float t, Vec3* a, Vec3* b) {
+  t       = tanf(t);
+  float x = a->x * t;
+  float y = a->y * t;
+  float z = a->z * t;
+  return Mat3_newF((x * b->x) + 1.0f, x * b->y, x * b->z, y * b->x, (y * b->y) + 1.0f, y * b->z, z * b->x, z * b->y, (z * b->z) + 1.0f);
+}
+
+inline Mat3 Mat3_newIdent() {
   return Mat3_newV(Vec3_new(1, 0, 0), Vec3_new(0, 1, 0), Vec3_new(0, 0, 1));
 }
 

@@ -6,28 +6,52 @@
 
 
 inline Vec3 Vec3_new(float x, float y, float z) {
-  return (Vec3) {.x = x, .y = y, .z = z};
+  return (Vec3) {
+      .x = x,
+      .y = y,
+      .z = z,
+  };
 }
 
 inline Vec3 Vec3_neg(Vec3* v) {
-  return (Vec3) {.x = (-v->x), .y = (-v->y), .z = (-v->z)};
+  return (Vec3) {
+      .x = (-v->x),
+      .y = (-v->y),
+      .z = (-v->z),
+  };
 }
 
 inline Vec3 Vec3_mul(Vec3* v, float n) {
-  return (Vec3) {.x = (v->x * n), .y = (v->y * n), .z = (v->z * n)};
+  return (Vec3) {
+      .x = (v->x * n),
+      .y = (v->y * n),
+      .z = (v->z * n),
+  };
 }
 
 inline Vec3 Vec3_div(Vec3* v, float n) {
   assert(n != 0.0f);
-  return (Vec3) {.x = (v->x / n), .y = (v->y / n), .z = (v->z / n)};
+  return (Vec3) {
+      .x = (v->x / n),
+      .y = (v->y / n),
+      .z = (v->z / n),
+  };
 }
 
 inline Vec3 Vec3_add(Vec3* v1, Vec3* v2) {
-  return (Vec3) {.x = (v1->x + v2->x), .y = (v1->y + v2->y), .z = (v1->z + v2->z)};
+  return (Vec3) {
+      .x = (v1->x + v2->x),
+      .y = (v1->y + v2->y),
+      .z = (v1->z + v2->z),
+  };
 }
 
 inline Vec3 Vec3_sub(Vec3* v1, Vec3* v2) {
-  return (Vec3) {.x = (v1->x - v2->x), .y = (v1->y - v2->y), .z = (v1->z - v2->z)};
+  return (Vec3) {
+      .x = (v1->x - v2->x),
+      .y = (v1->y - v2->y),
+      .z = (v1->z - v2->z),
+  };
 }
 
 inline float Vec3_len(Vec3* v) {
