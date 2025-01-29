@@ -16,17 +16,16 @@ extern bool isDebug;
 typedef struct VulkanEngine {
   int         n_frame;
   bool        paused;
-  VkExtent2D  window_extent;
   SDL_Window* window;
 } VulkanEngine;
 
 extern VulkanEngine vke;
 
 
-void vke_init();
-void vke_run();
-void vke_draw();
-void vke_cleanup();
+void vkeInit();
+void vkeRun();
+void vkeDraw();
+void vkeDispose();
 
 
 #define VK_CHECK(x)                                                    \

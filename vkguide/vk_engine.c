@@ -1,4 +1,7 @@
 #include "./vkguide.h"
+#include <SDL_error.h>
+#include <SDL_log.h>
+#include <SDL_vulkan.h>
 #include <vulkan/vulkan_core.h>
 
 
@@ -8,43 +11,49 @@ bool isDebug = true;
 bool isDebug = false;
 #endif
 
-VkInstance               vkInstance;
-VkDebugUtilsMessengerEXT vkDebugMessenger;
-VkPhysicalDevice         vkChosenGpu;
-VkDevice                 vkDevice;
-VkSurfaceKHR             vkSurface;
+VkInstance       vlkInstance;
+VkPhysicalDevice vlkGpu;
+VkDevice         vlkDevice;
+VkSwapchainKHR   vlkSwapchain;
+VkSurfaceKHR     vlkSurface;
 
 
 
-void init_vulkan() {
+void vlkInit() {
+  Uint32 num_exts;
+  SDL_Vulkan_GetInstanceExtensions(vke.window, &num_exts, nullptr);
+  const char* inst_exts[num_exts];
+  SDL_Vulkan_GetInstanceExtensions(vke.window, &num_exts, inst_exts);
+
   VkApplicationInfo    inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_1};
-  const char*          inst_exts[]   = {"VK_KHR_surface", "VK_KHR_xcb_surface"};   //, "VK_KHR_maintenance1"};
-  const char*          inst_layers[] = {"VK_LAYER_KHRONOS_validation"};            // "VK_LAYER_KHRONOS_validation" MUST remain the last
-                                                                                   // entry in this array!
+  const char*          inst_layers[] = {"VK_LAYER_KHRONOS_validation"};   // "VK_LAYER_KHRONOS_validation" MUST remain the last entry!
   VkInstanceCreateInfo inst_create   = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                        .enabledExtensionCount   = ARR_LEN(inst_exts),
+                                        .enabledExtensionCount   = num_exts,
                                         .ppEnabledExtensionNames = inst_exts,
                                         .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
                                         .ppEnabledLayerNames     = inst_layers,
                                         .pApplicationInfo        = &inst_app};
-  VK_CHECK(vkCreateInstance(&inst_create, nullptr, &vkInstance));
+  VK_CHECK(vkCreateInstance(&inst_create, nullptr, &vlkInstance));
 
+  if (!SDL_Vulkan_CreateSurface(vke.window, vlkInstance, &vlkSurface)) {
+    SDL_Log("%s\n", SDL_GetError());
+    exit(1);
+  }
 
   Uint32 num_gpus;
-  vkEnumeratePhysicalDevices(vkInstance, &num_gpus, nullptr);
-  assert((num_gpus > 0) && "No Vulkan-compatible hardware found.");
+  vkEnumeratePhysicalDevices(vlkInstance, &num_gpus, nullptr);
+  assert((num_gpus > 0) && "vkEnumeratePhysicalDevices");
   VkPhysicalDevice gpus[num_gpus];
-  vkEnumeratePhysicalDevices(vkInstance, &num_gpus, gpus);
+  vkEnumeratePhysicalDevices(vlkInstance, &num_gpus, gpus);
   for (Uint32 i = 0; i < num_gpus; i++) {
     VkPhysicalDeviceProperties gpu_props = {};
     vkGetPhysicalDeviceProperties(gpus[i], &gpu_props);
     SDL_Log("GPU>>%d %d %s<<\n", gpu_props.deviceID, gpu_props.deviceType, gpu_props.deviceName);
-    vkChosenGpu = gpus[i];
+    vlkGpu = gpus[i];
     break;
   }
 
-  const char* device_exts[] = {"VK_KHR_swapchain", "VK_KHR_maintenance1"};
-
+  const char*             device_exts[] = {"VK_KHR_swapchain", "VK_KHR_maintenance1"};
   VkDeviceQueueCreateInfo queue_create
       = {.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .queueCount = 1, .queueFamilyIndex = 0, .pQueuePriorities = &(float) {1.0f}};
   VkDeviceCreateInfo device_create = {.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -54,44 +63,64 @@ void init_vulkan() {
                                       .ppEnabledExtensionNames = device_exts,
                                       .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
                                       .ppEnabledLayerNames     = inst_layers};
-  VK_CHECK(vkCreateDevice(vkChosenGpu, &device_create, nullptr, &vkDevice));
+  VK_CHECK(vkCreateDevice(vlkGpu, &device_create, nullptr, &vlkDevice));
 }
 
 
 
-void init_swapchain() {
+void vlkInitSwapchain() {
+  VkSurfaceCapabilitiesKHR surface_caps;
+  VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vlkGpu, vlkSurface, &surface_caps));
+  VkSwapchainCreateInfoKHR create = {
+      .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+      .surface          = vlkSurface,
+      .minImageCount    = surface_caps.minImageCount + ((surface_caps.maxImageCount > surface_caps.minImageCount) ? 1 : 0),
+      .imageExtent      = surface_caps.currentExtent,
+      .imageArrayLayers = 1,
+      .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      .imageFormat      = VK_FORMAT_B8G8R8A8_SRGB,
+      .imageColorSpace  = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+      .presentMode      = VK_PRESENT_MODE_FIFO_KHR,
+  };
+  VK_CHECK(vkCreateSwapchainKHR(vlkDevice, &create, nullptr, &vlkSwapchain));
 }
 
 
 
-void init_commands() {
+void vlkInitCommands() {
 }
 
 
 
-void init_sync_structures() {
+void vlkInitSyncStructures() {
 }
 
 
 
-void vke_init() {
+void vkeDispose() {
+  SDL_DestroyWindow(vke.window);
+  vkDestroyDevice(vlkDevice, nullptr);
+  vkDestroySurfaceKHR(vlkInstance, vlkSurface, nullptr);
+  vkDestroyInstance(vlkInstance, nullptr);
+}
+
+
+void vkeInit() {
   SDL_Init(SDL_INIT_EVERYTHING);
-
-  vke.window = SDL_CreateWindow("foo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, vke.window_extent.width, vke.window_extent.height,
+  vke.window = SDL_CreateWindow("foo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 900,
                                 SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
   if (vke.window == nullptr) {
     printf("%s\n", SDL_GetError());
-    abort();
+    exit(1);
   }
-
-  init_vulkan();
-  init_swapchain();
-  init_commands();
-  init_sync_structures();
+  vlkInit();
+  vlkInitSwapchain();
+  vlkInitCommands();
+  vlkInitSyncStructures();
 }
 
 
-void vke_run() {
+void vkeRun() {
   SDL_Event evt;
   bool      quit = false;
   while (!quit) {
@@ -122,14 +151,11 @@ void vke_run() {
     }
     if (quit)
       break;
-    vke_draw();
+    vkeDraw();
   }
+  vkDeviceWaitIdle(vlkDevice);
 }
 
 
-void vke_draw() {
-}
-
-void vke_cleanup() {
-  SDL_DestroyWindow(vke.window);
+void vkeDraw() {
 }

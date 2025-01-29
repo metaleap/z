@@ -4,17 +4,15 @@
 #include "./vkguide.h"
 
 
-VulkanEngine vke = {
-    .window_extent = {.width = 1600, .height = 900}
-};
+VulkanEngine vke = {};
 
 
 
 int main() {
-  vke_init();
-  vke_run();
+  vkeInit();
+  vkeRun();
 
-  vke_cleanup();
+  vkeDispose();
   SDL_Quit();
   return 0;
 }
