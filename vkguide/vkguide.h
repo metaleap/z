@@ -29,7 +29,7 @@ typedef struct VulkanEngine {
   bool        paused;
   SDL_Window* window;
   VkQueue     vlkQueue;
-  Uint32      vlkQueueFamily;
+  Uint32      vlkQueueFamilyIndex;
 } VulkanEngine;
 
 extern VulkanEngine vke;

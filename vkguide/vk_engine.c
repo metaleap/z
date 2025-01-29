@@ -129,6 +129,17 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
 
 
 void vlkInitCommands() {
+  VkCommandPoolCreateInfo create_pool = {.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+                                         .flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+                                         .queueFamilyIndex = vke.vlkQueueFamilyIndex};
+  for (int i = 0; i < FRAME_OVERLAP; i++) {
+    VK_CHECK(vkCreateCommandPool(vlkDevice, &create_pool, nullptr, &vke.frames[i].commandPool));
+    VkCommandBufferAllocateInfo buf_alloc = {.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+                                             .commandPool        = vke.frames[i].commandPool,
+                                             .commandBufferCount = 1,
+                                             .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY};
+    VK_CHECK(vkAllocateCommandBuffers(vlkDevice, &buf_alloc, &vke.frames[i].mainCommandBuffer));
+  }
 }
 
 
@@ -139,6 +150,8 @@ void vlkInitSyncStructures() {
 
 
 void vkeDispose() {
+  for (int i = 0; i < FRAME_OVERLAP; i++)
+    vkDestroyCommandPool(vlkDevice, vke.frames[i].commandPool, nullptr);
   vlkDisposeSwapchain();
   vkDestroySurfaceKHR(vlkInstance, vlkSurface, nullptr);
   vkDestroyDevice(vlkDevice, nullptr);
