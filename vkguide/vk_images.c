@@ -1,10 +1,5 @@
 #include "./vkguide.h"
-#include <vulkan/vulkan_core.h>
 
-
-VkImageSubresourceRange vlkImgSubresourceRange(VkImageAspectFlags aspectMask) {
-  return (VkImageSubresourceRange) {.aspectMask = aspectMask, .levelCount = VK_REMAINING_MIP_LEVELS, .layerCount = VK_REMAINING_ARRAY_LAYERS};
-}
 
 
 void vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout) {

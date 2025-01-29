@@ -2,7 +2,9 @@
 #include <SDL_error.h>
 #include <SDL_log.h>
 #include <SDL_vulkan.h>
+#include <math.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <vulkan/vulkan_core.h>
 
 
@@ -31,7 +33,7 @@ void vlkInit() {
   const char* inst_exts[num_exts];
   SDL_Vulkan_GetInstanceExtensions(vke.window, &num_exts, inst_exts);
 
-  VkApplicationInfo    inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_3};
+  VkApplicationInfo    inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_4};
   const char*          inst_layers[] = {"VK_LAYER_KHRONOS_validation"};   // "VK_LAYER_KHRONOS_validation" MUST remain the last entry!
   VkInstanceCreateInfo inst_create   = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
                                         .enabledExtensionCount   = num_exts,
@@ -63,13 +65,26 @@ void vlkInit() {
                                            "VK_EXT_descriptor_indexing", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
   VkDeviceQueueCreateInfo queue_create
       = {.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .queueCount = 1, .queueFamilyIndex = 0, .pQueuePriorities = &(float) {1.0f}};
-  VkDeviceCreateInfo device_create = {.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-                                      .queueCreateInfoCount    = 1,
-                                      .pQueueCreateInfos       = &queue_create,
-                                      .enabledExtensionCount   = ARR_LEN(device_exts),
-                                      .ppEnabledExtensionNames = device_exts,
-                                      .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
-                                      .ppEnabledLayerNames     = inst_layers};
+  VkPhysicalDeviceVulkan12Features features = {
+      .sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+      .bufferDeviceAddress = true,
+      .descriptorIndexing  = true,
+      .pNext               = &(VkPhysicalDeviceVulkan13Features) {
+                                                                  .sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+                                                                  .dynamicRendering = true,
+                                                                  .synchronization2 = true,
+                                                                  }
+  };
+  VkDeviceCreateInfo device_create = {
+      .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+      .queueCreateInfoCount    = 1,
+      .pQueueCreateInfos       = &queue_create,
+      .enabledExtensionCount   = ARR_LEN(device_exts),
+      .ppEnabledExtensionNames = device_exts,
+      .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
+      .ppEnabledLayerNames     = inst_layers,
+      .pNext                   = &(VkPhysicalDeviceFeatures2) {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features}
+  };
   VK_CHECK(vkCreateDevice(vlkGpu, &device_create, nullptr, &vlkDevice));
 }
 
@@ -130,15 +145,10 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
 
 
 void vlkInitCommands() {
-  VkCommandPoolCreateInfo create_pool = {.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-                                         .flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-                                         .queueFamilyIndex = vke.vlkQueueFamilyIndex};
+  VkCommandPoolCreateInfo create_pool = vlkCommandPoolCreateInfo(vke.vlkQueueFamilyIndex, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   for (int i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateCommandPool(vlkDevice, &create_pool, nullptr, &vke.frames[i].commandPool));
-    VkCommandBufferAllocateInfo buf_alloc = {.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-                                             .commandPool        = vke.frames[i].commandPool,
-                                             .commandBufferCount = 1,
-                                             .level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY};
+    VkCommandBufferAllocateInfo buf_alloc = vlkCommandBufferAllocateInfo(vke.frames[i].commandPool, 1);
     VK_CHECK(vkAllocateCommandBuffers(vlkDevice, &buf_alloc, &vke.frames[i].mainCommandBuffer));
   }
 }
@@ -146,15 +156,13 @@ void vlkInitCommands() {
 
 
 void vlkInitSyncStructures() {
-  VkFenceCreateInfo create_fence = {
-      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-      .flags = VK_FENCE_CREATE_SIGNALED_BIT   // fence to start signalled so we can wait on it on the first frame
-  };
-  VkSemaphoreCreateInfo create_sema = {.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+  VkFenceCreateInfo create_fence
+      = vlkFenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);   // start signalled so we can wait on it on the first frame
+  VkSemaphoreCreateInfo create_sema = vlkSemaphoreCreateInfo(0);
   for (int i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateFence(vlkDevice, &create_fence, nullptr, &vke.frames[i].fenceRender));
     VK_CHECK(vkCreateSemaphore(vlkDevice, &create_sema, nullptr, &vke.frames[i].semaRender));
-    VK_CHECK(vkCreateSemaphore(vlkDevice, &create_sema, nullptr, &vke.frames[i].semaSwapchain));
+    VK_CHECK(vkCreateSemaphore(vlkDevice, &create_sema, nullptr, &vke.frames[i].semaPresent));
   }
 }
 
@@ -238,16 +246,38 @@ void vkeDraw() {
 
   // request image from the swapchain
   Uint32 idx_image;
-  VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaSwapchain, nullptr, &idx_image));
+  VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaPresent, nullptr, &idx_image));
 
   VkCommandBuffer cmdbuf = frame->mainCommandBuffer;
   VK_CHECK(vkResetCommandBuffer(cmdbuf, 0));
 
-  VkCommandBufferBeginInfo cmdbuf_begin = {
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT   // will use this command buffer exactly once
-  };
+  VkCommandBufferBeginInfo cmdbuf_begin
+      = vlkCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);   // will use this command buffer exactly once
   VK_CHECK(vkBeginCommandBuffer(cmdbuf, &cmdbuf_begin));
+  {
+    // swapchain image into writeable mode before rendering
+    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
+    VkClearColorValue clear_value = {
+        .float32 = {0, 0, fabsf(sinf(((float) vke.n_frame) / 120.0f)), 1}
+    };
+    VkImageSubresourceRange clear_range = vlkImgSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
+    vkCmdClearColorImage(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_GENERAL, &clear_value, 1, &clear_range);
+
+    // swapchain image into presentable mode
+    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  }
   VK_CHECK(vkEndCommandBuffer(cmdbuf));
+
+  {   // SUBMIT TO QUEUE
+    VkCommandBufferSubmitInfo cmdbuf_submit = vlkCommandBufferSubmitInfo(cmdbuf);
+    // wait on the present semaphore, as that semaphore is signaled when the swapchain is ready
+    VkSemaphoreSubmitInfo sema_wait_submit  = vlkSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, frame->semaPresent);
+    // signal the render semaphore to signal that rendering has finished
+    VkSemaphoreSubmitInfo sema_sig_submit   = vlkSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, frame->semaRender);
+
+    VkSubmitInfo2 submit = vlkSubmitInfo(&cmdbuf_submit, &sema_sig_submit, &sema_wait_submit);
+    // submit. fence will now block until the graphic commands finish execution
+    VK_CHECK(vkQueueSubmit2(vke.vlkQueue, 1, &submit, frame->fenceRender));
+  }
 }

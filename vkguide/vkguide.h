@@ -7,21 +7,17 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
-#include <vulkan/vulkan_core.h>
 
 
 #define ARR_LEN(_arr_) (sizeof((_arr_)) / sizeof((_arr_)[0]))
 #define FRAME_OVERLAP  2
 
 
-extern bool isDebug;
-
-
 typedef struct FrameData {
   VkCommandPool   commandPool;
   VkCommandBuffer mainCommandBuffer;
   VkFence         fenceRender;
-  VkSemaphore     semaSwapchain, semaRender;
+  VkSemaphore     semaPresent, semaRender;
 } FrameData;
 
 
@@ -34,6 +30,8 @@ typedef struct VulkanEngine {
   Uint32      vlkQueueFamilyIndex;
 } VulkanEngine;
 
+
+extern bool         isDebug;
 extern VulkanEngine vke;
 
 
@@ -41,6 +39,19 @@ void vkeInit();
 void vkeRun();
 void vkeDraw();
 void vkeDispose();
+
+
+void                        vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
+VkImageSubresourceRange     vlkImgSubresourceRange(VkImageAspectFlags aspectMask);
+VkCommandBufferBeginInfo    vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
+VkFenceCreateInfo           vlkFenceCreateInfo(VkFenceCreateFlags flags);
+VkSemaphoreCreateInfo       vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags);
+VkCommandPoolCreateInfo     vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags);
+VkCommandBufferAllocateInfo vlkCommandBufferAllocateInfo(VkCommandPool cmdPool, Uint32 cmdBufCount);
+VkSemaphoreSubmitInfo       vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
+VkCommandBufferSubmitInfo   vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
+VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig, VkSemaphoreSubmitInfo* wait);
+
 
 
 #define VK_CHECK(x)                                           \
