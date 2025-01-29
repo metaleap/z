@@ -28,5 +28,53 @@
     "command": "ccache cc -Ifged.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ fged.exec.p/fged_mat4.c.o -MF fged.exec.p/fged_mat4.c.o.d -o fged.exec.p/fged_mat4.c.o -c ../../fged/mat4.c",
     "file": "../../fged/mat4.c",
     "output": "fged.exec.p/fged_mat4.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_main.c.o -MF vkguide.exec.p/vkguide_main.c.o.d -o vkguide.exec.p/vkguide_main.c.o -c ../../vkguide/main.c",
+    "file": "../../vkguide/main.c",
+    "output": "vkguide.exec.p/vkguide_main.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_descriptors.c.o -MF vkguide.exec.p/vkguide_vk_descriptors.c.o.d -o vkguide.exec.p/vkguide_vk_descriptors.c.o -c ../../vkguide/vk_descriptors.c",
+    "file": "../../vkguide/vk_descriptors.c",
+    "output": "vkguide.exec.p/vkguide_vk_descriptors.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_engine.c.o -MF vkguide.exec.p/vkguide_vk_engine.c.o.d -o vkguide.exec.p/vkguide_vk_engine.c.o -c ../../vkguide/vk_engine.c",
+    "file": "../../vkguide/vk_engine.c",
+    "output": "vkguide.exec.p/vkguide_vk_engine.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_images.c.o -MF vkguide.exec.p/vkguide_vk_images.c.o.d -o vkguide.exec.p/vkguide_vk_images.c.o -c ../../vkguide/vk_images.c",
+    "file": "../../vkguide/vk_images.c",
+    "output": "vkguide.exec.p/vkguide_vk_images.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_initializers.c.o -MF vkguide.exec.p/vkguide_vk_initializers.c.o.d -o vkguide.exec.p/vkguide_vk_initializers.c.o -c ../../vkguide/vk_initializers.c",
+    "file": "../../vkguide/vk_initializers.c",
+    "output": "vkguide.exec.p/vkguide_vk_initializers.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_loader.c.o -MF vkguide.exec.p/vkguide_vk_loader.c.o.d -o vkguide.exec.p/vkguide_vk_loader.c.o -c ../../vkguide/vk_loader.c",
+    "file": "../../vkguide/vk_loader.c",
+    "output": "vkguide.exec.p/vkguide_vk_loader.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_pipelines.c.o -MF vkguide.exec.p/vkguide_vk_pipelines.c.o.d -o vkguide.exec.p/vkguide_vk_pipelines.c.o -c ../../vkguide/vk_pipelines.c",
+    "file": "../../vkguide/vk_pipelines.c",
+    "output": "vkguide.exec.p/vkguide_vk_pipelines.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_types.c.o -MF vkguide.exec.p/vkguide_vk_types.c.o.d -o vkguide.exec.p/vkguide_vk_types.c.o -c ../../vkguide/vk_types.c",
+    "file": "../../vkguide/vk_types.c",
+    "output": "vkguide.exec.p/vkguide_vk_types.c.o"
   }
 ]

@@ -5,7 +5,7 @@
             "name": "Run",
             "type": "gdb",
             "request": "launch",
-            "target": "fged.exec",
+            "target": "vkguide.exec",
             "cwd": "${fileWorkspaceFolder}/.build/debug",
             "valuesFormatting": "disabled",
             "preLaunchTask": "mesonBuildDebug",
