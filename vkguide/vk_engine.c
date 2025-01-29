@@ -1,8 +1,8 @@
-#include <threads.h>
-#include <SDL.h>
-#include <vulkan/vulkan_core.h>
-
 #include "./vkguide.h"
+#include <SDL_stdinc.h>
+#include <math.h>
+#include <stdio.h>
+#include <vulkan/vulkan_core.h>
 
 
 #ifdef DEVBUILD
@@ -18,32 +18,62 @@ VkDevice                 vkDevice;
 VkSurfaceKHR             vkSurface;
 
 
-void init_vulkan() {
-  VkApplicationInfo app_info = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_1};
-  const char*       exts[]   = {"VK_KHR_surface", "VK_KHR_xcb_surface"};   //, "VK_KHR_maintenance1"};
-  const char*       layers[] = {"VK_LAYER_KHRONOS_validation"};            // "VK_LAYER_KHRONOS_validation" MUST remain the last
-                                                                           // entry in this array!
 
-  VkInstanceCreateInfo create_info = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                      .enabledExtensionCount   = ARR_LEN(exts),
-                                      .ppEnabledExtensionNames = exts,
-                                      .enabledLayerCount       = ARR_LEN(layers) - (isDebug ? 0 : 1),
-                                      .ppEnabledLayerNames     = layers,
-                                      .pApplicationInfo        = &app_info};
-  VK_CHECK(vkCreateInstance(&create_info, nullptr, &vkInstance));
+void init_vulkan() {
+  VkApplicationInfo    inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_1};
+  const char*          inst_exts[]   = {"VK_KHR_surface", "VK_KHR_xcb_surface"};   //, "VK_KHR_maintenance1"};
+  const char*          inst_layers[] = {"VK_LAYER_KHRONOS_validation"};            // "VK_LAYER_KHRONOS_validation" MUST remain the last
+                                                                                   // entry in this array!
+  VkInstanceCreateInfo inst_create   = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                                        .enabledExtensionCount   = ARR_LEN(inst_exts),
+                                        .ppEnabledExtensionNames = inst_exts,
+                                        .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
+                                        .ppEnabledLayerNames     = inst_layers,
+                                        .pApplicationInfo        = &inst_app};
+  VK_CHECK(vkCreateInstance(&inst_create, nullptr, &vkInstance));
+
+  // Uint32 num_gpus;
+  // vkEnumeratePhysicalDevices(vkInstance, &num_gpus, nullptr);
+  // assert((num_gpus > 0) && "No Vulkan-compatible hardware found.");
+  // VkPhysicalDevice gpus[num_gpus];
+  // vkEnumeratePhysicalDevices(vkInstance, &num_gpus, gpus);
+  // for (Uint32 i = 0; i < num_gpus; i++) {
+  //   VkPhysicalDeviceProperties gpu_props = {};
+  //   vkGetPhysicalDeviceProperties(gpus[i], &gpu_props);
+  //   printf("GPU>>%d %d %s<<\n", gpu_props.deviceID, gpu_props.deviceType, gpu_props.deviceName);
+  //   vkChosenGpu = gpus[i];
+  //   break;
+  // }
+
+  // const char* device_exts[] = {"VK_KHR_swapchain"};   //, "VK_KHR_maintenance1"};
+
+  // VkDeviceQueueCreateInfo queue_create
+  //     = {.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .queueCount = 1, .queueFamilyIndex = 0, .pQueuePriorities = &(float) {1.0f}};
+  // VkDeviceCreateInfo device_create = {.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+  //                                     .queueCreateInfoCount    = 1,
+  //                                     .pQueueCreateInfos       = &queue_create,
+  //                                     .enabledExtensionCount   = 1,
+  //                                     .ppEnabledExtensionNames = device_exts,
+  //                                     .enabledLayerCount       = 0,   // ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
+  //                                     .ppEnabledLayerNames     = inst_layers};
+  // VK_CHECK(vkCreateDevice(vkChosenGpu, &device_create, nullptr, &vkDevice));
 }
+
 
 
 void init_swapchain() {
 }
 
 
+
 void init_commands() {
 }
 
 
+
 void init_sync_structures() {
 }
+
 
 
 void vke_init() {
@@ -92,7 +122,6 @@ void vke_run() {
           break;
       }
     }
-
     if (quit)
       break;
     vke_draw();

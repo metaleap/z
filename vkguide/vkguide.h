@@ -1,6 +1,8 @@
 #pragma once
 
+#include <assert.h>
 #include <stdio.h>
+#include <threads.h>
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vk_enum_string_helper.h>
