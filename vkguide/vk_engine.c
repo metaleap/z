@@ -115,7 +115,7 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
       .minImageCount    = surface_caps.minImageCount + ((surface_caps.maxImageCount > surface_caps.minImageCount) ? 1 : 0),
       .imageExtent      = (windowSize == nullptr) ? surface_caps.currentExtent : *windowSize,
       .imageArrayLayers = 1,
-      .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
       .imageFormat      = vlkSwapchainImageFormat,
       .imageColorSpace  = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
       .presentMode      = VK_PRESENT_MODE_FIFO_KHR,
@@ -169,8 +169,12 @@ void vlkInitSyncStructures() {
 
 
 void vkeDispose() {
-  for (int i = 0; i < FRAME_OVERLAP; i++)
+  for (int i = 0; i < FRAME_OVERLAP; i++) {
     vkDestroyCommandPool(vlkDevice, vke.frames[i].commandPool, nullptr);
+    vkDestroyFence(vlkDevice, vke.frames[i].fenceRender, nullptr);
+    vkDestroySemaphore(vlkDevice, vke.frames[i].semaRender, nullptr);
+    vkDestroySemaphore(vlkDevice, vke.frames[i].semaPresent, nullptr);
+  }
   vlkDisposeSwapchain();
   vkDestroySurfaceKHR(vlkInstance, vlkSurface, nullptr);
   vkDestroyDevice(vlkDevice, nullptr);
@@ -280,4 +284,15 @@ void vkeDraw() {
     // submit. fence will now block until the graphic commands finish execution
     VK_CHECK(vkQueueSubmit2(vke.vlkQueue, 1, &submit, frame->fenceRender));
   }
+
+  // PRESENT TO WINDOW
+  VK_CHECK(vkQueuePresentKHR(vke.vlkQueue, &(VkPresentInfoKHR) {
+                                               .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                               .swapchainCount     = 1,
+                                               .pSwapchains        = &vlkSwapchain,
+                                               .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
+                                               .pWaitSemaphores    = &frame->semaRender,
+                                               .pImageIndices      = &idx_image,
+                                           }));
+  vke.n_frame++;
 }
