@@ -2,6 +2,7 @@
 #include <SDL_error.h>
 #include <SDL_log.h>
 #include <SDL_vulkan.h>
+#include <stddef.h>
 #include <vulkan/vulkan_core.h>
 
 
@@ -11,12 +12,16 @@ bool isDebug = true;
 bool isDebug = false;
 #endif
 
-VkInstance       vlkInstance        = nullptr;
-VkPhysicalDevice vlkGpu             = nullptr;
-VkDevice         vlkDevice          = nullptr;
-VkSurfaceKHR     vlkSurface         = nullptr;
-VkSwapchainKHR   vlkSwapchain       = nullptr;
-VkImage*         vlkSwapchainImages = nullptr;
+
+VkFormat         vlkSwapchainImageFormat = VK_FORMAT_B8G8R8A8_SRGB;
+VkInstance       vlkInstance             = nullptr;
+VkPhysicalDevice vlkGpu                  = nullptr;
+VkDevice         vlkDevice               = nullptr;
+VkSurfaceKHR     vlkSurface              = nullptr;
+VkSwapchainKHR   vlkSwapchain            = nullptr;
+VkImage*         vlkSwapchainImages      = nullptr;
+VkImageView*     vlkSwapchainImageViews  = nullptr;
+VkExtent2D       vlkSwapchainExtent      = {};
 
 
 
@@ -69,35 +74,56 @@ void vlkInit() {
 
 
 
-void vlkRecreateSwapchain() {
-  if (vlkSwapchainImages != nullptr) {
-    for (Uint32 i = 0; vlkSwapchainImages[i] != nullptr; i++)
-      vkDestroyImage(vlkDevice, vlkSwapchainImages[i], nullptr);
-    vlkSwapchainImages = nullptr;
+void vlkDisposeSwapchain() {
+  if (vlkSwapchainImageViews != nullptr) {
+    for (Uint32 i = 0; vlkSwapchainImageViews[i] != nullptr; i++)
+      vkDestroyImageView(vlkDevice, vlkSwapchainImageViews[i], nullptr);
+    vlkSwapchainImageViews = nullptr;
   }
+  if (vlkSwapchain != nullptr) {
+    vkDestroySwapchainKHR(vlkDevice, vlkSwapchain, nullptr);
+    vlkSwapchain = nullptr;
+  }
+  vlkSwapchainImages = nullptr;   // they were disposed by the above vkDestroySwapchainKHR call
+}
 
+
+
+void vlkRecreateSwapchain(VkExtent2D* windowSize) {
+  vlkDisposeSwapchain();
   VkSurfaceCapabilitiesKHR surface_caps;
   VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vlkGpu, vlkSurface, &surface_caps));
-  VkSwapchainCreateInfoKHR create = {
+  VkSwapchainCreateInfoKHR create_swapchain = {
       .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
       .surface          = vlkSurface,
       .minImageCount    = surface_caps.minImageCount + ((surface_caps.maxImageCount > surface_caps.minImageCount) ? 1 : 0),
-      .imageExtent      = surface_caps.currentExtent,
+      .imageExtent      = (windowSize == nullptr) ? surface_caps.currentExtent : *windowSize,
       .imageArrayLayers = 1,
       .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      .imageFormat      = VK_FORMAT_B8G8R8A8_SRGB,
+      .imageFormat      = vlkSwapchainImageFormat,
       .imageColorSpace  = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
       .presentMode      = VK_PRESENT_MODE_FIFO_KHR,
       .preTransform     = surface_caps.currentTransform,
       .compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
       .clipped          = VK_TRUE,
   };
-  VK_CHECK(vkCreateSwapchainKHR(vlkDevice, &create, nullptr, &vlkSwapchain));
+  VK_CHECK(vkCreateSwapchainKHR(vlkDevice, &create_swapchain, nullptr, &vlkSwapchain));
   Uint32 num_images = 0;
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, nullptr);
   assert(num_images > 0);
-  vlkSwapchainImages = calloc((1 + num_images), sizeof(VkImage));   // ensure trailing nullptr
+  vlkSwapchainImages     = calloc((1 + num_images), sizeof(VkImage));       // ensuring trailing nullptr for iteration
+  vlkSwapchainImageViews = calloc((1 + num_images), sizeof(VkImageView));   // dito
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, vlkSwapchainImages);
+  for (Uint32 i = 0; i < num_images; i++) {
+    VkImageViewCreateInfo create_imageview = {
+        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image            = vlkSwapchainImages[i],
+        .format           = vlkSwapchainImageFormat,
+        .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1},
+    };
+    VK_CHECK(vkCreateImageView(vlkDevice, &create_imageview, nullptr, &vlkSwapchainImageViews[i]));
+  }
 }
 
 
@@ -113,16 +139,11 @@ void vlkInitSyncStructures() {
 
 
 void vkeDispose() {
-  SDL_DestroyWindow(vke.window);
-  vkDestroySwapchainKHR(vlkDevice, vlkSwapchain, nullptr);
-  if (vlkSwapchainImages != nullptr) {
-    for (Uint32 i = 0; vlkSwapchainImages[i] != nullptr; i++)
-      vkDestroyImage(vlkDevice, vlkSwapchainImages[i], nullptr);
-    vlkSwapchainImages = nullptr;
-  }
-  vkDestroyDevice(vlkDevice, nullptr);
+  vlkDisposeSwapchain();
   vkDestroySurfaceKHR(vlkInstance, vlkSurface, nullptr);
+  vkDestroyDevice(vlkDevice, nullptr);
   vkDestroyInstance(vlkInstance, nullptr);
+  SDL_DestroyWindow(vke.window);
 }
 
 
@@ -135,7 +156,8 @@ void vkeInit() {
     exit(1);
   }
   vlkInit();
-  vlkRecreateSwapchain();
+  vlkRecreateSwapchain(nullptr);
+  vkGetDeviceQueue(vlkDevice, 0, 0, &vke.vlkQueue);
   vlkInitCommands();
   vlkInitSyncStructures();
 }
@@ -175,6 +197,11 @@ void vkeRun() {
     vkeDraw();
   }
   vkDeviceWaitIdle(vlkDevice);
+}
+
+
+FrameData* vkeCurrentFrame() {
+  return &vke.frames[vke.n_frame % FRAME_OVERLAP];
 }
 
 
