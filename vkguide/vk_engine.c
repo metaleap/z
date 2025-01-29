@@ -1,8 +1,15 @@
 #include <threads.h>
 #include <SDL.h>
+#include <vulkan/vulkan_core.h>
 
 #include "./vkguide.h"
 
+
+#ifdef DEVBUILD
+bool isDebug = true;
+#else
+bool isDebug = false;
+#endif
 
 VkInstance               vkInstance;
 VkDebugUtilsMessengerEXT vkDebugMessenger;
@@ -12,6 +19,18 @@ VkSurfaceKHR             vkSurface;
 
 
 void init_vulkan() {
+  VkApplicationInfo app_info = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_1};
+  const char*       exts[]   = {"VK_KHR_surface", "VK_KHR_xcb_surface"};   //, "VK_KHR_maintenance1"};
+  const char*       layers[] = {"VK_LAYER_KHRONOS_validation"};            // "VK_LAYER_KHRONOS_validation" MUST remain the last
+                                                                           // entry in this array!
+
+  VkInstanceCreateInfo create_info = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                                      .enabledExtensionCount   = ARR_LEN(exts),
+                                      .ppEnabledExtensionNames = exts,
+                                      .enabledLayerCount       = ARR_LEN(layers) - (isDebug ? 0 : 1),
+                                      .ppEnabledLayerNames     = layers,
+                                      .pApplicationInfo        = &app_info};
+  VK_CHECK(vkCreateInstance(&create_info, nullptr, &vkInstance));
 }
 
 
@@ -73,6 +92,10 @@ void vke_run() {
           break;
       }
     }
+
+    if (quit)
+      break;
+    vke_draw();
   }
 }
 

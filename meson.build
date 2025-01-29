@@ -1,20 +1,23 @@
 project(
     'a0',
-    ['c'],
+    ['c', 'cpp'],
     version: '0.0.1',
     default_options: ['cpp_std=c++20', 'c_std=c23', 'cpp_rtti=false', 'cpp_eh=none'],
+    meson_version: '>=1.1',
 )
-
 add_global_arguments(
     '-gsplit-dwarf',
     '-fms-extensions',
     '-msse2',
     '-mfpmath=sse',
     '-march=native',
-    language: ['c'],
+    # '-Wno-incompatible-pointer-types', # no more `const T*` vs `T*`
+    language: ['c', 'cpp'],
 )
-
-add_global_link_arguments('-lm', language: ['c'])
+add_global_link_arguments(
+    '-lm',
+    language: ['c', 'cpp'],
+)
 
 dep_sdl2 = dependency('SDL2', include_type: 'system', static: false)
 dep_vulkan = dependency('vulkan', include_type: 'system', static: false)
