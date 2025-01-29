@@ -43,7 +43,7 @@ void init_vulkan() {
     break;
   }
 
-  const char* device_exts[] = {"VK_KHR_swapchain"};   //, "VK_KHR_maintenance1"};
+  const char* device_exts[] = {"VK_KHR_swapchain", "VK_KHR_maintenance1"};
 
   VkDeviceQueueCreateInfo queue_create
       = {.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .queueCount = 1, .queueFamilyIndex = 0, .pQueuePriorities = &(float) {1.0f}};
@@ -52,7 +52,7 @@ void init_vulkan() {
                                       .pQueueCreateInfos       = &queue_create,
                                       .enabledExtensionCount   = 1,
                                       .ppEnabledExtensionNames = device_exts,
-                                      .enabledLayerCount       = 0,   // ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
+                                      .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
                                       .ppEnabledLayerNames     = inst_layers};
   VK_CHECK(vkCreateDevice(vkChosenGpu, &device_create, nullptr, &vkDevice));
 }

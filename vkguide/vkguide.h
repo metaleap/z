@@ -1,7 +1,6 @@
 #pragma once
 
 #include <assert.h>
-#include <stdio.h>
 #include <threads.h>
 
 #include <vulkan/vulkan.h>
@@ -30,12 +29,11 @@ void vke_draw();
 void vke_cleanup();
 
 
-#define VK_CHECK(x)                                                   \
-  do {                                                                \
-    VkResult result = (x);                                            \
-    if (result != VK_SUCCESS) {                                       \
-      printf("Detected Vulkan error: %s\n", string_VkResult(result)); \
-      fflush(stdout);                                                 \
-      exit(1);                                                        \
-    }                                                                 \
+#define VK_CHECK(x)                                                    \
+  do {                                                                 \
+    VkResult result = (x);                                             \
+    if (result != VK_SUCCESS) {                                        \
+      SDL_Log("Detected Vulkan error: %s\n", string_VkResult(result)); \
+      exit(1);                                                         \
+    }                                                                  \
   } while (false)
