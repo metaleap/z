@@ -59,13 +59,14 @@ void vlkInit() {
     break;
   }
 
-  const char*             device_exts[] = {"VK_KHR_swapchain", "VK_KHR_maintenance1"};
+  const char*             device_exts[] = {"VK_KHR_swapchain",           "VK_KHR_maintenance1",          "VK_KHR_synchronization2",
+                                           "VK_EXT_descriptor_indexing", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
   VkDeviceQueueCreateInfo queue_create
       = {.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .queueCount = 1, .queueFamilyIndex = 0, .pQueuePriorities = &(float) {1.0f}};
   VkDeviceCreateInfo device_create = {.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
                                       .queueCreateInfoCount    = 1,
                                       .pQueueCreateInfos       = &queue_create,
-                                      .enabledExtensionCount   = 1,
+                                      .enabledExtensionCount   = ARR_LEN(device_exts),
                                       .ppEnabledExtensionNames = device_exts,
                                       .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
                                       .ppEnabledLayerNames     = inst_layers};
@@ -145,6 +146,16 @@ void vlkInitCommands() {
 
 
 void vlkInitSyncStructures() {
+  VkFenceCreateInfo create_fence = {
+      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+      .flags = VK_FENCE_CREATE_SIGNALED_BIT   // fence to start signalled so we can wait on it on the first frame
+  };
+  VkSemaphoreCreateInfo create_sema = {.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
+  for (int i = 0; i < FRAME_OVERLAP; i++) {
+    VK_CHECK(vkCreateFence(vlkDevice, &create_fence, nullptr, &vke.frames[i].fenceRender));
+    VK_CHECK(vkCreateSemaphore(vlkDevice, &create_sema, nullptr, &vke.frames[i].semaRender));
+    VK_CHECK(vkCreateSemaphore(vlkDevice, &create_sema, nullptr, &vke.frames[i].semaSwapchain));
+  }
 }
 
 
@@ -219,4 +230,24 @@ FrameData* vkeCurrentFrame() {
 
 
 void vkeDraw() {
+  const Uint64 timeout_syncs = 22u * 1000000000;   // secs * nanosecs
+
+  FrameData* frame = vkeCurrentFrame();
+  VK_CHECK(vkWaitForFences(vlkDevice, 1, &frame->fenceRender, true, timeout_syncs));
+  VK_CHECK(vkResetFences(vlkDevice, 1, &frame->fenceRender));
+
+  // request image from the swapchain
+  Uint32 idx_image;
+  VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaSwapchain, nullptr, &idx_image));
+
+  VkCommandBuffer cmdbuf = frame->mainCommandBuffer;
+  VK_CHECK(vkResetCommandBuffer(cmdbuf, 0));
+
+  VkCommandBufferBeginInfo cmdbuf_begin = {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT   // will use this command buffer exactly once
+  };
+  VK_CHECK(vkBeginCommandBuffer(cmdbuf, &cmdbuf_begin));
+
+  VK_CHECK(vkEndCommandBuffer(cmdbuf));
 }

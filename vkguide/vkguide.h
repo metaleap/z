@@ -20,6 +20,8 @@ extern bool isDebug;
 typedef struct FrameData {
   VkCommandPool   commandPool;
   VkCommandBuffer mainCommandBuffer;
+  VkFence         fenceRender;
+  VkSemaphore     semaSwapchain, semaRender;
 } FrameData;
 
 
@@ -41,11 +43,11 @@ void vkeDraw();
 void vkeDispose();
 
 
-#define VK_CHECK(x)                                                    \
-  do {                                                                 \
-    VkResult result = (x);                                             \
-    if (result != VK_SUCCESS) {                                        \
-      SDL_Log("Detected Vulkan error: %s\n", string_VkResult(result)); \
-      exit(1);                                                         \
-    }                                                                  \
+#define VK_CHECK(x)                                           \
+  do {                                                        \
+    VkResult result = (x);                                    \
+    if (result != VK_SUCCESS) {                               \
+      SDL_Log("Vulkan error: %s\n", string_VkResult(result)); \
+      exit(1);                                                \
+    }                                                         \
   } while (false)
