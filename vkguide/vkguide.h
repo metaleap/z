@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL_stdinc.h>
 #define VMA_DEDICATED_ALLOCATION 1
 
 #include <assert.h>
@@ -11,6 +12,19 @@
 #include <SDL2/SDL_vulkan.h>
 
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocator/include/vk_mem_alloc.h"
+
+
+
+void                        vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
+VkImageSubresourceRange     vlkImgSubresourceRange(VkImageAspectFlags aspectMask);
+VkCommandBufferBeginInfo    vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
+VkFenceCreateInfo           vlkFenceCreateInfo(VkFenceCreateFlags flags);
+VkSemaphoreCreateInfo       vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags);
+VkCommandPoolCreateInfo     vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags);
+VkCommandBufferAllocateInfo vlkCommandBufferAllocateInfo(VkCommandPool cmdPool, Uint32 cmdBufCount);
+VkSemaphoreSubmitInfo       vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
+VkCommandBufferSubmitInfo   vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
+VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig, VkSemaphoreSubmitInfo* wait);
 
 
 
@@ -26,11 +40,23 @@ typedef struct FrameData {
 } FrameData;
 
 
+#define DEL_QUEUE_CAPACITY 1
+typedef void deleter(void*);
+typedef struct DelQueue {
+  deleter* funcs[DEL_QUEUE_CAPACITY];
+  void*    args[DEL_QUEUE_CAPACITY];
+  Uint32   count;
+} DelQueue;
+void vke_del_push(DelQueue* queue, deleter fn, void* any);
+void vke_del_flush(DelQueue* queue);
+
+
 typedef struct VulkanEngine {
-  int         frameNr;
-  FrameData   frames[FRAME_OVERLAP];
-  bool        paused;
-  SDL_Window* window;
+  VmaAllocator alloc;
+  int          frameNr;
+  FrameData    frames[FRAME_OVERLAP];
+  bool         paused;
+  SDL_Window*  window;
 } VulkanEngine;
 
 
@@ -42,18 +68,6 @@ void vkeInit();
 void vkeRun();
 void vkeDraw();
 void vkeDispose();
-
-
-void                        vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
-VkImageSubresourceRange     vlkImgSubresourceRange(VkImageAspectFlags aspectMask);
-VkCommandBufferBeginInfo    vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
-VkFenceCreateInfo           vlkFenceCreateInfo(VkFenceCreateFlags flags);
-VkSemaphoreCreateInfo       vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags);
-VkCommandPoolCreateInfo     vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags);
-VkCommandBufferAllocateInfo vlkCommandBufferAllocateInfo(VkCommandPool cmdPool, Uint32 cmdBufCount);
-VkSemaphoreSubmitInfo       vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
-VkCommandBufferSubmitInfo   vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
-VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig, VkSemaphoreSubmitInfo* wait);
 
 
 

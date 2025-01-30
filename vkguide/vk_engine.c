@@ -1,4 +1,6 @@
 #include "./vkguide.h"
+#include <SDL_stdinc.h>
+#include <cstdlib>
 
 
 #ifdef DEVBUILD
@@ -81,6 +83,10 @@ void vlkInit() {
       .pNext                   = &(VkPhysicalDeviceFeatures2) {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features}
   };
   VK_CHECK(vkCreateDevice(vlkGpu, &device_create, nullptr, &vlkDevice));
+
+  VmaAllocatorCreateInfo alloc_create
+      = {.physicalDevice = vlkGpu, .device = vlkDevice, .instance = vlkInstance, .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT};
+  VK_CHECK(vmaCreateAllocator(&alloc_create, &vke.alloc));
 }
 
 
@@ -290,4 +296,23 @@ void vkeDraw() {
                                            .pImageIndices      = &idx_image,
                                        }));
   vke.frameNr++;
+}
+
+
+
+void vke_del_push(DelQueue* self, deleter func, void* arg) {
+  assert((self->count < DEL_QUEUE_CAPACITY) && (func != nullptr) && (arg != nullptr) && "vke_del_push");
+  self->funcs[self->count] = func;
+  self->args[self->count]  = arg;
+  self->count++;
+}
+
+
+void vke_del_flush(DelQueue* self) {
+  for (Uint32 i = (self->count - 1); i >= 0; i--) {
+    self->funcs[i](self->args[i]);
+    self->funcs[i] = nullptr;
+    self->args[i]  = nullptr;
+  }
+  self->count = 0;
 }
