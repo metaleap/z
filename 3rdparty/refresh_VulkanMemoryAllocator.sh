@@ -12,10 +12,10 @@ depDirName="GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocator"
 ### clean up, fetch zip, extract zip:
 
 rm -rf $depDirName
-rm -f VulkanMemoryAllocator.zip
-wget -O VulkanMemoryAllocator.zip https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v$depVer.zip
-unzip VulkanMemoryAllocator.zip
-rm -f VulkanMemoryAllocator.zip
+rm -f .tmp.zip
+wget -O .tmp.zip https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v$depVer.zip
+unzip .tmp.zip
+rm -f .tmp.zip
 mv VulkanMemoryAllocator-$depVer $depDirName
 
 

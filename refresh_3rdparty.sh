@@ -6,4 +6,4 @@ thisScriptsDirPath="$(dirname "$thisScriptsFilePath")"
 cd $thisScriptsDirPath/3rdparty
 
 
-./refresh_vma.sh
+./refresh_VulkanMemoryAllocator.sh
