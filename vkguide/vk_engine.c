@@ -1,11 +1,4 @@
 #include "./vkguide.h"
-#include <SDL_error.h>
-#include <SDL_log.h>
-#include <SDL_vulkan.h>
-#include <math.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <vulkan/vulkan_core.h>
 
 
 #ifdef DEVBUILD
@@ -24,6 +17,8 @@ VkSwapchainKHR   vlkSwapchain            = nullptr;
 VkImage*         vlkSwapchainImages      = nullptr;
 VkImageView*     vlkSwapchainImageViews  = nullptr;
 VkExtent2D       vlkSwapchainExtent      = {};
+VkQueue          vlkQueue;
+Uint32           vlkQueueFamilyIndex;
 
 
 
@@ -145,7 +140,7 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
 
 
 void vlkInitCommands() {
-  VkCommandPoolCreateInfo create_pool = vlkCommandPoolCreateInfo(vke.vlkQueueFamilyIndex, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+  VkCommandPoolCreateInfo create_pool = vlkCommandPoolCreateInfo(vlkQueueFamilyIndex, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   for (int i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateCommandPool(vlkDevice, &create_pool, nullptr, &vke.frames[i].commandPool));
     VkCommandBufferAllocateInfo buf_alloc = vlkCommandBufferAllocateInfo(vke.frames[i].commandPool, 1);
@@ -193,7 +188,7 @@ void vkeInit() {
   }
   vlkInit();
   vlkRecreateSwapchain(nullptr);
-  vkGetDeviceQueue(vlkDevice, 0, 0, &vke.vlkQueue);
+  vkGetDeviceQueue(vlkDevice, 0, 0, &vlkQueue);
   vlkInitCommands();
   vlkInitSyncStructures();
 }
@@ -237,7 +232,7 @@ void vkeRun() {
 
 
 FrameData* vkeCurrentFrame() {
-  return &vke.frames[vke.n_frame % FRAME_OVERLAP];
+  return &vke.frames[vke.frameNr % FRAME_OVERLAP];
 }
 
 
@@ -263,7 +258,7 @@ void vkeDraw() {
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     VkClearColorValue clear_value = {
-        .float32 = {0, 0, fabsf(sinf(((float) vke.n_frame) / 120.0f)), 1}
+        .float32 = {0, 0, fabsf(sinf(((float) vke.frameNr) / 120.0f)), 1}
     };
     VkImageSubresourceRange clear_range = vlkImgSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
     vkCmdClearColorImage(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_GENERAL, &clear_value, 1, &clear_range);
@@ -282,17 +277,17 @@ void vkeDraw() {
 
     VkSubmitInfo2 submit = vlkSubmitInfo(&cmdbuf_submit, &sema_sig_submit, &sema_wait_submit);
     // submit. fence will now block until the graphic commands finish execution
-    VK_CHECK(vkQueueSubmit2(vke.vlkQueue, 1, &submit, frame->fenceRender));
+    VK_CHECK(vkQueueSubmit2(vlkQueue, 1, &submit, frame->fenceRender));
   }
 
   // PRESENT TO WINDOW
-  VK_CHECK(vkQueuePresentKHR(vke.vlkQueue, &(VkPresentInfoKHR) {
-                                               .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                                               .swapchainCount     = 1,
-                                               .pSwapchains        = &vlkSwapchain,
-                                               .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
-                                               .pWaitSemaphores    = &frame->semaRender,
-                                               .pImageIndices      = &idx_image,
-                                           }));
-  vke.n_frame++;
+  VK_CHECK(vkQueuePresentKHR(vlkQueue, &(VkPresentInfoKHR) {
+                                           .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                           .swapchainCount     = 1,
+                                           .pSwapchains        = &vlkSwapchain,
+                                           .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
+                                           .pWaitSemaphores    = &frame->semaRender,
+                                           .pImageIndices      = &idx_image,
+                                       }));
+  vke.frameNr++;
 }

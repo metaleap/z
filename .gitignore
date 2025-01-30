@@ -1,4 +1,5 @@
+*.kate-swp
 .build
 .cache
 .tmp
-*.kate-swp
+3rdparty/**/*

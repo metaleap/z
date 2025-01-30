@@ -1,5 +1,7 @@
 #pragma once
 
+#define VMA_DEDICATED_ALLOCATION 1
+
 #include <assert.h>
 #include <threads.h>
 
@@ -10,7 +12,7 @@
 
 
 #define ARR_LEN(_arr_) (sizeof((_arr_)) / sizeof((_arr_)[0]))
-#define FRAME_OVERLAP  2
+#define FRAME_OVERLAP  3
 
 
 typedef struct FrameData {
@@ -22,12 +24,10 @@ typedef struct FrameData {
 
 
 typedef struct VulkanEngine {
-  int         n_frame;
+  int         frameNr;
   FrameData   frames[FRAME_OVERLAP];
   bool        paused;
   SDL_Window* window;
-  VkQueue     vlkQueue;
-  Uint32      vlkQueueFamilyIndex;
 } VulkanEngine;
 
 
