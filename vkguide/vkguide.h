@@ -1,6 +1,4 @@
 #pragma once
-
-#include <SDL_stdinc.h>
 #define VMA_DEDICATED_ALLOCATION 1
 
 #include <assert.h>
@@ -35,12 +33,12 @@ VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkS
 typedef void FnDispose(void*);
 typedef struct DisposalQueue {
 #define DISP_QUEUE_CAPACITY 1
-  Uint64     count;
+  int        count;
   FnDispose* funcs[DISP_QUEUE_CAPACITY];
   void*      args[DISP_QUEUE_CAPACITY];
 } DisposalQueue;
-void vke_del_push(DisposalQueue* queue, FnDispose fn, void* any);
-void vke_del_flush(DisposalQueue* queue);
+void disposals_push(DisposalQueue* queue, FnDispose fn, void* any);
+void disposals_flush(DisposalQueue* queue);
 
 
 typedef struct FrameData {
@@ -48,17 +46,17 @@ typedef struct FrameData {
   VkCommandBuffer mainCommandBuffer;
   VkFence         fenceRender;
   VkSemaphore     semaPresent, semaRender;
-  DisposalQueue   delQueue;
+  DisposalQueue   disposals;
 } FrameData;
 
 
 typedef struct VulkanEngine {
   VmaAllocator  alloc;
-  Uint64        frameNr;
+  size_t        frameNr;
   FrameData     frames[FRAME_OVERLAP];
   bool          paused;
   SDL_Window*   window;
-  DisposalQueue delQueue;
+  DisposalQueue disposals;
 } VulkanEngine;
 
 
@@ -69,7 +67,7 @@ extern VulkanEngine vke;
 void vkeInit();
 void vkeRun();
 void vkeDraw();
-void vkeDispose();
+void vkeShutdown();
 
 
 

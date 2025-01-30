@@ -4,7 +4,6 @@
 #include "./vkguide.h"
 
 
-VulkanEngine vke = {};
 
 
 
@@ -12,7 +11,7 @@ int main() {
   vkeInit();
   vkeRun();
 
-  vkeDispose();
+  vkeShutdown();
   SDL_Quit();
   return 0;
 }
