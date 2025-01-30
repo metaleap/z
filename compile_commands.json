@@ -76,5 +76,11 @@
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -DDEVBUILD -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_vk_types.c.o -MF vkguide.exec.p/vkguide_vk_types.c.o.d -o vkguide.exec.p/vkguide_vk_types.c.o -c ../../vkguide/vk_types.c",
     "file": "../../vkguide/vk_types.c",
     "output": "vkguide.exec.p/vkguide_vk_types.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -pthread -isystem/usr/include/SDL2 -D_REENTRANT -MD -MQ vkguide.exec.p/vkguide_3rdparty.cpp.o -MF vkguide.exec.p/vkguide_3rdparty.cpp.o.d -o vkguide.exec.p/vkguide_3rdparty.cpp.o -c ../../vkguide/3rdparty.cpp",
+    "file": "../../vkguide/3rdparty.cpp",
+    "output": "vkguide.exec.p/vkguide_3rdparty.cpp.o"
   }
 ]

@@ -19,23 +19,9 @@ mv VulkanMemoryAllocator-$depVer GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocato
 
 
 
-### build WickedEngine twice:
+### build:
 
-# cd .wi
-
-# rm -rf .build_RelWithDebInfo
-# mkdir .build_RelWithDebInfo
-# cd .build_RelWithDebInfo
-# cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWICKED_PIC=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-# make
-# cp compile_commands.json ../compile_commands.json
-# cd ..
-
-# rm -rf .build_Release
-# mkdir .build_Release
-# cd .build_Release
-# cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-# make
-# cd ..
-
-# cd ..
+cd GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocator
+cmake -S . -B .build
+cmake --install .build --prefix .build/install
+cd ..

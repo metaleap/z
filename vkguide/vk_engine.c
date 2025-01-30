@@ -258,7 +258,7 @@ void vkeDraw() {
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     VkClearColorValue clear_value = {
-        .float32 = {0, 0, fabsf(sinf(((float) vke.frameNr) / 120.0f)), 1}
+        .float32 = {fabsf(sinf(((float) vke.frameNr) / 120.0f)), 0.44f, 0.22f, 1.0f}
     };
     VkImageSubresourceRange clear_range = vlkImgSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
     vkCmdClearColorImage(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_GENERAL, &clear_value, 1, &clear_range);

@@ -39,7 +39,7 @@ executable(
 executable(
     'vkguide.exec',
     dependencies: [dep_vulkan, dep_sdl2, dep_pthread],
-    link_language: 'c',
+    link_language: 'cpp',
     sources: [
         'vkguide/main.c',
         'vkguide/vk_descriptors.c',
@@ -49,5 +49,6 @@ executable(
         'vkguide/vk_loader.c',
         'vkguide/vk_pipelines.c',
         'vkguide/vk_types.c',
+        'vkguide/3rdparty.cpp',
     ],
 )

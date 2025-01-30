@@ -10,6 +10,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
+#include "../3rdparty/GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocator/include/vk_mem_alloc.h"
+
+
 
 #define ARR_LEN(_arr_) (sizeof((_arr_)) / sizeof((_arr_)[0]))
 #define FRAME_OVERLAP  3
