@@ -1,9 +1,35 @@
 #include "./vkguide.h"
+#include <SDL_stdinc.h>
+#include <vulkan/vulkan_core.h>
 
 
 
-VkImageSubresourceRange vlkImgSubresourceRange(VkImageAspectFlags aspectMask) {
+VkImageSubresourceRange vlkImageSubresourceRange(VkImageAspectFlags aspectMask) {
   return (VkImageSubresourceRange) {.aspectMask = aspectMask, .levelCount = VK_REMAINING_MIP_LEVELS, .layerCount = VK_REMAINING_ARRAY_LAYERS};
+}
+
+
+VkImageCreateInfo vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent) {
+  return (VkImageCreateInfo) {.sType       = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                              .imageType   = VK_IMAGE_TYPE_2D,
+                              .format      = format,
+                              .usage       = usageFlags,
+                              .extent      = extent,
+                              .mipLevels   = 1,
+                              .arrayLayers = 1,
+                              .tiling      = VK_IMAGE_TILING_OPTIMAL,   // as long as no cpu readback
+                              .samples     = VK_SAMPLE_COUNT_1_BIT};
+}
+
+
+VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags) {
+  return (VkImageViewCreateInfo) {
+      .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+      .image            = image,
+      .format           = format,
+      .subresourceRange = {.aspectMask = aspectFlags, .levelCount = 1, .layerCount = 1}
+  };
 }
 
 

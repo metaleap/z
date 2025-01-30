@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 VulkanEngine vke = {};
@@ -87,6 +88,7 @@ void vlkInit() {
   VmaAllocatorCreateInfo alloc_create
       = {.physicalDevice = vlkGpu, .device = vlkDevice, .instance = vlkInstance, .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT};
   VK_CHECK(vmaCreateAllocator(&alloc_create, &vke.alloc));
+  disposals_push(&vke.disposals, (void*) vmaDestroyAllocator, vke.alloc);
 }
 
 
@@ -125,6 +127,7 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
       .clipped          = VK_TRUE,
   };
   VK_CHECK(vkCreateSwapchainKHR(vlkDevice, &create_swapchain, nullptr, &vlkSwapchain));
+  vke.drawExtent    = create_swapchain.imageExtent;
   Uint32 num_images = 0;
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, nullptr);
   assert(num_images > 0);
@@ -141,6 +144,16 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
     };
     VK_CHECK(vkCreateImageView(vlkDevice, &create_imageview, nullptr, &vlkSwapchainImageViews[i]));
   }
+
+  vke.drawImage.format                = VK_FORMAT_R16G16B16A16_SFLOAT;
+  vke.drawImage.extent                = (VkExtent3D) {.width = vke.drawExtent.width, .height = vke.drawExtent.height, .depth = 1};
+  VkImageCreateInfo       rimg_create = vlkImageCreateInfo(vke.drawImage.format,
+                                                           VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+                                                               | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                                           vke.drawImage.extent);
+  // allocate the draw-image from gpu local memory
+  VmaAllocationCreateInfo rimg_alloc  = {.usage = VMA_MEMORY_USAGE_GPU_ONLY, .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+  VK_CHECK(vmaCreateImage(vke.alloc, &rimg_create, &rimg_alloc, &vke.drawImage.image, &vke.drawImage.alloc, nullptr));
 }
 
 
@@ -269,7 +282,7 @@ void vkeDraw() {
     VkClearColorValue clear_value = {
         .float32 = {fabsf(sinf(((float) vke.frameNr) / 44.0f)), 0.44f, 0.22f, 1.0f}
     };
-    VkImageSubresourceRange clear_range = vlkImgSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
+    VkImageSubresourceRange clear_range = vlkImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
     vkCmdClearColorImage(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_GENERAL, &clear_value, 1, &clear_range);
 
     // swapchain image into presentable mode

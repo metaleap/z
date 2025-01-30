@@ -3,8 +3,8 @@
 
 
 void vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout) {
-  VkImageSubresourceRange srr
-      = vlkImgSubresourceRange((newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
+  VkImageSubresourceRange srr = vlkImageSubresourceRange((newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT
+                                                                                                                 : VK_IMAGE_ASPECT_COLOR_BIT);
   vkCmdPipelineBarrier2(
       cmdBuf, &(VkDependencyInfo) {
                   .sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,

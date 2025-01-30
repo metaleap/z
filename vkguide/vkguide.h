@@ -1,4 +1,5 @@
 #pragma once
+#include <vulkan/vulkan_core.h>
 #define VMA_DEDICATED_ALLOCATION 1
 
 #include <assert.h>
@@ -14,7 +15,7 @@
 
 
 void                        vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
-VkImageSubresourceRange     vlkImgSubresourceRange(VkImageAspectFlags aspectMask);
+VkImageSubresourceRange     vlkImageSubresourceRange(VkImageAspectFlags aspectMask);
 VkCommandBufferBeginInfo    vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
 VkFenceCreateInfo           vlkFenceCreateInfo(VkFenceCreateFlags flags);
 VkSemaphoreCreateInfo       vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags);
@@ -23,6 +24,8 @@ VkCommandBufferAllocateInfo vlkCommandBufferAllocateInfo(VkCommandPool cmdPool, 
 VkSemaphoreSubmitInfo       vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
 VkCommandBufferSubmitInfo   vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
 VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig, VkSemaphoreSubmitInfo* wait);
+VkImageCreateInfo           vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
+VkImageViewCreateInfo       vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
 
 
 
@@ -50,6 +53,15 @@ typedef struct FrameData {
 } FrameData;
 
 
+typedef struct VlkImage {
+  VkImage       image;
+  VkImageView   defaultView;
+  VkExtent3D    extent;
+  VkFormat      format;
+  VmaAllocation alloc;
+} VlkImage;
+
+
 typedef struct VulkanEngine {
   VmaAllocator  alloc;
   size_t        frameNr;
@@ -57,6 +69,8 @@ typedef struct VulkanEngine {
   bool          paused;
   SDL_Window*   window;
   DisposalQueue disposals;
+  VlkImage      drawImage;
+  VkExtent2D    drawExtent;
 } VulkanEngine;
 
 
