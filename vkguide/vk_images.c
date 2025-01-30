@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 
@@ -19,4 +20,25 @@ void vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout curre
                                                                        .image         = image,
                                                                        .subresourceRange = srr}
   });
+}
+
+
+
+void vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize) {
+  VkImageBlit2 blit_region = {
+      .sType          = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
+      .srcSubresource = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1},
+      .dstSubresource = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1}
+  };
+  blit_region.srcOffsets[1] = (VkOffset3D) {.x = srcSize.width, .y = srcSize.height, .z = 1};
+  blit_region.dstOffsets[1] = (VkOffset3D) {.x = dstSize.width, .y = dstSize.height, .z = 1};
+
+  vkCmdBlitImage2(cmdBuf, &(VkBlitImageInfo2) {.sType          = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
+                                               .dstImage       = dst,
+                                               .srcImage       = src,
+                                               .dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                               .srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                               .filter         = VK_FILTER_LINEAR,
+                                               .regionCount    = 1,
+                                               .pRegions       = &blit_region});
 }

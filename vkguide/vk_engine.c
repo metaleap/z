@@ -265,8 +265,19 @@ FrameData* vkeCurrentFrame() {
 }
 
 
+void vkeDrawCore(VkCommandBuffer cmdBuf) {
+  VkClearColorValue clear_value = {
+      .float32 = {fabsf(sinf(((float) vke.frameNr) / 44.0f)), 0.44f, 0.22f, 1.0f}
+  };
+  VkImageSubresourceRange clear_range = vlkImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
+  vkCmdClearColorImage(cmdBuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clear_value, 1, &clear_range);
+}
+
+
 void vkeDraw() {
   const Uint64 timeout_syncs = 11u * 1000000000;   // secs * nanosecs
+  vke.drawExtent.width       = vke.drawImage.extent.width;
+  vke.drawExtent.height      = vke.drawImage.extent.height;
 
   FrameData* frame = vkeCurrentFrame();
   VK_CHECK(vkWaitForFences(vlkDevice, 1, &frame->fenceRender, true, timeout_syncs));
@@ -274,27 +285,28 @@ void vkeDraw() {
   VK_CHECK(vkResetFences(vlkDevice, 1, &frame->fenceRender));
 
   // request image from the swapchain
-  Uint32 idx_image;
-  VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaPresent, nullptr, &idx_image));
+  Uint32 idx_swapchain_image;
+  VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaPresent, nullptr, &idx_swapchain_image));
 
+  // RECORD COMMANDS
   VkCommandBuffer cmdbuf = frame->mainCommandBuffer;
   VK_CHECK(vkResetCommandBuffer(cmdbuf, 0));
-
   VkCommandBufferBeginInfo cmdbuf_begin
       = vlkCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);   // will use this command buffer exactly once
   VK_CHECK(vkBeginCommandBuffer(cmdbuf, &cmdbuf_begin));
   {
-    // swapchain image into writeable mode before rendering
-    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-
-    VkClearColorValue clear_value = {
-        .float32 = {fabsf(sinf(((float) vke.frameNr) / 44.0f)), 0.44f, 0.22f, 1.0f}
-    };
-    VkImageSubresourceRange clear_range = vlkImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
-    vkCmdClearColorImage(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_GENERAL, &clear_value, 1, &clear_range);
-
+    // transition our main draw image into general layout so we can write into it
+    // we will overwrite it all so we dont care about what was the older layout
+    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    // actual drawing:
+    vkeDrawCore(cmdbuf);
+    // transition the draw image and the swapchain image into their correct transfer layouts
+    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    // execute a copy from the draw image into the swapchain
+    vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.drawExtent, vlkSwapchainExtent);
     // swapchain image into presentable mode
-    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_image], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
   }
   VK_CHECK(vkEndCommandBuffer(cmdbuf));
 
@@ -310,15 +322,16 @@ void vkeDraw() {
     VK_CHECK(vkQueueSubmit2(vlkQueue, 1, &submit, frame->fenceRender));
   }
 
-  // PRESENT TO WINDOW
-  VK_CHECK(vkQueuePresentKHR(vlkQueue, &(VkPresentInfoKHR) {
-                                           .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                                           .swapchainCount     = 1,
-                                           .pSwapchains        = &vlkSwapchain,
-                                           .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
-                                           .pWaitSemaphores    = &frame->semaRender,
-                                           .pImageIndices      = &idx_image,
-                                       }));
+  {   // PRESENT TO WINDOW
+    VK_CHECK(vkQueuePresentKHR(vlkQueue, &(VkPresentInfoKHR) {
+                                             .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                             .swapchainCount     = 1,
+                                             .pSwapchains        = &vlkSwapchain,
+                                             .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
+                                             .pWaitSemaphores    = &frame->semaRender,
+                                             .pImageIndices      = &idx_swapchain_image,
+                                         }));
+  }
   vke.frameNr++;
 }
 
