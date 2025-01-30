@@ -1,6 +1,4 @@
 #include "./vkguide.h"
-#include <SDL_stdinc.h>
-#include <cstdlib>
 
 
 #ifdef DEVBUILD
@@ -50,7 +48,7 @@ void vlkInit() {
   assert((num_gpus > 0) && "vkEnumeratePhysicalDevices");
   VkPhysicalDevice gpus[num_gpus];
   vkEnumeratePhysicalDevices(vlkInstance, &num_gpus, gpus);
-  for (Uint32 i = 0; i < num_gpus; i++) {
+  for (Uint64 i = 0; i < num_gpus; i++) {
     VkPhysicalDeviceProperties gpu_props = {};
     vkGetPhysicalDeviceProperties(gpus[i], &gpu_props);
     SDL_Log("GPU>>%d %d %s<<\n", gpu_props.deviceID, gpu_props.deviceType, gpu_props.deviceName);
@@ -93,7 +91,7 @@ void vlkInit() {
 
 void vlkDisposeSwapchain() {
   if (vlkSwapchainImageViews != nullptr) {
-    for (Uint32 i = 0; vlkSwapchainImageViews[i] != nullptr; i++)
+    for (Uint64 i = 0; vlkSwapchainImageViews[i] != nullptr; i++)
       vkDestroyImageView(vlkDevice, vlkSwapchainImageViews[i], nullptr);
     vlkSwapchainImageViews = nullptr;
   }
@@ -131,7 +129,7 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
   vlkSwapchainImages     = calloc((1 + num_images), sizeof(VkImage));       // ensuring trailing nullptr for iteration
   vlkSwapchainImageViews = calloc((1 + num_images), sizeof(VkImageView));   // dito
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, vlkSwapchainImages);
-  for (Uint32 i = 0; i < num_images; i++) {
+  for (Uint64 i = 0; i < num_images; i++) {
     VkImageViewCreateInfo create_imageview = {
         .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image            = vlkSwapchainImages[i],
@@ -147,7 +145,7 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
 
 void vlkInitCommands() {
   VkCommandPoolCreateInfo create_pool = vlkCommandPoolCreateInfo(vlkQueueFamilyIndex, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
-  for (int i = 0; i < FRAME_OVERLAP; i++) {
+  for (Uint64 i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateCommandPool(vlkDevice, &create_pool, nullptr, &vke.frames[i].commandPool));
     VkCommandBufferAllocateInfo buf_alloc = vlkCommandBufferAllocateInfo(vke.frames[i].commandPool, 1);
     VK_CHECK(vkAllocateCommandBuffers(vlkDevice, &buf_alloc, &vke.frames[i].mainCommandBuffer));
@@ -160,7 +158,7 @@ void vlkInitSyncStructures() {
   VkFenceCreateInfo create_fence
       = vlkFenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);   // start signalled so we can wait on it on the first frame
   VkSemaphoreCreateInfo create_sema = vlkSemaphoreCreateInfo(0);
-  for (int i = 0; i < FRAME_OVERLAP; i++) {
+  for (Uint64 i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateFence(vlkDevice, &create_fence, nullptr, &vke.frames[i].fenceRender));
     VK_CHECK(vkCreateSemaphore(vlkDevice, &create_sema, nullptr, &vke.frames[i].semaRender));
     VK_CHECK(vkCreateSemaphore(vlkDevice, &create_sema, nullptr, &vke.frames[i].semaPresent));
@@ -170,7 +168,7 @@ void vlkInitSyncStructures() {
 
 
 void vkeDispose() {
-  for (int i = 0; i < FRAME_OVERLAP; i++) {
+  for (Uint64 i = 0; i < FRAME_OVERLAP; i++) {
     vkDestroyCommandPool(vlkDevice, vke.frames[i].commandPool, nullptr);
     vkDestroyFence(vlkDevice, vke.frames[i].fenceRender, nullptr);
     vkDestroySemaphore(vlkDevice, vke.frames[i].semaRender, nullptr);
@@ -300,16 +298,16 @@ void vkeDraw() {
 
 
 
-void vke_del_push(DelQueue* self, deleter func, void* arg) {
-  assert((self->count < DEL_QUEUE_CAPACITY) && (func != nullptr) && (arg != nullptr) && "vke_del_push");
+void vke_del_push(DisposalQueue* self, FnDispose func, void* arg) {
+  assert((self->count < DISP_QUEUE_CAPACITY) && (func != nullptr) && (arg != nullptr) && "vke_del_push");
   self->funcs[self->count] = func;
   self->args[self->count]  = arg;
   self->count++;
 }
 
 
-void vke_del_flush(DelQueue* self) {
-  for (Uint32 i = (self->count - 1); i >= 0; i--) {
+void vke_del_flush(DisposalQueue* self) {
+  for (Uint64 i = (self->count - 1); i >= 0; i--) {
     self->funcs[i](self->args[i]);
     self->funcs[i] = nullptr;
     self->args[i]  = nullptr;

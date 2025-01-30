@@ -32,31 +32,33 @@ VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkS
 #define FRAME_OVERLAP  3
 
 
+typedef void FnDispose(void*);
+typedef struct DisposalQueue {
+#define DISP_QUEUE_CAPACITY 1
+  Uint64     count;
+  FnDispose* funcs[DISP_QUEUE_CAPACITY];
+  void*      args[DISP_QUEUE_CAPACITY];
+} DisposalQueue;
+void vke_del_push(DisposalQueue* queue, FnDispose fn, void* any);
+void vke_del_flush(DisposalQueue* queue);
+
+
 typedef struct FrameData {
   VkCommandPool   commandPool;
   VkCommandBuffer mainCommandBuffer;
   VkFence         fenceRender;
   VkSemaphore     semaPresent, semaRender;
+  DisposalQueue   delQueue;
 } FrameData;
 
 
-#define DEL_QUEUE_CAPACITY 1
-typedef void deleter(void*);
-typedef struct DelQueue {
-  deleter* funcs[DEL_QUEUE_CAPACITY];
-  void*    args[DEL_QUEUE_CAPACITY];
-  Uint32   count;
-} DelQueue;
-void vke_del_push(DelQueue* queue, deleter fn, void* any);
-void vke_del_flush(DelQueue* queue);
-
-
 typedef struct VulkanEngine {
-  VmaAllocator alloc;
-  int          frameNr;
-  FrameData    frames[FRAME_OVERLAP];
-  bool         paused;
-  SDL_Window*  window;
+  VmaAllocator  alloc;
+  Uint64        frameNr;
+  FrameData     frames[FRAME_OVERLAP];
+  bool          paused;
+  SDL_Window*   window;
+  DisposalQueue delQueue;
 } VulkanEngine;
 
 
