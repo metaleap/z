@@ -88,7 +88,6 @@ void vlkInit() {
   VmaAllocatorCreateInfo alloc_create
       = {.physicalDevice = vlkGpu, .device = vlkDevice, .instance = vlkInstance, .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT};
   VK_CHECK(vmaCreateAllocator(&alloc_create, &vke.alloc));
-  disposals_push(&vke.disposals, (void*) vmaDestroyAllocator, vke.alloc);
 }
 
 
@@ -145,15 +144,23 @@ void vlkRecreateSwapchain(VkExtent2D* windowSize) {
     VK_CHECK(vkCreateImageView(vlkDevice, &create_imageview, nullptr, &vlkSwapchainImageViews[i]));
   }
 
-  vke.drawImage.format                = VK_FORMAT_R16G16B16A16_SFLOAT;
-  vke.drawImage.extent                = (VkExtent3D) {.width = vke.drawExtent.width, .height = vke.drawExtent.height, .depth = 1};
+  // NEW
+
+  vke.drawImage.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+  vke.drawImage.extent = (VkExtent3D) {.width = vke.drawExtent.width, .height = vke.drawExtent.height, .depth = 1};
+
+  // allocate the draw-image from gpu local memory
   VkImageCreateInfo       rimg_create = vlkImageCreateInfo(vke.drawImage.format,
                                                            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
                                                                | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                                                            vke.drawImage.extent);
-  // allocate the draw-image from gpu local memory
   VmaAllocationCreateInfo rimg_alloc  = {.usage = VMA_MEMORY_USAGE_GPU_ONLY, .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
   VK_CHECK(vmaCreateImage(vke.alloc, &rimg_create, &rimg_alloc, &vke.drawImage.image, &vke.drawImage.alloc, nullptr));
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.drawImage.image, vke.drawImage.alloc);
+
+  VkImageViewCreateInfo rview_create = vlkImageViewCreateInfo(vke.drawImage.format, vke.drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+  VK_CHECK(vkCreateImageView(vlkDevice, &rview_create, nullptr, &vke.drawImage.defaultView));
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.drawImage.defaultView, nullptr);
 }
 
 
@@ -193,6 +200,7 @@ void vkeShutdown() {
   disposals_flush(&vke.disposals);
   vlkDisposeSwapchain();
   vkDestroySurfaceKHR(vlkInstance, vlkSurface, nullptr);
+  vmaDestroyAllocator(vke.alloc);
   vkDestroyDevice(vlkDevice, nullptr);
   vkDestroyInstance(vlkInstance, nullptr);
   SDL_DestroyWindow(vke.window);
@@ -316,10 +324,11 @@ void vkeDraw() {
 
 
 
-void disposals_push(DisposalQueue* self, FnDispose func, void* arg) {
-  assert((self->count < DISP_QUEUE_CAPACITY) && (func != nullptr) && (arg != nullptr) && "vke_del_push");
-  self->funcs[self->count] = func;
-  self->args[self->count]  = arg;
+void disposals_push(DisposalQueue* self, VkStructureType type, void* arg, VmaAllocation alloc) {
+  assert((self->count < DISP_QUEUE_CAPACITY) && (arg != nullptr) && "disposals_push");
+  self->types[self->count]  = type;
+  self->args[self->count]   = arg;
+  self->allocs[self->count] = alloc;
   self->count++;
 }
 
@@ -327,9 +336,19 @@ void disposals_push(DisposalQueue* self, FnDispose func, void* arg) {
 void disposals_flush(DisposalQueue* self) {
   if (self->count > 0)
     for (int i = (self->count - 1); i >= 0; i--) {
-      self->funcs[i](self->args[i]);
-      self->funcs[i] = nullptr;
-      self->args[i]  = nullptr;
+      switch (self->types[i]) {
+        case VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO:
+          if (self->allocs[i] != nullptr)
+            vmaDestroyImage(vke.alloc, (VkImage) self->args[i], self->allocs[i]);
+          else
+            vkDestroyImage(vlkDevice, (VkImage) self->args[i], nullptr);
+          break;
+        case VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO:
+          vkDestroyImageView(vlkDevice, (VkImageView) self->args[i], nullptr);
+          break;
+        default:
+          assert(false && self->types[i]);
+      }
     }
   self->count = 0;
 }

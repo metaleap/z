@@ -33,15 +33,15 @@ VkImageViewCreateInfo       vlkImageViewCreateInfo(VkFormat format, VkImage imag
 #define FRAME_OVERLAP  3
 
 
-typedef void FnDispose(void*);
 typedef struct DisposalQueue {
-#define DISP_QUEUE_CAPACITY 1
-  int        count;
-  FnDispose* funcs[DISP_QUEUE_CAPACITY];
-  void*      args[DISP_QUEUE_CAPACITY];
+#define DISP_QUEUE_CAPACITY 11
+  int             count;
+  VkStructureType types[DISP_QUEUE_CAPACITY];
+  void*           args[DISP_QUEUE_CAPACITY];
+  VmaAllocation   allocs[DISP_QUEUE_CAPACITY];
 } DisposalQueue;
-void disposals_push(DisposalQueue* queue, FnDispose fn, void* any);
-void disposals_flush(DisposalQueue* queue);
+void disposals_push(DisposalQueue* self, VkStructureType type, void* arg, VmaAllocation alloc);
+void disposals_flush(DisposalQueue* self);
 
 
 typedef struct FrameData {
