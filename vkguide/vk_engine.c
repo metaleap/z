@@ -1,5 +1,4 @@
 #include "./vkguide.h"
-#include <vulkan/vulkan_core.h>
 
 
 VulkanEngine vke = {
@@ -256,6 +255,26 @@ void vkeShutdown() {
 }
 
 
+
+void vkeInitBackgroundPipelines() {
+  VkPipelineLayoutCreateInfo create = {.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                       .setLayoutCount = 1,
+                                       .pSetLayouts    = &vke.drawImageDescriptorLayout};
+  VK_CHECK(vkCreatePipelineLayout(vlkDevice, &create, nullptr, &vke.gradientPipelineLayout));
+
+  VkShaderModule drawing_compute_shader;
+  assert(vlkLoadShaderModule("../../vkguide/shaders/gradient.comp", vlkDevice, &drawing_compute_shader) &&
+         "vlkLoadShaderModule");
+}
+
+
+
+void vkeInitPipelines() {
+  vkeInitBackgroundPipelines();
+}
+
+
+
 void vkeInit() {
   SDL_Init(SDL_INIT_EVERYTHING);
   vke.window =
@@ -269,7 +288,9 @@ void vkeInit() {
   vkeInitCommands();
   vkeInitSyncStructures();
   vkeInitDescriptors();
+  vkeInitPipelines();
 }
+
 
 
 void vkeRun() {

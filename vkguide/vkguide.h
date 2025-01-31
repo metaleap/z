@@ -32,6 +32,7 @@ VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkI
 void                  vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout,
                                        VkImageLayout newLayout);
 void vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize);
+bool vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule);
 
 
 
@@ -111,6 +112,8 @@ typedef struct VulkanEngine {
   VlkDescriptorAllocator globalDescriptorAlloc;
   VkDescriptorSet        drawImageDescriptors;
   VkDescriptorSetLayout  drawImageDescriptorLayout;
+  VkPipeline             gradientPipeline;
+  VkPipelineLayout       gradientPipelineLayout;
 } VulkanEngine;
 
 
