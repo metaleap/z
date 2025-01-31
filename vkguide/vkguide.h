@@ -71,8 +71,9 @@ typedef struct VulkanEngine {
   bool          paused;
   SDL_Window*   window;
   DisposalQueue disposals;
-  VlkImage      drawImage;
   VkExtent2D    windowExtent;
+  VkExtent2D    drawExtent;
+  VlkImage      drawImage;
 } VulkanEngine;
 
 

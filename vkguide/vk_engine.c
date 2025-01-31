@@ -128,7 +128,6 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
   };
   VK_CHECK(vkCreateSwapchainKHR(vlkDevice, &create_swapchain, nullptr, &vlkSwapchain));
   vlkSwapchainExtent = create_swapchain.imageExtent;
-  // vke.windowExtent  = create_swapchain.imageExtent;
   Uint32 num_images  = 0;
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, nullptr);
   assert(num_images > 0);
@@ -146,14 +145,9 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
     VK_CHECK(vkCreateImageView(vlkDevice, &create_imageview, nullptr, &vlkSwapchainImageViews[i]));
   }
 
-  // NEW
-
-  VkExtent3D draw_extent = {vke.windowExtent.width, vke.windowExtent.height, 1};
-  vke.drawImage.format   = VK_FORMAT_R16G16B16A16_SFLOAT;
-  vke.drawImage.extent   = (VkExtent3D) {.width = draw_extent.width, .height = draw_extent.height, .depth = 1};
-
-  // allocate the draw-image from gpu local memory
-  VkImageCreateInfo       rimg_create = vlkImageCreateInfo(vke.drawImage.format,
+  vke.drawImage.extent                = (VkExtent3D) {vke.windowExtent.width, vke.windowExtent.height, 1};
+  vke.drawImage.format                = VK_FORMAT_R16G16B16A16_SFLOAT;
+  VkImageCreateInfo       rimg_create = vlkImageCreateInfo(vke.drawImage.format,   // allocate the draw-image from gpu local memory
                                                            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
                                                                | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                                                            vke.drawImage.extent);
@@ -285,23 +279,20 @@ void vkeDrawCore(VkCommandBuffer cmdBuf) {
 
 void vkeDraw() {
   const Uint64 timeout_syncs = 11u * 1000000000;   // secs * nanosecs
-  vke.windowExtent.width     = vke.drawImage.extent.width;
-  vke.windowExtent.height    = vke.drawImage.extent.height;
+  vke.drawExtent.width       = vke.drawImage.extent.width;
+  vke.drawExtent.height      = vke.drawImage.extent.height;
 
   FrameData* frame = vkeCurrentFrame();
   VK_CHECK(vkWaitForFences(vlkDevice, 1, &frame->fenceRender, true, timeout_syncs));
   disposals_flush(&frame->disposals);
   VK_CHECK(vkResetFences(vlkDevice, 1, &frame->fenceRender));
 
-  // request image from the swapchain
-  Uint32 idx_swapchain_image;
-  VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaPresent, nullptr, &idx_swapchain_image));
-
+  Uint32          idx_swapchain_image;
   // RECORD COMMANDS
   VkCommandBuffer cmdbuf = frame->mainCommandBuffer;
   VK_CHECK(vkResetCommandBuffer(cmdbuf, 0));
-  VkCommandBufferBeginInfo cmdbuf_begin
-      = vlkCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);   // will use this command buffer exactly once
+  VkCommandBufferBeginInfo cmdbuf_begin   // will use this command buffer exactly once:
+      = vlkCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
   VK_CHECK(vkBeginCommandBuffer(cmdbuf, &cmdbuf_begin));
   {
     // transition our main draw image into general layout so we can write into it
@@ -311,9 +302,10 @@ void vkeDraw() {
     vkeDrawCore(cmdbuf);
     // transition the draw image and the swapchain image into their correct transfer layouts
     vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaPresent, nullptr, &idx_swapchain_image));
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // execute a copy from the draw image into the swapchain
-    vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.windowExtent, vlkSwapchainExtent);
+    vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.drawExtent, vlkSwapchainExtent);
     // swapchain image into presentable mode
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
   }
@@ -370,7 +362,7 @@ void disposals_flush(DisposalQueue* self) {
           break;
         default:
           SDL_Log(">>>%x<<<\n", self->types[i]);
-          assert(false && self->types[i]);
+          assert(false && "disposals_flush");
       }
     }
   self->count = 0;
