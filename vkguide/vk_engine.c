@@ -33,20 +33,18 @@ void vkeInitVulkan() {
   const char* inst_exts[num_exts];
   SDL_Vulkan_GetInstanceExtensions(vke.window, &num_exts, inst_exts);
 
-  VkApplicationInfo    inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_4};
-  const char*          inst_layers[] = {"VK_LAYER_KHRONOS_validation"};   // "VK_LAYER_KHRONOS_validation" MUST remain the last entry!
-  VkInstanceCreateInfo inst_create   = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-                                        .enabledExtensionCount   = num_exts,
-                                        .ppEnabledExtensionNames = inst_exts,
-                                        .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
-                                        .ppEnabledLayerNames     = inst_layers,
-                                        .pApplicationInfo        = &inst_app};
+  VkApplicationInfo inst_app = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_4};
+  const char*       inst_layers[] = {
+      "VK_LAYER_KHRONOS_validation"};   // "VK_LAYER_KHRONOS_validation" MUST remain the last entry!
+  VkInstanceCreateInfo inst_create = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+                                      .enabledExtensionCount   = num_exts,
+                                      .ppEnabledExtensionNames = inst_exts,
+                                      .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
+                                      .ppEnabledLayerNames     = inst_layers,
+                                      .pApplicationInfo        = &inst_app};
   VK_CHECK(vkCreateInstance(&inst_create, nullptr, &vlkInstance));
 
-  if (!SDL_Vulkan_CreateSurface(vke.window, vlkInstance, &vlkSurface)) {
-    SDL_Log("%s\n", SDL_GetError());
-    exit(1);
-  }
+  SDL_CHECK(SDL_Vulkan_CreateSurface(vke.window, vlkInstance, &vlkSurface));
 
   Uint32 num_gpus;
   vkEnumeratePhysicalDevices(vlkInstance, &num_gpus, nullptr);
@@ -61,19 +59,22 @@ void vkeInitVulkan() {
     break;
   }
 
-  const char*             device_exts[] = {"VK_KHR_swapchain",           "VK_KHR_maintenance1",          "VK_KHR_synchronization2",
-                                           "VK_EXT_descriptor_indexing", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
-  VkDeviceQueueCreateInfo queue_create
-      = {.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, .queueCount = 1, .queueFamilyIndex = 0, .pQueuePriorities = &(float) {1.0f}};
-  VkPhysicalDeviceVulkan12Features features = {
-      .sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-      .bufferDeviceAddress = true,
-      .descriptorIndexing  = true,
-      .pNext               = &(VkPhysicalDeviceVulkan13Features) {
-                                                                  .sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-                                                                  .dynamicRendering = true,
-                                                                  .synchronization2 = true,
-                                                                  }
+  const char* device_exts[] = {
+      "VK_KHR_swapchain",           "VK_KHR_maintenance1",          "VK_KHR_synchronization2",
+      "VK_EXT_descriptor_indexing", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
+  VkDeviceQueueCreateInfo          queue_create = {.sType      = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                                                   .queueCount = 1,
+                                                   .queueFamilyIndex = 0,
+                                                   .pQueuePriorities = &(float) {1.0f}};
+  VkPhysicalDeviceVulkan12Features features     = {
+          .sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
+          .bufferDeviceAddress = true,
+          .descriptorIndexing  = true,
+          .pNext               = &(VkPhysicalDeviceVulkan13Features) {
+                                                                      .sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+                                                                      .dynamicRendering = true,
+                                                                      .synchronization2 = true,
+                                                                      }
   };
   VkDeviceCreateInfo device_create = {
       .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -83,12 +84,15 @@ void vkeInitVulkan() {
       .ppEnabledExtensionNames = device_exts,
       .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
       .ppEnabledLayerNames     = inst_layers,
-      .pNext                   = &(VkPhysicalDeviceFeatures2) {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features}
+      .pNext = &(VkPhysicalDeviceFeatures2) {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                                             .pNext = &features}
   };
   VK_CHECK(vkCreateDevice(vlkGpu, &device_create, nullptr, &vlkDevice));
 
-  VmaAllocatorCreateInfo alloc_create
-      = {.physicalDevice = vlkGpu, .device = vlkDevice, .instance = vlkInstance, .flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT};
+  VmaAllocatorCreateInfo alloc_create = {.physicalDevice = vlkGpu,
+                                         .device         = vlkDevice,
+                                         .instance       = vlkInstance,
+                                         .flags          = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT};
   VK_CHECK(vmaCreateAllocator(&alloc_create, &vke.alloc));
 }
 
@@ -113,9 +117,10 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
   VkSurfaceCapabilitiesKHR surface_caps;
   VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vlkGpu, vlkSurface, &surface_caps));
   VkSwapchainCreateInfoKHR create_swapchain = {
-      .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-      .surface          = vlkSurface,
-      .minImageCount    = surface_caps.minImageCount + ((surface_caps.maxImageCount > surface_caps.minImageCount) ? 1 : 0),
+      .sType   = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+      .surface = vlkSurface,
+      .minImageCount =
+          surface_caps.minImageCount + ((surface_caps.maxImageCount > surface_caps.minImageCount) ? 1 : 0),
       .imageExtent      = {.width = width, .height = height}, // surface_caps.currentExtent,
       .imageArrayLayers = 1,
       .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
@@ -131,7 +136,7 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
   Uint32 num_images  = 0;
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, nullptr);
   assert(num_images > 0);
-  vlkSwapchainImages     = calloc((1 + num_images), sizeof(VkImage));       // ensuring trailing nullptr for iteration
+  vlkSwapchainImages = calloc((1 + num_images), sizeof(VkImage));   // ensuring trailing nullptr for iteration
   vlkSwapchainImageViews = calloc((1 + num_images), sizeof(VkImageView));   // dito
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, vlkSwapchainImages);
   for (Uint32 i = 0; i < num_images; i++) {
@@ -140,22 +145,31 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
         .image            = vlkSwapchainImages[i],
         .format           = vlkSwapchainImageFormat,
         .viewType         = VK_IMAGE_VIEW_TYPE_2D,
-        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1},
+        .subresourceRange = {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel   = 0,
+                             .levelCount     = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount     = 1},
     };
     VK_CHECK(vkCreateImageView(vlkDevice, &create_imageview, nullptr, &vlkSwapchainImageViews[i]));
   }
 
-  vke.drawImage.extent                = (VkExtent3D) {vke.windowExtent.width, vke.windowExtent.height, 1};
-  vke.drawImage.format                = VK_FORMAT_R16G16B16A16_SFLOAT;
-  VkImageCreateInfo       rimg_create = vlkImageCreateInfo(vke.drawImage.format,   // allocate the draw-image from gpu local memory
-                                                           VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
-                                                               | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                                                           vke.drawImage.extent);
-  VmaAllocationCreateInfo rimg_alloc  = {.usage = VMA_MEMORY_USAGE_GPU_ONLY, .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
-  VK_CHECK(vmaCreateImage(vke.alloc, &rimg_create, &rimg_alloc, &vke.drawImage.image, &vke.drawImage.alloc, nullptr));
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.drawImage.image, vke.drawImage.alloc);
+  vke.drawImage.extent = (VkExtent3D) {vke.windowExtent.width, vke.windowExtent.height, 1};
+  vke.drawImage.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+  VkImageCreateInfo rimg_create =
+      vlkImageCreateInfo(vke.drawImage.format,   // allocate the draw-image from gpu local memory
+                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                             VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                         vke.drawImage.extent);
+  VmaAllocationCreateInfo rimg_alloc = {.usage         = VMA_MEMORY_USAGE_GPU_ONLY,
+                                        .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+  VK_CHECK(vmaCreateImage(vke.alloc, &rimg_create, &rimg_alloc, &vke.drawImage.image, &vke.drawImage.alloc,
+                          nullptr));
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.drawImage.image,
+                 vke.drawImage.alloc);
 
-  VkImageViewCreateInfo rview_create = vlkImageViewCreateInfo(vke.drawImage.format, vke.drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+  VkImageViewCreateInfo rview_create =
+      vlkImageViewCreateInfo(vke.drawImage.format, vke.drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
   VK_CHECK(vkCreateImageView(vlkDevice, &rview_create, nullptr, &vke.drawImage.defaultView));
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.drawImage.defaultView, nullptr);
 }
@@ -169,7 +183,8 @@ void vkeInitSwapchain() {
 
 
 void vkeInitCommands() {
-  VkCommandPoolCreateInfo create_pool = vlkCommandPoolCreateInfo(vlkQueueFamilyIndex, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+  VkCommandPoolCreateInfo create_pool =
+      vlkCommandPoolCreateInfo(vlkQueueFamilyIndex, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   for (size_t i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateCommandPool(vlkDevice, &create_pool, nullptr, &vke.frames[i].commandPool));
     VkCommandBufferAllocateInfo buf_alloc = vlkCommandBufferAllocateInfo(vke.frames[i].commandPool, 1);
@@ -179,9 +194,39 @@ void vkeInitCommands() {
 
 
 
+void vkeInitDescriptors() {
+  VlkDescriptorAllocatorSizeRatio size_ratios[] = {
+      {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .ratio = 1}
+  };
+  VlkDescriptorAllocator_initPool(&vke.globalDescriptorAlloc, vlkDevice, 10, ARR_LEN(size_ratios),
+                                  size_ratios);
+
+  VlkDescriptorLayoutBuilder builder = {};
+  VlkDescriptorLayoutBuilder_addBinding(&builder, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+  vke.drawImageDescriptorLayout =
+      VlkDescriptorLayoutBuilder_build(&builder, vlkDevice, VK_SHADER_STAGE_COMPUTE_BIT, nullptr, 0);
+
+  vke.drawImageDescriptors =
+      VlkDescriptorAllocator_allocate(&vke.globalDescriptorAlloc, vlkDevice, vke.drawImageDescriptorLayout);
+  VkDescriptorImageInfo img = {.imageLayout = VK_IMAGE_LAYOUT_GENERAL, .imageView = vke.drawImage.defaultView};
+  VkWriteDescriptorSet  draw_image_write = {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                            .dstBinding      = 0,
+                                            .dstSet          = vke.drawImageDescriptors,
+                                            .descriptorCount = 1,
+                                            .descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                                            .pImageInfo      = &img};
+  vkUpdateDescriptorSets(vlkDevice, 1, &draw_image_write, 0, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc,
+                 nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                 vke.drawImageDescriptorLayout, nullptr);
+}
+
+
+
 void vkeInitSyncStructures() {
-  VkFenceCreateInfo create_fence
-      = vlkFenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);   // start signalled so we can wait on it on the first frame
+  VkFenceCreateInfo create_fence = vlkFenceCreateInfo(
+      VK_FENCE_CREATE_SIGNALED_BIT);   // start signalled so we can wait on it on the first frame
   VkSemaphoreCreateInfo create_sema = vlkSemaphoreCreateInfo(0);
   for (size_t i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateFence(vlkDevice, &create_fence, nullptr, &vke.frames[i].fenceRender));
@@ -213,17 +258,17 @@ void vkeShutdown() {
 
 void vkeInit() {
   SDL_Init(SDL_INIT_EVERYTHING);
-  vke.window = SDL_CreateWindow("foo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, vke.windowExtent.width, vke.windowExtent.height,
-                                SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
-  if (vke.window == nullptr) {
-    printf("%s\n", SDL_GetError());
-    exit(1);
-  }
+  vke.window =
+      SDL_CreateWindow("vkguide.dev", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, vke.windowExtent.width,
+                       vke.windowExtent.height,
+                       SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+  SDL_CHECK(vke.window);
   vkeInitVulkan();
   vkeInitSwapchain();
   vkGetDeviceQueue(vlkDevice, 0, 0, &vlkQueue);
   vkeInitCommands();
   vkeInitSyncStructures();
+  vkeInitDescriptors();
 }
 
 
@@ -301,22 +346,29 @@ void vkeDraw() {
     // actual drawing:
     vkeDrawCore(cmdbuf);
     // transition the draw image and the swapchain image into their correct transfer layouts
-    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaPresent, nullptr, &idx_swapchain_image));
-    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL,
+                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, timeout_syncs, frame->semaPresent, nullptr,
+                                   &idx_swapchain_image));
+    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_UNDEFINED,
+                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // execute a copy from the draw image into the swapchain
-    vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.drawExtent, vlkSwapchainExtent);
+    vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.drawExtent,
+               vlkSwapchainExtent);
     // swapchain image into presentable mode
-    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                     VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
   }
   VK_CHECK(vkEndCommandBuffer(cmdbuf));
 
   {   // SUBMIT TO QUEUE
     VkCommandBufferSubmitInfo cmdbuf_submit = vlkCommandBufferSubmitInfo(cmdbuf);
     // wait on the present semaphore, as that semaphore is signaled when the swapchain is ready
-    VkSemaphoreSubmitInfo sema_wait_submit  = vlkSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, frame->semaPresent);
+    VkSemaphoreSubmitInfo     sema_wait_submit =
+        vlkSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, frame->semaPresent);
     // signal the render semaphore to signal that rendering has finished
-    VkSemaphoreSubmitInfo sema_sig_submit   = vlkSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, frame->semaRender);
+    VkSemaphoreSubmitInfo sema_sig_submit =
+        vlkSemaphoreSubmitInfo(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, frame->semaRender);
 
     VkSubmitInfo2 submit = vlkSubmitInfo(&cmdbuf_submit, &sema_sig_submit, &sema_wait_submit);
     // submit. fence will now block until the graphic commands finish execution
@@ -324,14 +376,15 @@ void vkeDraw() {
   }
 
   {   // PRESENT TO WINDOW
-    VK_CHECK(vkQueuePresentKHR(vlkQueue, &(VkPresentInfoKHR) {
-                                             .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                                             .swapchainCount     = 1,
-                                             .pSwapchains        = &vlkSwapchain,
-                                             .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
-                                             .pWaitSemaphores    = &frame->semaRender,
-                                             .pImageIndices      = &idx_swapchain_image,
-                                         }));
+    VK_CHECK(vkQueuePresentKHR(
+        vlkQueue, &(VkPresentInfoKHR) {
+                      .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                      .swapchainCount     = 1,
+                      .pSwapchains        = &vlkSwapchain,
+                      .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
+                      .pWaitSemaphores    = &frame->semaRender,
+                      .pImageIndices      = &idx_swapchain_image,
+                  }));
   }
   vke.frameNr++;
 }
@@ -359,6 +412,12 @@ void disposals_flush(DisposalQueue* self) {
           break;
         case VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO:
           vkDestroyImageView(vlkDevice, (VkImageView) self->args[i], nullptr);
+          break;
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO:
+          VlkDescriptorAllocator_destroyPool(self->args[i], vlkDevice);
+          break;
+        case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO:
+          vkDestroyDescriptorSetLayout(vlkDevice, self->args[i], nullptr);
           break;
         default:
           SDL_Log(">>>%x<<<\n", self->types[i]);

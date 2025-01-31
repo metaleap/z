@@ -1,6 +1,6 @@
 ---
 Language: Cpp
-ColumnLimit: 144
+ColumnLimit: 111
 ContinuationIndentWidth: 4
 IndentWidth: 2
 LineEnding: LF
@@ -44,7 +44,7 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
 BitFieldColonSpacing: Both
-BreakBeforeBinaryOperators: All
+BreakBeforeBinaryOperators: None # NonAssignment
 BreakBeforeTernaryOperators: true
 BreakStringLiterals: false
 Cpp11BracedListStyle: true

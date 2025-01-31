@@ -19,9 +19,10 @@ add_global_link_arguments(
     language: ['c', 'cpp'],
 )
 
+dep_pthread = dependency('threads', include_type: 'system', static: false)
 dep_sdl2 = dependency('SDL2', include_type: 'system', static: false)
 dep_vulkan = dependency('vulkan', include_type: 'system', static: false)
-dep_pthread = dependency('threads', include_type: 'system', static: false)
+dep_glslang = dependency('glslang', include_type: 'system', static: false)
 
 executable(
     'fged.exec',
@@ -38,7 +39,7 @@ executable(
 
 executable(
     'vkguide.exec',
-    dependencies: [dep_vulkan, dep_sdl2, dep_pthread],
+    dependencies: [dep_glslang, dep_vulkan, dep_sdl2, dep_pthread],
     link_language: 'cpp',
     sources: [
         'vkguide/main.c',
