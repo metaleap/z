@@ -1,8 +1,8 @@
 #pragma once
-#include <vulkan/vulkan_core.h>
-#define VMA_DEDICATED_ALLOCATION 1
 
 #include <assert.h>
+#include <math.h>
+#include <stdio.h>
 #include <threads.h>
 
 #include <vulkan/vulkan.h>
@@ -10,6 +10,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
+// #define VMA_DEDICATED_ALLOCATION 1
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
 
@@ -71,7 +72,7 @@ typedef struct VulkanEngine {
   SDL_Window*   window;
   DisposalQueue disposals;
   VlkImage      drawImage;
-  VkExtent2D    drawExtent;
+  VkExtent2D    windowExtent;
 } VulkanEngine;
 
 

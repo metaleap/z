@@ -13,8 +13,8 @@ VkImageCreateInfo vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFla
   return (VkImageCreateInfo) {.sType       = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                               .imageType   = VK_IMAGE_TYPE_2D,
                               .format      = format,
-                              .usage       = usageFlags,
                               .extent      = extent,
+                              .usage       = usageFlags,
                               .mipLevels   = 1,
                               .arrayLayers = 1,
                               .tiling      = VK_IMAGE_TILING_OPTIMAL,   // as long as no cpu readback
