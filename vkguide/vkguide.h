@@ -166,6 +166,8 @@ typedef struct VulkanEngine {
   VkCommandBuffer        immCommandBuffer;
   ComputeShaderEffect    bgEffects[2];
   int                    bgEffectCurIdx;
+  VkPipelineLayout       triPipelineLayout;
+  VkPipeline             triPipeline;
 } VulkanEngine;
 
 

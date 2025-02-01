@@ -304,6 +304,33 @@ void vkeInitBackgroundPipelines() {
 
 
 
+void initTriPipeline() {
+  VkShaderModule triFragShader, triVertShader;
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.frag", vlkDevice, &triFragShader));
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.vert", vlkDevice, &triVertShader));
+
+  VkPipelineLayoutCreateInfo pipeline_layout = {.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+  VK_CHECK(vkCreatePipelineLayout(vlkDevice, &pipeline_layout, nullptr, &vke.triPipelineLayout));
+  PipelineBuilder pb;
+  PipelineBuilder_reset(&pb);
+  PipelineBuilder_setShaders(&pb, triVertShader, triFragShader);
+  PipelineBuilder_setInputTopology(&pb, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+  PipelineBuilder_setPolygonMode(&pb, VK_POLYGON_MODE_FILL);
+  PipelineBuilder_setCullMode(&pb, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+  PipelineBuilder_setMultisamplingNone(&pb);
+  PipelineBuilder_disableBlending(&pb);
+  PipelineBuilder_disableDepthTest(&pb);
+  PipelineBuilder_setColorAttachmentFormat(&pb, vke.drawImage.format);
+  PipelineBuilder_setDepthFormat(&pb, VK_FORMAT_UNDEFINED);
+  vke.triPipeline = PipelineBuilder_build(&pb, vlkDevice);
+  vkDestroyShaderModule(vlkDevice, triFragShader, nullptr);
+  vkDestroyShaderModule(vlkDevice, triVertShader, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.triPipelineLayout, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, vke.triPipeline, nullptr);
+}
+
+
+
 void vkeInitPipelines() {
   vkeInitBackgroundPipelines();
 }
@@ -446,6 +473,10 @@ void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
 }
 
 
+void vkeDraw_Geometry() {
+}
+
+
 void vkeDraw() {
   vke.drawExtent.width  = vke.drawImage.extent.width;
   vke.drawExtent.height = vke.drawImage.extent.height;
@@ -467,9 +498,15 @@ void vkeDraw() {
     // we will overwrite it all so we dont care about what was the older layout
     vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     // actual drawing:
-    vkeDraw_computeThreads(cmdbuf);   // vkeDraw_colorFlashingScreen(cmdbuf);
+    {
+      // vkeDraw_colorFlashingScreen(cmdbuf);
+      vkeDraw_computeThreads(cmdbuf);
+      vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      vkeDraw_Geometry();
+    }
     // transition the draw image and the swapchain image into their correct transfer layouts
-    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, VKE_VLK_TIMEOUTS_NS, frame->semaPresent, nullptr,
                                    &idx_swapchain_image));
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_UNDEFINED,
@@ -552,6 +589,9 @@ void disposals_flush(DisposalQueue* self) {
           break;
         case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
           vkDestroyPipelineLayout(vlkDevice, self->args[i], nullptr);
+          break;
+        case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO:
+          vkDestroyPipeline(vlkDevice, self->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO:
           vkDestroyCommandPool(vlkDevice, self->args[i], nullptr);
