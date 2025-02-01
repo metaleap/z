@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 
@@ -28,6 +29,32 @@ VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkI
       .image            = image,
       .format           = format,
       .subresourceRange = {.aspectMask = aspectFlags, .levelCount = 1, .layerCount = 1}
+  };
+}
+
+
+VkRenderingAttachmentInfo vlkRenderingAttachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout) {
+  VkRenderingAttachmentInfo ret = {.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                                   .imageView   = view,
+                                   .imageLayout = layout,
+                                   .loadOp      = (clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD),
+                                   .storeOp     = VK_ATTACHMENT_STORE_OP_STORE};
+  if (clear)
+    ret.clearValue = *clear;
+  return ret;
+}
+
+
+VkRenderingInfo vlkRenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment,
+                                 VkRenderingAttachmentInfo* depthAttachment) {
+  return (VkRenderingInfo) {
+      .sType                = VK_STRUCTURE_TYPE_RENDERING_INFO,
+      .renderArea           = (VkRect2D) {.offset = (VkOffset2D) {.x = 0, .y = 0}, .extent = renderExtent},
+      .layerCount           = 1,
+      .colorAttachmentCount = 1,
+      .pColorAttachments    = colorAttachment,
+      .pDepthAttachment     = depthAttachment,
+      .pStencilAttachment   = nullptr
   };
 }
 

@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 VulkanEngine vke = {
@@ -410,6 +411,16 @@ void vkeDraw_computeThreads(VkCommandBuffer cmdBuf) {
 }
 
 
+void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
+  VkRenderingAttachmentInfo attach =
+      vlkRenderingAttachmentInfo(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  VkRenderingInfo render = vlkRenderingInfo(vlkSwapchainExtent, &attach, nullptr);
+  vkCmdBeginRendering(cmdBuf, &render);
+  cppImguiDraw(cmdBuf);
+  vkCmdEndRendering(cmdBuf);
+}
+
+
 void vkeDraw() {
   vke.drawExtent.width  = vke.drawImage.extent.width;
   vke.drawExtent.height = vke.drawImage.extent.height;
@@ -440,8 +451,13 @@ void vkeDraw() {
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // execute a copy from the draw image into the swapchain
     vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.drawExtent, vlkSwapchainExtent);
-    // swapchain image into presentable mode
+    // set swapchain image layout to Attachment Optimal so we can draw it
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                     VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    // draw imgui into the swapchain image
+    vkeDraw_Imgui(cmdbuf, vlkSwapchainImageViews[idx_swapchain_image]);
+    // swapchain image into presentable mode
+    vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                      VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
   }
   VK_CHECK(vkEndCommandBuffer(cmdbuf));
@@ -461,15 +477,14 @@ void vkeDraw() {
   }
 
   {   // PRESENT TO WINDOW
-    VK_CHECK(vkQueuePresentKHR(vlkQueue,
-                               &(VkPresentInfoKHR) {
-                                   .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                                   .swapchainCount     = 1,
-                                   .pSwapchains        = &vlkSwapchain,
-                                   .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
-                                   .pWaitSemaphores    = &frame->semaRender,
-                                   .pImageIndices      = &idx_swapchain_image,
-                               }));
+    VK_CHECK(vkQueuePresentKHR(
+        vlkQueue,
+        &(VkPresentInfoKHR) {.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                             .swapchainCount     = 1,
+                             .pSwapchains        = &vlkSwapchain,
+                             .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
+                             .pWaitSemaphores    = &frame->semaRender,
+                             .pImageIndices      = &idx_swapchain_image}));
   }
   vke.frameNr++;
 }

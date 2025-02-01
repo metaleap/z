@@ -27,6 +27,11 @@ void cppImguiRender() {
 }
 
 
+void cppImguiDraw(VkCommandBuffer cmdBuf) {
+  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmdBuf);
+}
+
+
 void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device, VkQueue queue,
                   VkDescriptorPool pool, VkFormat swapchainImageFormat) {
   ImGui::CreateContext();
@@ -45,6 +50,7 @@ void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu,
                                       .colorAttachmentCount    = 1,
                                       .pColorAttachmentFormats = &swapchainImageFormat}
   };
-  SDL_CHECK(ImGui_ImplVulkan_Init(&init) && ImGui_ImplVulkan_CreateFontsTexture());
+  SDL_CHECK(ImGui_ImplVulkan_Init(&init));
+  SDL_CHECK(ImGui_ImplVulkan_CreateFontsTexture());
 }
 }

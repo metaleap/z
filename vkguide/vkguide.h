@@ -10,12 +10,16 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #define VMA_DEDICATED_ALLOCATION 1
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
 
 
+VkRenderingInfo             vlkRenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment,
+                                             VkRenderingAttachmentInfo* depthAttachment);
+VkRenderingAttachmentInfo   vlkRenderingAttachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout);
 VkImageSubresourceRange     vlkImageSubresourceRange(VkImageAspectFlags aspectMask);
 VkCommandBufferBeginInfo    vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
 VkFenceCreateInfo           vlkFenceCreateInfo(VkFenceCreateFlags flags);
@@ -23,10 +27,10 @@ VkSemaphoreCreateInfo       vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags)
 VkCommandPoolCreateInfo     vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags);
 VkCommandBufferAllocateInfo vlkCommandBufferAllocateInfo(VkCommandPool cmdPool, Uint32 cmdBufCount);
 VkSemaphoreSubmitInfo       vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
-VkCommandBufferSubmitInfo   vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
 VkSubmitInfo2 vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig, VkSemaphoreSubmitInfo* wait);
-VkImageCreateInfo     vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
-VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
+VkCommandBufferSubmitInfo vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
+VkImageCreateInfo         vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
+VkImageViewCreateInfo     vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
 void     vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
 void     vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize);
 VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule);
@@ -131,6 +135,7 @@ extern "C" {
 void cppImguiShutdown();
 void cppImguiProcessEvent(SDL_Event* evt);
 void cppImguiRender();
+void cppImguiDraw(VkCommandBuffer cmdBuf);
 void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device, VkQueue queue,
                   VkDescriptorPool pool, VkFormat swapchainImageFormat);
 #ifdef __cplusplus
