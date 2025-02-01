@@ -1,6 +1,4 @@
 #include "./vkguide.h"
-#include <math.h>
-#include <vulkan/vulkan_core.h>
 
 
 VulkanEngine vke = {
@@ -30,9 +28,7 @@ Uint32           vlkQueueFamilyIndex;
 
 void vkeInitVulkan() {
   Uint32 num_exts;
-  SDL_Vulkan_GetInstanceExtensions(vke.window, &num_exts, nullptr);
-  const char* inst_exts[num_exts];
-  SDL_Vulkan_GetInstanceExtensions(vke.window, &num_exts, inst_exts);
+  char** inst_exts = SDL_Vulkan_GetInstanceExtensions(&num_exts);
 
   VkApplicationInfo inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_4};
   const char*       inst_layers[] = {
@@ -45,7 +41,7 @@ void vkeInitVulkan() {
                                       .pApplicationInfo        = &inst_app};
   VK_CHECK(vkCreateInstance(&inst_create, nullptr, &vlkInstance));
 
-  SDL_CHECK(SDL_Vulkan_CreateSurface(vke.window, vlkInstance, &vlkSurface));
+  SDL_CHECK(SDL_Vulkan_CreateSurface(vke.window, vlkInstance, nullptr, &vlkSurface));
 
   Uint32 num_gpus;
   vkEnumeratePhysicalDevices(vlkInstance, &num_gpus, nullptr);
@@ -241,6 +237,8 @@ void vkeInitSyncStructures() {
 
 void vkeShutdown() {
   vkDeviceWaitIdle(vlkDevice);
+
+  cppImguiShutdown();
   for (size_t i = 0; i < FRAME_OVERLAP; i++) {
     vkDestroyCommandPool(vlkDevice, vke.frames[i].commandPool, nullptr);
     vkDestroyFence(vlkDevice, vke.frames[i].fenceRender, nullptr);
@@ -314,15 +312,15 @@ void vkeInitImgui() {
   disposals_push(&vke.disposals, -VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, pool_imgui, nullptr);
 
   // 2: initialize imgui library
+  cppImguiInit(vke.window, vlkInstance, vlkGpu, vlkDevice, vlkQueue, pool_imgui, vlkSwapchainImageFormat);
 }
 
 
 
 void vkeInit() {
-  SDL_Init(SDL_INIT_EVERYTHING);
-  vke.window = SDL_CreateWindow("vkguide.dev", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, vke.windowExtent.width,
-                                vke.windowExtent.height,
-                                SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_RESIZABLE);
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC | SDL_INIT_JOYSTICK);
+  vke.window = SDL_CreateWindow("vkguide.dev", vke.windowExtent.width, vke.windowExtent.height,
+                                SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE);
   SDL_CHECK(vke.window);
   vkeInitVulkan();
   vkeInitSwapchain();
@@ -347,21 +345,15 @@ void vkeRun() {
 
     while ((!quit) && (SDL_PollEvent(&evt) != 0)) {
       switch (evt.type) {
-        case SDL_QUIT:
+        case SDL_EVENT_QUIT:
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
           quit = true;
           break;
-        case SDL_WINDOWEVENT:
-          switch (evt.window.event) {
-            case SDL_WINDOWEVENT_CLOSE:
-              quit = true;
-              break;
-            case SDL_WINDOWEVENT_MINIMIZED:
-              vke.paused = false;
-              break;
-            case SDL_WINDOWEVENT_RESTORED:
-              vke.paused = true;
-              break;
-          }
+        case SDL_EVENT_WINDOW_MINIMIZED:
+          vke.paused = false;
+          break;
+        case SDL_EVENT_WINDOW_RESTORED:
+          vke.paused = true;
           break;
       }
     }

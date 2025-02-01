@@ -1,3 +1,34 @@
-// #define VMA_DEDICATED_ALLOCATION 1
 #define VMA_IMPLEMENTATION
-#include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
+#include "./vkguide.h"
+
+#include "../3rdparty/ocornut_imgui/backends/imgui_impl_sdl3.h"
+#include "../3rdparty/ocornut_imgui/backends/imgui_impl_vulkan.h"
+
+
+extern "C" {
+void cppImguiShutdown() {
+  ImGui_ImplVulkan_Shutdown();
+}
+
+
+void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device, VkQueue queue,
+                  VkDescriptorPool pool, VkFormat swapchainImageFormat) {
+  ImGui::CreateContext();
+  ImGui_ImplSDL3_InitForVulkan(window);
+  ImGui_ImplVulkan_InitInfo init {
+      .Instance                    = instance,
+      .PhysicalDevice              = gpu,
+      .Device                      = device,
+      .Queue                       = queue,
+      .DescriptorPool              = pool,
+      .MinImageCount               = 3,
+      .ImageCount                  = 3,
+      .MSAASamples                 = VK_SAMPLE_COUNT_1_BIT,
+      .UseDynamicRendering         = true,
+      .PipelineRenderingCreateInfo = {.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+                                      .colorAttachmentCount    = 1,
+                                      .pColorAttachmentFormats = &swapchainImageFormat}
+  };
+  SDL_CHECK(ImGui_ImplVulkan_Init(&init) && ImGui_ImplVulkan_CreateFontsTexture());
+}
+}

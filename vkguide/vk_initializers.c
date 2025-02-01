@@ -1,11 +1,10 @@
 #include "./vkguide.h"
-#include <SDL_stdinc.h>
-#include <vulkan/vulkan_core.h>
 
 
 
 VkImageSubresourceRange vlkImageSubresourceRange(VkImageAspectFlags aspectMask) {
-  return (VkImageSubresourceRange) {.aspectMask = aspectMask, .levelCount = VK_REMAINING_MIP_LEVELS, .layerCount = VK_REMAINING_ARRAY_LAYERS};
+  return (VkImageSubresourceRange) {
+      .aspectMask = aspectMask, .levelCount = VK_REMAINING_MIP_LEVELS, .layerCount = VK_REMAINING_ARRAY_LAYERS};
 }
 
 
@@ -49,7 +48,8 @@ VkSemaphoreCreateInfo vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags) {
 
 
 VkCommandPoolCreateInfo vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags) {
-  return (VkCommandPoolCreateInfo) {.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, .flags = flags, .queueFamilyIndex = queueFamilyIndex};
+  return (VkCommandPoolCreateInfo) {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, .flags = flags, .queueFamilyIndex = queueFamilyIndex};
 }
 
 

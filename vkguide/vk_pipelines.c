@@ -2,7 +2,6 @@
 
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
-#include <vulkan/vulkan_core.h>
 
 
 
@@ -13,8 +12,7 @@ typedef struct SpirVBinary {
 
 
 
-SpirVBinary compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char* shaderSource,
-                                        const char* fileName) {
+SpirVBinary compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char* shaderSource, const char* fileName) {
   const glslang_input_t input = {
       .language                          = GLSLANG_SOURCE_GLSL,
       .stage                             = stage,
@@ -92,8 +90,7 @@ VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* re
   SpirVBinary bin = compileShaderToSPIRV_Vulkan(GLSLANG_STAGE_COMPUTE, bytes, filePath);
   if (bin.words == nullptr)
     exit(1);
-  VkShaderModuleCreateInfo create = {.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-                                     .pCode    = bin.words,
-                                     .codeSize = (sizeof(Uint32) * bin.size)};
+  VkShaderModuleCreateInfo create = {
+      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, .pCode = bin.words, .codeSize = (sizeof(Uint32) * bin.size)};
   return vkCreateShaderModule(device, &create, nullptr, retShaderModule);
 }

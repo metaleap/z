@@ -1,18 +1,17 @@
 #pragma once
 
-#include <SDL_stdinc.h>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <threads.h>
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vk_enum_string_helper.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
-#include <vulkan/vulkan_core.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_vulkan.h>
 
-// #define VMA_DEDICATED_ALLOCATION 1
+#define VMA_DEDICATED_ALLOCATION 1
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
 
@@ -126,7 +125,15 @@ void vkeInit();
 void vkeRun();
 void vkeDraw();
 void vkeShutdown();
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+void cppImguiShutdown();
+void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device, VkQueue queue,
+                  VkDescriptorPool pool, VkFormat swapchainImageFormat);
+#ifdef __cplusplus
+}
+#endif
 
 
 #define SDL_CHECK(x)                              \
