@@ -13,7 +13,7 @@
 #include <vulkan/vulkan_core.h>
 
 // #define VMA_DEDICATED_ALLOCATION 1
-#include "../3rdparty/GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocator/include/vk_mem_alloc.h"
+#include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
 
 
@@ -25,19 +25,18 @@ VkCommandPoolCreateInfo     vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, Vk
 VkCommandBufferAllocateInfo vlkCommandBufferAllocateInfo(VkCommandPool cmdPool, Uint32 cmdBufCount);
 VkSemaphoreSubmitInfo       vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
 VkCommandBufferSubmitInfo   vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
-VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig,
-                                          VkSemaphoreSubmitInfo* wait);
+VkSubmitInfo2 vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig, VkSemaphoreSubmitInfo* wait);
 VkImageCreateInfo     vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
 VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
-void                  vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout,
-                                       VkImageLayout newLayout);
+void     vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
 void     vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize);
 VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule);
 
 
 
-#define ARR_LEN(_arr_) (sizeof((_arr_)) / sizeof((_arr_)[0]))
-#define FRAME_OVERLAP  3
+#define ARR_LEN(_arr_)      (sizeof((_arr_)) / sizeof((_arr_)[0]))
+#define FRAME_OVERLAP       3
+#define VKE_VLK_TIMEOUTS_NS (11u * 1000000000)
 
 
 typedef struct DisposalQueue {
@@ -74,9 +73,8 @@ typedef struct VlkDescriptorLayoutBuilder {
   VkDescriptorSetLayoutBinding bindings[VDLB_CAP];   // increase (above) as needed
   Uint8                        count;
 } VlkDescriptorLayoutBuilder;
-void                  VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* self);
-void                  VlkDescriptorLayoutBuilder_addBinding(VlkDescriptorLayoutBuilder* self, Uint32 binding,
-                                                            VkDescriptorType type);
+void VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* self);
+void VlkDescriptorLayoutBuilder_addBinding(VlkDescriptorLayoutBuilder* self, Uint32 binding, VkDescriptorType type);
 VkDescriptorSetLayout VlkDescriptorLayoutBuilder_build(VlkDescriptorLayoutBuilder* self, VkDevice device,
                                                        VkShaderStageFlags shaderStages, void* pNext,
                                                        VkDescriptorSetLayoutCreateFlags flags);
@@ -91,10 +89,10 @@ typedef struct VlkDescriptorAllocator {
   VlkDescriptorAllocatorSizeRatio ratios[VDLB_CAP];
   Uint8                           ratiosCount;
 } VlkDescriptorAllocator;
-void            VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* self, VkDevice device, Uint32 maxSets,
-                                                Uint8 ratiosCount, VlkDescriptorAllocatorSizeRatio ratios[]);
-void            VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* self, VkDevice device);
-void            VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* self, VkDevice device);
+void VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* self, VkDevice device, Uint32 maxSets, Uint8 ratiosCount,
+                                     VlkDescriptorAllocatorSizeRatio ratios[]);
+void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* self, VkDevice device);
+void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* self, VkDevice device);
 VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* self, VkDevice device,
                                                 VkDescriptorSetLayout layout);
 
@@ -114,6 +112,9 @@ typedef struct VulkanEngine {
   VkDescriptorSetLayout  drawImageDescriptorLayout;
   VkPipeline             gradientPipeline;
   VkPipelineLayout       gradientPipelineLayout;
+  VkFence                immFence;
+  VkCommandPool          immCommandPool;
+  VkCommandBuffer        immCommandBuffer;
 } VulkanEngine;
 
 

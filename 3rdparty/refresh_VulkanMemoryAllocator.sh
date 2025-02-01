@@ -6,7 +6,7 @@ thisScriptsDirPath="$(dirname "$thisScriptsFilePath")"
 cd $thisScriptsDirPath
 
 depVer="3.2.0"
-depDirName="GPUOpen-LibrariesAndSDKs___VulkanMemoryAllocator"
+depDirName="GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator"
 
 
 ### clean up, fetch zip, extract zip:

@@ -7,3 +7,5 @@ cd $thisScriptsDirPath/3rdparty
 
 
 ./refresh_VulkanMemoryAllocator.sh
+./refresh_imgui.sh
+./refresh_cimgui.sh
