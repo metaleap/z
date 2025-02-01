@@ -426,14 +426,12 @@ void vkeDraw_colorFlashingScreen(VkCommandBuffer cmdBuf) {
 
 
 void vkeDraw_computeThreads(VkCommandBuffer cmdBuf) {
-  vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.bgEffects[0].pipeline);
+  ComputeShaderEffect* effect = &vke.bgEffects[vke.bgEffectCurIdx];
+  vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, effect->pipeline);
   vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.computePipelineLayout, 0, 1,
                           &vke.drawImageDescriptors, 0, nullptr);
-  ComputeShaderPushConstants push;
-  push.data1 = (vec4s) {.r = 1, .g = 0, .b = 0, .a = 1};
-  push.data2 = (vec4s) {.r = 0, .g = 1, .b = 0, .a = 1};
   vkCmdPushConstants(cmdBuf, vke.computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputeShaderPushConstants),
-                     &push);
+                     &effect->pushData);
   vkCmdDispatch(cmdBuf, ceilf(((float) vke.drawExtent.width) / 16.0f), ceilf(((float) vke.drawExtent.height) / 16.0f), 1);
 }
 
