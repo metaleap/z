@@ -17,12 +17,3 @@ wget -O .tmp.zip https://github.com/ocornut/imgui/archive/refs/tags/v$depVer.zip
 unzip .tmp.zip
 rm -f .tmp.zip
 mv imgui-$depVer $depDirName
-
-
-
-### build:
-
-# cd $depDirName
-# cmake -S . -B .build
-# cmake --install .build --prefix .build/install
-# cd ..

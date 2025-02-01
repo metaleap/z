@@ -42,6 +42,8 @@ executable(
     'vkguide.exec',
     dependencies: [dep_glslang2, dep_glslang, dep_vulkan, dep_sdl3, dep_pthread],
     link_language: 'cpp',
+    implicit_include_directories: true,
+    include_directories: ['3rdparty/ocornut_imgui', '3rdparty/ocornut_imgui/backends'],
     sources: [
         'vkguide/main.c',
         'vkguide/vk_descriptors.c',
