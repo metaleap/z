@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 VulkanEngine vke = {
@@ -257,14 +258,29 @@ void vkeShutdown() {
 
 
 void vkeInitBackgroundPipelines() {
-  VkPipelineLayoutCreateInfo create = {.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                       .setLayoutCount = 1,
-                                       .pSetLayouts    = &vke.drawImageDescriptorLayout};
-  VK_CHECK(vkCreatePipelineLayout(vlkDevice, &create, nullptr, &vke.gradientPipelineLayout));
+  VkPipelineLayoutCreateInfo create_layout = {.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                              .setLayoutCount = 1,
+                                              .pSetLayouts    = &vke.drawImageDescriptorLayout};
+  VK_CHECK(vkCreatePipelineLayout(vlkDevice, &create_layout, nullptr, &vke.gradientPipelineLayout));
 
   VkShaderModule drawing_compute_shader;
-  assert(vlkLoadShaderModule("../../vkguide/shaders/gradient.comp", vlkDevice, &drawing_compute_shader) &&
-         "vlkLoadShaderModule");
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient.comp", vlkDevice, &drawing_compute_shader) &&
+           "vlkLoadShaderModule");
+  VkPipelineShaderStageCreateInfo create_shaderstage = {
+      .sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+      .stage  = VK_SHADER_STAGE_COMPUTE_BIT,
+      .module = drawing_compute_shader,
+      .pName  = "main"};
+  VkComputePipelineCreateInfo create_pipeline = {.sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+                                                 .layout = vke.gradientPipelineLayout,
+                                                 .stage  = create_shaderstage};
+  VK_CHECK(vkCreateComputePipelines(vlkDevice, VK_NULL_HANDLE, 1, &create_pipeline, nullptr,
+                                    &vke.gradientPipeline));
+  vkDestroyShaderModule(vlkDevice, drawing_compute_shader, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.gradientPipelineLayout,
+                 nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO, vke.gradientPipeline,
+                 nullptr);
 }
 
 
@@ -439,6 +455,12 @@ void disposals_flush(DisposalQueue* self) {
           break;
         case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO:
           vkDestroyDescriptorSetLayout(vlkDevice, self->args[i], nullptr);
+          break;
+        case VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO:
+          vkDestroyPipeline(vlkDevice, self->args[i], nullptr);
+          break;
+        case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
+          vkDestroyPipelineLayout(vlkDevice, self->args[i], nullptr);
           break;
         default:
           SDL_Log(">>>%x<<<\n", self->types[i]);

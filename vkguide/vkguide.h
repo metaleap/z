@@ -31,8 +31,8 @@ VkImageCreateInfo     vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usag
 VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
 void                  vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout,
                                        VkImageLayout newLayout);
-void vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize);
-bool vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule);
+void     vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize);
+VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule);
 
 
 

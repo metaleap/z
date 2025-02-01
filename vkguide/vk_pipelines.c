@@ -2,6 +2,7 @@
 
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
+#include <vulkan/vulkan_core.h>
 
 
 
@@ -84,7 +85,7 @@ SpirVBinary compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char* shade
 
 
 
-bool vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule) {
+VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule) {
   size_t fileSize;
   void*  bytes = SDL_LoadFile(filePath, &fileSize);
   SDL_CHECK(bytes);
