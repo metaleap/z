@@ -260,27 +260,46 @@ void vkeShutdown() {
 
 void vkeInitBackgroundPipelines() {
   VkPushConstantRange pushes = {.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT, .size = sizeof(ComputeShaderPushConstants)};
-  VkPipelineLayoutCreateInfo create_layout = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                              .setLayoutCount         = 1,
-                                              .pSetLayouts            = &vke.drawImageDescriptorLayout,
-                                              .pushConstantRangeCount = 1,
-                                              .pPushConstantRanges    = &pushes};
-  VK_CHECK(vkCreatePipelineLayout(vlkDevice, &create_layout, nullptr, &vke.gradientPipelineLayout));
+  VkPipelineLayoutCreateInfo layout = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                       .setLayoutCount         = 1,
+                                       .pSetLayouts            = &vke.drawImageDescriptorLayout,
+                                       .pushConstantRangeCount = 1,
+                                       .pPushConstantRanges    = &pushes};
+  VK_CHECK(vkCreatePipelineLayout(vlkDevice, &layout, nullptr, &vke.computePipelineLayout));
 
-  VkShaderModule drawing_compute_shader;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient_color.comp", vlkDevice, &drawing_compute_shader) &&
-           "vlkLoadShaderModule");
-  VkPipelineShaderStageCreateInfo create_shaderstage = {.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                                                        .stage  = VK_SHADER_STAGE_COMPUTE_BIT,
-                                                        .module = drawing_compute_shader,
-                                                        .pName  = "main"};
-  VkComputePipelineCreateInfo     create_pipeline    = {.sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-                                                        .layout = vke.gradientPipelineLayout,
-                                                        .stage  = create_shaderstage};
-  VK_CHECK(vkCreateComputePipelines(vlkDevice, VK_NULL_HANDLE, 1, &create_pipeline, nullptr, &vke.gradientPipeline));
-  vkDestroyShaderModule(vlkDevice, drawing_compute_shader, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.gradientPipelineLayout, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO, vke.gradientPipeline, nullptr);
+  VkShaderModule shader_gradient;
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient_color.comp", vlkDevice, &shader_gradient) &&
+           "vlkLoadShaderModule:gradient");
+  ComputeShaderEffect gradient = {
+      .layout   = vke.computePipelineLayout,
+      .name     = "gradient",
+      .pushData = {.data1 = {.r = 1, .g = 0, .b = 0, .a = 1}, .data2 = {.r = 0, .g = 1, .b = 0, .a = 1}}
+  };
+  VkComputePipelineCreateInfo pipeline = {
+      .sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+      .layout = vke.computePipelineLayout,
+      .stage  = (VkPipelineShaderStageCreateInfo) {.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                                                   .stage  = VK_SHADER_STAGE_COMPUTE_BIT,
+                                                   .module = shader_gradient,
+                                                   .pName  = "main"}
+  };
+  VK_CHECK(vkCreateComputePipelines(vlkDevice, VK_NULL_HANDLE, 1, &pipeline, nullptr, &gradient.pipeline));
+  vkDestroyShaderModule(vlkDevice, shader_gradient, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.computePipelineLayout, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO, gradient.pipeline, nullptr);
+
+  VkShaderModule shader_sky;
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/sky.comp", vlkDevice, &shader_sky) && "vlkLoadShaderModule:sky");
+  pipeline.stage.module   = shader_sky;
+  ComputeShaderEffect sky = {.layout   = vke.computePipelineLayout,
+                             .name     = "sky",
+                             .pushData = {.data1 = {.x = 0.1f, .y = 0.2f, .z = 0.4f, .w = 0.97f}}};
+  VK_CHECK(vkCreateComputePipelines(vlkDevice, VK_NULL_HANDLE, 1, &pipeline, nullptr, &sky.pipeline));
+  vkDestroyShaderModule(vlkDevice, shader_sky, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO, sky.pipeline, nullptr);
+
+  vke.bgEffects[0] = gradient;
+  vke.bgEffects[1] = sky;
 }
 
 
@@ -407,14 +426,14 @@ void vkeDraw_colorFlashingScreen(VkCommandBuffer cmdBuf) {
 
 
 void vkeDraw_computeThreads(VkCommandBuffer cmdBuf) {
-  vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.gradientPipeline);
-  vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.gradientPipelineLayout, 0, 1,
+  vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.bgEffects[0].pipeline);
+  vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.computePipelineLayout, 0, 1,
                           &vke.drawImageDescriptors, 0, nullptr);
   ComputeShaderPushConstants push;
   push.data1 = (vec4s) {.r = 1, .g = 0, .b = 0, .a = 1};
   push.data2 = (vec4s) {.r = 0, .g = 1, .b = 0, .a = 1};
-  vkCmdPushConstants(cmdBuf, vke.gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
-                     sizeof(ComputeShaderPushConstants), &push);
+  vkCmdPushConstants(cmdBuf, vke.computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputeShaderPushConstants),
+                     &push);
   vkCmdDispatch(cmdBuf, ceilf(((float) vke.drawExtent.width) / 16.0f), ceilf(((float) vke.drawExtent.height) / 16.0f), 1);
 }
 

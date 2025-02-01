@@ -12,6 +12,7 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #define VMA_DEDICATED_ALLOCATION 1
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
@@ -103,6 +104,22 @@ VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* self, Vk
                                                 VkDescriptorSetLayout layout);
 
 
+typedef struct ComputeShaderPushConstants {
+  vec4s data1;
+  vec4s data2;
+  vec4s data3;
+  vec4s data4;
+} ComputeShaderPushConstants;
+
+
+typedef struct ComputeShaderEffect {
+  char*                      name;
+  VkPipeline                 pipeline;
+  VkPipelineLayout           layout;
+  ComputeShaderPushConstants pushData;
+} ComputeShaderEffect;
+
+
 typedef struct VulkanEngine {
   VmaAllocator           alloc;
   size_t                 frameNr;
@@ -116,20 +133,13 @@ typedef struct VulkanEngine {
   VlkDescriptorAllocator globalDescriptorAlloc;
   VkDescriptorSet        drawImageDescriptors;
   VkDescriptorSetLayout  drawImageDescriptorLayout;
-  VkPipeline             gradientPipeline;
-  VkPipelineLayout       gradientPipelineLayout;
+  VkPipelineLayout       computePipelineLayout;
   VkFence                immFence;
   VkCommandPool          immCommandPool;
   VkCommandBuffer        immCommandBuffer;
+  ComputeShaderEffect    bgEffects[2];
+  int                    bgEffectCurIdx;
 } VulkanEngine;
-
-
-typedef struct ComputeShaderPushConstants {
-  vec4s data1;
-  vec4s data2;
-  vec4s data3;
-  vec4s data4;
-} ComputeShaderPushConstants;
 
 
 extern bool         isDebug;

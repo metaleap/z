@@ -22,7 +22,19 @@ void cppImguiRender() {
   ImGui_ImplVulkan_NewFrame();
   ImGui_ImplSDL3_NewFrame();
   ImGui::NewFrame();
+
   ImGui::ShowDemoWindow();
+  if (ImGui::Begin("background")) {
+    ComputeShaderEffect& selected = vke.bgEffects[vke.bgEffectCurIdx];
+    ImGui::Text("Selected effect: %s", selected.name);
+    ImGui::SliderInt("Effect Index", &vke.bgEffectCurIdx, 0, ARR_LEN(vke.bgEffects) - 1);
+    ImGui::InputFloat4("data1", (float*) &selected.pushData.data1);
+    ImGui::InputFloat4("data2", (float*) &selected.pushData.data2);
+    ImGui::InputFloat4("data3", (float*) &selected.pushData.data3);
+    ImGui::InputFloat4("data4", (float*) &selected.pushData.data4);
+  }
+  ImGui::End();
+
   ImGui::Render();
 }
 
