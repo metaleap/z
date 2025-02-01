@@ -1,5 +1,7 @@
 #pragma once
 
+#include "cglm/struct/vec4.h"
+#include "cglm/types-struct.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -10,10 +12,11 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
-#include <vulkan/vulkan_core.h>
 
 #define VMA_DEDICATED_ALLOCATION 1
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
+
+#include "../3rdparty/recp_cglm/include/cglm/struct.h"
 
 
 
@@ -119,6 +122,14 @@ typedef struct VulkanEngine {
   VkCommandPool          immCommandPool;
   VkCommandBuffer        immCommandBuffer;
 } VulkanEngine;
+
+
+typedef struct ComputeShaderPushConstants {
+  vec4s data1;
+  vec4s data2;
+  vec4s data3;
+  vec4s data4;
+} ComputeShaderPushConstants;
 
 
 extern bool         isDebug;

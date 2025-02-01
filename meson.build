@@ -43,7 +43,11 @@ executable(
     dependencies: [dep_glslang2, dep_glslang, dep_vulkan, dep_sdl3, dep_pthread],
     link_language: 'cpp',
     implicit_include_directories: true,
-    include_directories: ['3rdparty/ocornut_imgui', '3rdparty/ocornut_imgui/backends'],
+    include_directories: [
+        '3rdparty/ocornut_imgui',
+        '3rdparty/ocornut_imgui/backends',
+        '3rdparty/recp_cglm/include',
+    ],
     sources: [
         'vkguide/main.c',
         'vkguide/vk_descriptors.c',

@@ -259,13 +259,16 @@ void vkeShutdown() {
 
 
 void vkeInitBackgroundPipelines() {
-  VkPipelineLayoutCreateInfo create_layout = {.sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                              .setLayoutCount = 1,
-                                              .pSetLayouts    = &vke.drawImageDescriptorLayout};
+  VkPushConstantRange pushes = {.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT, .size = sizeof(ComputeShaderPushConstants)};
+  VkPipelineLayoutCreateInfo create_layout = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                              .setLayoutCount         = 1,
+                                              .pSetLayouts            = &vke.drawImageDescriptorLayout,
+                                              .pushConstantRangeCount = 1,
+                                              .pPushConstantRanges    = &pushes};
   VK_CHECK(vkCreatePipelineLayout(vlkDevice, &create_layout, nullptr, &vke.gradientPipelineLayout));
 
   VkShaderModule drawing_compute_shader;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient.comp", vlkDevice, &drawing_compute_shader) &&
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient_color.comp", vlkDevice, &drawing_compute_shader) &&
            "vlkLoadShaderModule");
   VkPipelineShaderStageCreateInfo create_shaderstage = {.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                                                         .stage  = VK_SHADER_STAGE_COMPUTE_BIT,
@@ -407,6 +410,11 @@ void vkeDraw_computeThreads(VkCommandBuffer cmdBuf) {
   vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.gradientPipeline);
   vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.gradientPipelineLayout, 0, 1,
                           &vke.drawImageDescriptors, 0, nullptr);
+  ComputeShaderPushConstants push;
+  push.data1 = (vec4s) {.r = 1, .g = 0, .b = 0, .a = 1};
+  push.data2 = (vec4s) {.r = 0, .g = 1, .b = 0, .a = 1};
+  vkCmdPushConstants(cmdBuf, vke.gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                     sizeof(ComputeShaderPushConstants), &push);
   vkCmdDispatch(cmdBuf, ceilf(((float) vke.drawExtent.width) / 16.0f), ceilf(((float) vke.drawExtent.height) / 16.0f), 1);
 }
 
