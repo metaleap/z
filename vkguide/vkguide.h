@@ -38,6 +38,8 @@ VkImageViewCreateInfo     vlkImageViewCreateInfo(VkFormat format, VkImage image,
 void     vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
 void     vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize);
 VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule);
+VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule,
+                                                                 const char* entryPointName);
 
 
 
@@ -102,6 +104,31 @@ void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* self, VkDev
 void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* self, VkDevice device);
 VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* self, VkDevice device,
                                                 VkDescriptorSetLayout layout);
+
+
+typedef struct PipelineBuilder {
+  VkPipelineShaderStageCreateInfo        shaderStages[2];
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly;
+  VkPipelineRasterizationStateCreateInfo rasterizer;
+  VkPipelineColorBlendAttachmentState    colorBlendAttachment;
+  VkPipelineMultisampleStateCreateInfo   multisampling;
+  VkPipelineLayout                       pipelineLayout;
+  VkPipelineDepthStencilStateCreateInfo  depthStencil;
+  VkPipelineRenderingCreateInfo          renderInfo;
+  VkFormat                               colorAttachmentFormat;
+} PipelineBuilder;
+void       PipelineBuilder_reset(PipelineBuilder* self);
+VkPipeline PipelineBuilder_build(PipelineBuilder* self, VkDevice device);
+void       PipelineBuilder_setColorAttachmentFormat(PipelineBuilder* self, VkFormat format);
+void       PipelineBuilder_disableBlending(PipelineBuilder* self);
+void       PipelineBuilder_setMultisamplingNone(PipelineBuilder* self);
+void       PipelineBuilder_setInputTopology(PipelineBuilder* self, VkPrimitiveTopology topo);
+void       PipelineBuilder_setPolygonMode(PipelineBuilder* self, VkPolygonMode mode);
+void       PipelineBuilder_setCullMode(PipelineBuilder* self, VkCullModeFlags cullMode, VkFrontFace frontFace);
+void       PipelineBuilder_setDepthFormat(PipelineBuilder* self, VkFormat format);
+void       PipelineBuilder_disableDepthTest(PipelineBuilder* self);
+void       PipelineBuilder_setShaders(PipelineBuilder* self, VkShaderModule vertShader, VkShaderModule fragShader);
+
 
 
 typedef struct ComputeShaderPushConstants {

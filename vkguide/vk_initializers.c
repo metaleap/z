@@ -115,3 +115,12 @@ VkSubmitInfo2 vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBufSubmitInfo, VkSemap
       .pCommandBufferInfos      = cmdBufSubmitInfo,
   };
 }
+
+
+VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule,
+                                                                 const char* entryPointName) {
+  return (VkPipelineShaderStageCreateInfo) {.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                                            .stage  = stage,
+                                            .module = shaderModule,
+                                            .pName  = entryPointName};
+}
