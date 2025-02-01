@@ -129,6 +129,8 @@ void vkeShutdown();
 extern "C" {
 #endif
 void cppImguiShutdown();
+void cppImguiProcessEvent(SDL_Event* evt);
+void cppImguiRender();
 void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device, VkQueue queue,
                   VkDescriptorPool pool, VkFormat swapchainImageFormat);
 #ifdef __cplusplus

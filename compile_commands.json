@@ -91,6 +91,12 @@
   },
   {
     "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-incompatible-pointer-types -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o -c ../../3rdparty/ocornut_imgui/imgui_demo.cpp",
+    "file": "../../3rdparty/ocornut_imgui/imgui_demo.cpp",
+    "output": "vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-incompatible-pointer-types -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o -c ../../3rdparty/ocornut_imgui/imgui_draw.cpp",
     "file": "../../3rdparty/ocornut_imgui/imgui_draw.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o"

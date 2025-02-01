@@ -1,3 +1,4 @@
+#include <SDL3/SDL_events.h>
 #define VMA_IMPLEMENTATION
 #include "./vkguide.h"
 
@@ -9,6 +10,20 @@
 extern "C" {
 void cppImguiShutdown() {
   ImGui_ImplVulkan_Shutdown();
+}
+
+
+void cppImguiProcessEvent(SDL_Event* evt) {
+  ImGui_ImplSDL3_ProcessEvent(evt);
+}
+
+
+void cppImguiRender() {
+  ImGui_ImplVulkan_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+  ImGui::ShowDemoWindow();
+  ImGui::Render();
 }
 
 

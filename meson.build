@@ -55,6 +55,7 @@ executable(
         'vkguide/vk_types.c',
         'vkguide/3rdparty.cpp',
         '3rdparty/ocornut_imgui/imgui.cpp',
+        '3rdparty/ocornut_imgui/imgui_demo.cpp',
         '3rdparty/ocornut_imgui/imgui_draw.cpp',
         '3rdparty/ocornut_imgui/imgui_tables.cpp',
         '3rdparty/ocornut_imgui/imgui_widgets.cpp',

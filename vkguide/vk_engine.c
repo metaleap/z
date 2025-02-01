@@ -356,9 +356,11 @@ void vkeRun() {
           vke.paused = true;
           break;
       }
+      cppImguiProcessEvent(&evt);
     }
     if (quit)
       break;
+    cppImguiRender();
     vkeDraw();
   }
 }
