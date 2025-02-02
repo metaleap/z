@@ -127,9 +127,6 @@ void PipelineBuilder_reset(PipelineBuilder* self) {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
   self->renderInfo =
       (VkPipelineRenderingCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
-  for (size_t i = 0; i < ARR_LEN(self->shaderStages); i++)
-    self->shaderStages[i] =
-        (VkPipelineShaderStageCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
 }
 
 

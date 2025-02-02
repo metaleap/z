@@ -325,6 +325,7 @@ void initTriPipeline() {
   PipelineBuilder pb;
   PipelineBuilder_reset(&pb);
   PipelineBuilder_setShaders(&pb, triVertShader, triFragShader);
+  pb.pipelineLayout = vke.triPipelineLayout;
   PipelineBuilder_setInputTopology(&pb, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
   PipelineBuilder_setPolygonMode(&pb, VK_POLYGON_MODE_FILL);
   PipelineBuilder_setCullMode(&pb, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
