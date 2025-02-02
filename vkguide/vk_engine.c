@@ -31,7 +31,7 @@ void vkeInitVulkan() {
   Uint32 num_exts;
   char** inst_exts = SDL_Vulkan_GetInstanceExtensions(&num_exts);
 
-  VkApplicationInfo inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_4};
+  VkApplicationInfo inst_app = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_4};
   const char*       inst_layers[] = {
       "VK_LAYER_KHRONOS_validation"};   // "VK_LAYER_KHRONOS_validation" MUST remain the last entry!
   VkInstanceCreateInfo inst_create = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -57,21 +57,21 @@ void vkeInitVulkan() {
     break;
   }
 
-  const char* device_exts[] = {"VK_KHR_swapchain",           "VK_KHR_maintenance1",          "VK_KHR_synchronization2",
-                               "VK_EXT_descriptor_indexing", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
-  VkDeviceQueueCreateInfo          queue_create = {.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                                                   .queueCount       = 1,
+  const char* device_exts[] = {
+      "VK_KHR_swapchain",           "VK_KHR_maintenance1",          "VK_KHR_synchronization2",
+      "VK_EXT_descriptor_indexing", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
+  VkDeviceQueueCreateInfo          queue_create = {.sType      = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                                                   .queueCount = 1,
                                                    .queueFamilyIndex = 0,
                                                    .pQueuePriorities = &(float) {1.0f}};
   VkPhysicalDeviceVulkan12Features features     = {
           .sType               = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
           .bufferDeviceAddress = true,
           .descriptorIndexing  = true,
-          .pNext               = &(VkPhysicalDeviceVulkan13Features) {
-                                                                      .sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
-                                                                      .dynamicRendering = true,
-                                                                      .synchronization2 = true,
-                                                                      }
+          .pNext =
+          &(VkPhysicalDeviceVulkan13Features) {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+                                               .dynamicRendering = true,
+                                               .synchronization2 = true}
   };
   VkDeviceCreateInfo device_create = {
       .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -81,7 +81,8 @@ void vkeInitVulkan() {
       .ppEnabledExtensionNames = device_exts,
       .enabledLayerCount       = ARR_LEN(inst_layers) - (isDebug ? 0 : 1),
       .ppEnabledLayerNames     = inst_layers,
-      .pNext = &(VkPhysicalDeviceFeatures2) {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features}
+      .pNext = &(VkPhysicalDeviceFeatures2) {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                                             .pNext = &features}
   };
   VK_CHECK(vkCreateDevice(vlkGpu, &device_create, nullptr, &vlkDevice));
 
@@ -113,9 +114,10 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
   VkSurfaceCapabilitiesKHR surface_caps;
   VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vlkGpu, vlkSurface, &surface_caps));
   VkSwapchainCreateInfoKHR create_swapchain = {
-      .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-      .surface          = vlkSurface,
-      .minImageCount    = surface_caps.minImageCount + ((surface_caps.maxImageCount > surface_caps.minImageCount) ? 1 : 0),
+      .sType   = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+      .surface = vlkSurface,
+      .minImageCount =
+          surface_caps.minImageCount + ((surface_caps.maxImageCount > surface_caps.minImageCount) ? 1 : 0),
       .imageExtent      = {.width = width, .height = height}, // surface_caps.currentExtent,
       .imageArrayLayers = 1,
       .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
@@ -131,7 +133,7 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
   Uint32 num_images  = 0;
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, nullptr);
   assert(num_images > 0);
-  vlkSwapchainImages     = calloc((1 + num_images), sizeof(VkImage));       // ensuring trailing nullptr for iteration
+  vlkSwapchainImages = calloc((1 + num_images), sizeof(VkImage));   // ensuring trailing nullptr for iteration
   vlkSwapchainImageViews = calloc((1 + num_images), sizeof(VkImageView));   // dito
   vkGetSwapchainImagesKHR(vlkDevice, vlkSwapchain, &num_images, vlkSwapchainImages);
   for (Uint32 i = 0; i < num_images; i++) {
@@ -153,13 +155,15 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
   vke.drawImage.format = VK_FORMAT_R16G16B16A16_SFLOAT;
   VkImageCreateInfo rimg_create =
       vlkImageCreateInfo(vke.drawImage.format,   // allocate the draw-image from gpu local memory
-                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT |
-                             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                             VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                          vke.drawImage.extent);
   VmaAllocationCreateInfo rimg_alloc = {.usage         = VMA_MEMORY_USAGE_GPU_ONLY,
                                         .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
-  VK_CHECK(vmaCreateImage(vke.alloc, &rimg_create, &rimg_alloc, &vke.drawImage.image, &vke.drawImage.alloc, nullptr));
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.drawImage.image, vke.drawImage.alloc);
+  VK_CHECK(vmaCreateImage(vke.alloc, &rimg_create, &rimg_alloc, &vke.drawImage.image, &vke.drawImage.alloc,
+                          nullptr));
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.drawImage.image,
+                 vke.drawImage.alloc);
 
   VkImageViewCreateInfo rview_create =
       vlkImageViewCreateInfo(vke.drawImage.format, vke.drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
@@ -196,7 +200,8 @@ void vkeInitDescriptors() {
   VlkDescriptorAllocatorSizeRatio size_ratios[] = {
       {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .ratio = 1}
   };
-  VlkDescriptorAllocator_initPool(&vke.globalDescriptorAlloc, vlkDevice, 10, ARR_LEN(size_ratios), size_ratios);
+  VlkDescriptorAllocator_initPool(&vke.globalDescriptorAlloc, vlkDevice, 10, ARR_LEN(size_ratios),
+                                  size_ratios);
 
   VlkDescriptorLayoutBuilder builder = {};
   VlkDescriptorLayoutBuilder_addBinding(&builder, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
@@ -213,16 +218,17 @@ void vkeInitDescriptors() {
                                             .descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
                                             .pImageInfo      = &img};
   vkUpdateDescriptorSets(vlkDevice, 1, &draw_image_write, 0, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.drawImageDescriptorLayout,
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc,
                  nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                 vke.drawImageDescriptorLayout, nullptr);
 }
 
 
 
 void vkeInitSyncStructures() {
-  VkFenceCreateInfo create_fence =
-      vlkFenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);   // start signalled so we can wait on it on the first frame
+  VkFenceCreateInfo create_fence = vlkFenceCreateInfo(
+      VK_FENCE_CREATE_SIGNALED_BIT);   // start signalled so we can wait on it on the first frame
   VkSemaphoreCreateInfo create_sema = vlkSemaphoreCreateInfo(0);
   for (size_t i = 0; i < FRAME_OVERLAP; i++) {
     VK_CHECK(vkCreateFence(vlkDevice, &create_fence, nullptr, &vke.frames[i].fenceRender));
@@ -259,7 +265,8 @@ void vkeShutdown() {
 
 
 void vkeInitBackgroundPipelines() {
-  VkPushConstantRange pushes = {.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT, .size = sizeof(ComputeShaderPushConstants)};
+  VkPushConstantRange        pushes = {.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+                                       .size       = sizeof(ComputeShaderPushConstants)};
   VkPipelineLayoutCreateInfo layout = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                        .setLayoutCount         = 1,
                                        .pSetLayouts            = &vke.drawImageDescriptorLayout,
@@ -268,8 +275,8 @@ void vkeInitBackgroundPipelines() {
   VK_CHECK(vkCreatePipelineLayout(vlkDevice, &layout, nullptr, &vke.computePipelineLayout));
 
   VkShaderModule shader_gradient;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient_color.comp", vlkDevice, &shader_gradient) &&
-           "vlkLoadShaderModule:gradient");
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient_color.comp", vlkDevice, &shader_gradient,
+                               VK_SHADER_STAGE_COMPUTE_BIT));
   ComputeShaderEffect gradient = {
       .layout   = vke.computePipelineLayout,
       .name     = "gradient",
@@ -278,18 +285,20 @@ void vkeInitBackgroundPipelines() {
   VkComputePipelineCreateInfo pipeline = {
       .sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
       .layout = vke.computePipelineLayout,
-      .stage  = (VkPipelineShaderStageCreateInfo) {.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                                                   .stage  = VK_SHADER_STAGE_COMPUTE_BIT,
-                                                   .module = shader_gradient,
-                                                   .pName  = "main"}
+      .stage = (VkPipelineShaderStageCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                                                  .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                                                  .module = shader_gradient,
+                                                  .pName  = "main"}
   };
   VK_CHECK(vkCreateComputePipelines(vlkDevice, VK_NULL_HANDLE, 1, &pipeline, nullptr, &gradient.pipeline));
   vkDestroyShaderModule(vlkDevice, shader_gradient, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.computePipelineLayout, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.computePipelineLayout,
+                 nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO, gradient.pipeline, nullptr);
 
   VkShaderModule shader_sky;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/sky.comp", vlkDevice, &shader_sky) && "vlkLoadShaderModule:sky");
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/sky.comp", vlkDevice, &shader_sky,
+                               VK_SHADER_STAGE_COMPUTE_BIT));
   pipeline.stage.module   = shader_sky;
   ComputeShaderEffect sky = {.layout   = vke.computePipelineLayout,
                              .name     = "sky",
@@ -306,8 +315,10 @@ void vkeInitBackgroundPipelines() {
 
 void initTriPipeline() {
   VkShaderModule triFragShader, triVertShader;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.frag", vlkDevice, &triFragShader));
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.vert", vlkDevice, &triVertShader));
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.frag", vlkDevice, &triFragShader,
+                               VK_SHADER_STAGE_FRAGMENT_BIT));
+  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.vert", vlkDevice, &triVertShader,
+                               VK_SHADER_STAGE_VERTEX_BIT));
 
   VkPipelineLayoutCreateInfo pipeline_layout = {.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
   VK_CHECK(vkCreatePipelineLayout(vlkDevice, &pipeline_layout, nullptr, &vke.triPipelineLayout));
@@ -325,7 +336,8 @@ void initTriPipeline() {
   vke.triPipeline = PipelineBuilder_build(&pb, vlkDevice);
   vkDestroyShaderModule(vlkDevice, triFragShader, nullptr);
   vkDestroyShaderModule(vlkDevice, triVertShader, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.triPipelineLayout, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.triPipelineLayout,
+                 nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, vke.triPipeline, nullptr);
 }
 
@@ -333,6 +345,7 @@ void initTriPipeline() {
 
 void vkeInitPipelines() {
   vkeInitBackgroundPipelines();
+  initTriPipeline();
 }
 
 
@@ -426,7 +439,8 @@ FrameData* vkeCurrentFrame() {
 void vkeImmediateSubmitBegin(VkCommandBuffer cmdBuf) {
   VK_CHECK(vkResetFences(vlkDevice, 1, &vke.immFence));
   VK_CHECK(vkResetCommandBuffer(vke.immCommandBuffer, 0));
-  VkCommandBufferBeginInfo cmdbuf_begin = vlkCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+  VkCommandBufferBeginInfo cmdbuf_begin =
+      vlkCommandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
   VK_CHECK(vkBeginCommandBuffer(cmdBuf, &cmdbuf_begin));
 }
 
@@ -457,9 +471,10 @@ void vkeDraw_computeThreads(VkCommandBuffer cmdBuf) {
   vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, effect->pipeline);
   vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_COMPUTE, vke.computePipelineLayout, 0, 1,
                           &vke.drawImageDescriptors, 0, nullptr);
-  vkCmdPushConstants(cmdBuf, vke.computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputeShaderPushConstants),
-                     &effect->pushData);
-  vkCmdDispatch(cmdBuf, ceilf(((float) vke.drawExtent.width) / 16.0f), ceilf(((float) vke.drawExtent.height) / 16.0f), 1);
+  vkCmdPushConstants(cmdBuf, vke.computePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                     sizeof(ComputeShaderPushConstants), &effect->pushData);
+  vkCmdDispatch(cmdBuf, ceilf(((float) vke.drawExtent.width) / 16.0f),
+                ceilf(((float) vke.drawExtent.height) / 16.0f), 1);
 }
 
 
@@ -473,7 +488,26 @@ void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
 }
 
 
-void vkeDraw_Geometry() {
+void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
+  VkRenderingAttachmentInfo color =
+      vlkRenderingAttachmentInfo(vke.drawImage.defaultView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  VkRenderingInfo render = vlkRenderingInfo(vke.drawExtent, &color, nullptr);
+  vkCmdBeginRendering(cmdBuf, &render);
+  {
+    vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.triPipeline);
+    // dynamic viewport & scissor
+    VkViewport viewport = {.width    = (float) vke.drawExtent.width,
+                           .height   = (float) vke.drawExtent.height,
+                           .minDepth = 0,
+                           .maxDepth = 1};
+    vkCmdSetViewport(cmdBuf, 0, 1, &viewport);
+    VkRect2D scissor = {
+        .extent = {.width = vke.drawExtent.width, .height = vke.drawExtent.height}
+    };
+    vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
+    vkCmdDraw(cmdBuf, 3, 1, 0, 0);
+  }
+  vkCmdEndRendering(cmdBuf);
 }
 
 
@@ -501,8 +535,9 @@ void vkeDraw() {
     {
       // vkeDraw_colorFlashingScreen(cmdbuf);
       vkeDraw_computeThreads(cmdbuf);
-      vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-      vkeDraw_Geometry();
+      vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL,
+                       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      vkeDraw_Geometry(cmdbuf);
     }
     // transition the draw image and the swapchain image into their correct transfer layouts
     vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -512,7 +547,8 @@ void vkeDraw() {
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_UNDEFINED,
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // execute a copy from the draw image into the swapchain
-    vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.drawExtent, vlkSwapchainExtent);
+    vlkImgCopy(cmdbuf, vke.drawImage.image, vlkSwapchainImages[idx_swapchain_image], vke.drawExtent,
+               vlkSwapchainExtent);
     // set swapchain image layout to Attachment Optimal so we can draw it
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -540,13 +576,13 @@ void vkeDraw() {
 
   {   // PRESENT TO WINDOW
     VK_CHECK(vkQueuePresentKHR(
-        vlkQueue,
-        &(VkPresentInfoKHR) {.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                             .swapchainCount     = 1,
-                             .pSwapchains        = &vlkSwapchain,
-                             .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
-                             .pWaitSemaphores    = &frame->semaRender,
-                             .pImageIndices      = &idx_swapchain_image}));
+        vlkQueue, &(VkPresentInfoKHR) {.sType          = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                       .swapchainCount = 1,
+                                       .pSwapchains    = &vlkSwapchain,
+                                       .waitSemaphoreCount =
+                                           1,   // wait on render sema to only present after all draws done:
+                                       .pWaitSemaphores = &frame->semaRender,
+                                       .pImageIndices   = &idx_swapchain_image}));
   }
   vke.frameNr++;
 }
