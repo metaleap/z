@@ -12,6 +12,7 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #define VMA_DEDICATED_ALLOCATION 1
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
@@ -79,6 +80,35 @@ typedef struct VlkImage {
   VkFormat      format;
   VmaAllocation alloc;
 } VlkImage;
+
+
+typedef struct VlkBuffer {
+  VkBuffer          buf;
+  VmaAllocation     alloc;
+  VmaAllocationInfo allocInfo;
+} VlkBuffer;
+
+
+typedef struct Vertex {
+  vec3s position;
+  float uv_x;
+  vec3s normal;
+  float uv_y;
+  vec4s color;
+} Vertex;
+
+
+typedef struct GpuMeshBuffers {
+  VlkBuffer       indexBuffer;
+  VlkBuffer       vertexBuffer;
+  VkDeviceAddress vertexBufferAddress;
+} GpuMeshBuffers;
+
+
+typedef struct GpuDrawPushConstants {
+  mat4s           worldMatrix;
+  VkDeviceAddress vertexBuffer;
+} GpuDrawPushConstants;
 
 
 typedef struct VlkDescriptorLayoutBuilder {
@@ -180,10 +210,11 @@ extern bool         isDebug;
 extern VulkanEngine vke;
 
 
-void vkeInit();
-void vkeRun();
-void vkeDraw();
-void vkeShutdown();
+void      vkeInit();
+void      vkeRun();
+void      vkeDraw();
+void      vkeShutdown();
+VlkBuffer vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 #ifdef __cplusplus
 extern "C" {
 #endif

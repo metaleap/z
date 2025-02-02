@@ -609,6 +609,12 @@ void disposals_flush(DisposalQueue* self) {
           else
             vkDestroyImage(vlkDevice, (VkImage) self->args[i], nullptr);
           break;
+        case VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO:
+          if (self->allocs[i] != nullptr)
+            vmaDestroyBuffer(vke.alloc, (VkBuffer) self->args[i], self->allocs[i]);
+          else
+            vkDestroyBuffer(vlkDevice, (VkBuffer) self->args[i], nullptr);
+          break;
         case VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO:
           vkDestroyImageView(vlkDevice, (VkImageView) self->args[i], nullptr);
           break;
@@ -642,4 +648,14 @@ void disposals_flush(DisposalQueue* self) {
       }
     }
   self->count = 0;
+}
+
+
+
+VlkBuffer vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
+  VkBufferCreateInfo buf = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, .size = allocSize, .usage = usage};
+  VmaAllocationCreateInfo alloc = {.usage = memoryUsage, .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT};
+  VlkBuffer               ret;
+  VK_CHECK(vmaCreateBuffer(vke.alloc, &buf, &alloc, &ret.buf, &ret.alloc, &ret.allocInfo));
+  return ret;
 }
