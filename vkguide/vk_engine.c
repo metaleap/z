@@ -719,7 +719,7 @@ void disposals_flush(DisposalQueue* self) {
 
 
 
-VlkBuffer vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
+VlkBuffer vkeCreateBufferMapped(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
   VkBufferCreateInfo buf = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, .size = allocSize, .usage = usage};
   VmaAllocationCreateInfo alloc = {.usage = memoryUsage, .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT};
   VlkBuffer               ret;
@@ -733,20 +733,22 @@ GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uin
   size_t         size_verts = nVerts * sizeof(Vertex);
   size_t         size_idxs  = nIndices * sizeof(Uint32);
   GpuMeshBuffers ret        = {
-             .vertexBuffer = vkeCreateBuffer(size_verts,
-                                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-                                                 VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-                                             VMA_MEMORY_USAGE_GPU_ONLY),
+             .vertexBuffer =
+          vkeCreateBufferMapped(size_verts,
+                                       VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                                           VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+                                       VMA_MEMORY_USAGE_GPU_ONLY),
              .indexBuffer =
-          vkeCreateBuffer(size_idxs, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                 VMA_MEMORY_USAGE_GPU_ONLY)};
+          vkeCreateBufferMapped(size_idxs, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                       VMA_MEMORY_USAGE_GPU_ONLY),
+  };
   VkBufferDeviceAddressInfo deviceAdressInfo = {.sType  = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
                                                 .buffer = ret.vertexBuffer.buf};
   ret.vertexBufferAddress                    = vkGetBufferDeviceAddress(vlkDevice, &deviceAdressInfo);
 
-  VlkBuffer staging =
-      vkeCreateBuffer(size_verts + size_idxs, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
-  void* data = cppVmaAllocationGetMappedData(staging.alloc);
+  VlkBuffer staging = vkeCreateBufferMapped(size_verts + size_idxs, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                            VMA_MEMORY_USAGE_CPU_ONLY);
+  void*     data    = staging.allocInfo.pMappedData;
   memcpy(data, verts, size_verts);
   memcpy(data + size_verts, indices, size_idxs);
   vkeImmediateSubmitBegin();

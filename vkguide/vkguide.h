@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <threads.h>
 
 #include <vulkan/vulkan.h>
@@ -18,6 +19,7 @@
 #include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
 
 #include "../3rdparty/recp_cglm/include/cglm/struct.h"
+#include "../3rdparty/jkuhlmann_cgltf/cgltf.h"
 
 
 
@@ -233,16 +235,16 @@ void           vkeDraw();
 void           vkeShutdown();
 VlkBuffer      vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
+MeshAsset*     vkeLoadGlb(char* filePath);
 #ifdef __cplusplus
 extern "C" {
 #endif
-void* cppVmaAllocationGetMappedData(VmaAllocation alloc);
-void  cppImguiShutdown();
-void  cppImguiProcessEvent(SDL_Event* evt);
-void  cppImguiRender();
-void  cppImguiDraw(VkCommandBuffer cmdBuf);
-void  cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device,
-                   VkQueue queue, VkDescriptorPool pool, VkFormat swapchainImageFormat);
+void cppImguiShutdown();
+void cppImguiProcessEvent(SDL_Event* evt);
+void cppImguiRender();
+void cppImguiDraw(VkCommandBuffer cmdBuf);
+void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device,
+                  VkQueue queue, VkDescriptorPool pool, VkFormat swapchainImageFormat);
 #ifdef __cplusplus
 }
 #endif
@@ -266,3 +268,27 @@ void  cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu
       exit(1);                                                \
     }                                                         \
   } while (false)
+
+
+typedef struct List {
+  void**  buf;
+  ssize_t len;
+  ssize_t cap;
+} List;
+
+
+List List_new(ssize_t cap) {
+  return (List) {.buf = malloc(sizeof(void*) * cap), .cap = cap};
+}
+
+
+void List_append(List** self, void* item) {
+  List* list = *self;
+  if (list->len == list->cap) {
+    list->cap *= 2;
+    list->buf  = realloc(list->buf, sizeof(void*) * list->cap);
+  }
+  list->buf[list->len] = item;
+  list->len++;
+  *self = list;
+}

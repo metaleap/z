@@ -8,10 +8,6 @@
 
 
 extern "C" {
-void* cppVmaAllocationGetMappedData(VmaAllocation alloc) {
-  return alloc->GetMappedData();
-}
-
 void cppImguiShutdown() {
   ImGui_ImplVulkan_Shutdown();
 }

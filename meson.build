@@ -44,9 +44,12 @@ executable(
     link_language: 'cpp',
     implicit_include_directories: true,
     include_directories: [
+        '3rdparty/cimgui_cimgui',
+        '3rdparty/jkuhlmann_cgltf',
         '3rdparty/ocornut_imgui',
         '3rdparty/ocornut_imgui/backends',
         '3rdparty/recp_cglm/include',
+        '3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include',
     ],
     sources: [
         'vkguide/main.c',
