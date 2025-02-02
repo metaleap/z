@@ -11,4 +11,5 @@ cd 3rdparty
 ./refresh_cimgui.sh
 ./refresh_cglm.sh
 ./refresh_cgltf.sh
+./refresh_fastgltf.sh
 cd ..

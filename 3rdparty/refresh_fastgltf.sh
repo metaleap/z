@@ -5,19 +5,18 @@ thisScriptsFilePath="$(readlink --canonicalize-existing "$0")"
 thisScriptsDirPath="$(dirname "$thisScriptsFilePath")"
 cd $thisScriptsDirPath
 
-depVer="3.2.0"
-depDirName="GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator"
+depVer="0.8.0"
+depDirName="spnda_fastgltf"
 
 
 ### clean up, fetch zip, extract zip:
 
 rm -rf $depDirName
 rm -f .tmp.zip
-wget -O .tmp.zip https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v$depVer.zip
+wget -O .tmp.zip https://github.com/spnda/fastgltf/archive/refs/tags/v$depVer.zip
 unzip .tmp.zip
 rm -f .tmp.zip
-mv VulkanMemoryAllocator-$depVer $depDirName
-
+mv fastgltf-$depVer $depDirName
 
 
 ### build:
@@ -26,5 +25,5 @@ cd $depDirName
 rm -rf .build
 mkdir .build
 cmake -S . -B .build
-cmake --install .build --prefix .build/install
+cd .build && make && cd ..
 cd ..

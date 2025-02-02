@@ -186,12 +186,12 @@ typedef struct ComputeShaderEffect {
 
 typedef struct GeoSurface {
   Uint32 idxStart;
-  Uint32 count;
+  Uint64 count;
 } GeoSurface;
 
 
 typedef struct MeshAsset {
-  char*          name;
+  const char*    name;
   GeoSurface*    surfaces;
   Uint32         numSurfaces;
   GpuMeshBuffers meshBuffers;
@@ -225,10 +225,21 @@ typedef struct VulkanEngine {
 } VulkanEngine;
 
 
+typedef struct List {
+  void** buf;
+  Uint32 len;
+  Uint32 cap;
+} List;
+
+
+
 extern bool         isDebug;
 extern VulkanEngine vke;
 
 
+List           List_new(Uint32 cap);
+void           List_clear(List* self);
+void           List_append(List* self, void* item);
 void           vkeInit();
 void           vkeRun();
 void           vkeDraw();
@@ -268,27 +279,3 @@ void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu,
       exit(1);                                                \
     }                                                         \
   } while (false)
-
-
-typedef struct List {
-  void**  buf;
-  ssize_t len;
-  ssize_t cap;
-} List;
-
-
-List List_new(ssize_t cap) {
-  return (List) {.buf = malloc(sizeof(void*) * cap), .cap = cap};
-}
-
-
-void List_append(List** self, void* item) {
-  List* list = *self;
-  if (list->len == list->cap) {
-    list->cap *= 2;
-    list->buf  = realloc(list->buf, sizeof(void*) * list->cap);
-  }
-  list->buf[list->len] = item;
-  list->len++;
-  *self = list;
-}
