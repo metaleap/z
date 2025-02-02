@@ -8,5 +8,7 @@ cd $thisScriptsDirPath
 cd 3rdparty
 ./refresh_VulkanMemoryAllocator.sh
 ./refresh_imgui.sh
+./refresh_cimgui.sh
 ./refresh_cglm.sh
+./refresh_cgltf.sh
 cd ..

@@ -182,6 +182,20 @@ typedef struct ComputeShaderEffect {
 } ComputeShaderEffect;
 
 
+typedef struct GeoSurface {
+  Uint32 idxStart;
+  Uint32 count;
+} GeoSurface;
+
+
+typedef struct MeshAsset {
+  char*          name;
+  GeoSurface*    surfaces;
+  Uint32         numSurfaces;
+  GpuMeshBuffers meshBuffers;
+} MeshAsset;
+
+
 typedef struct VulkanEngine {
   VmaAllocator           alloc;
   size_t                 frameNr;
