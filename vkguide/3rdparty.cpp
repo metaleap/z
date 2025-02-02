@@ -8,6 +8,10 @@
 
 
 extern "C" {
+void* cppVmaAllocationGetMappedData(VmaAllocation alloc) {
+  return alloc->GetMappedData();
+}
+
 void cppImguiShutdown() {
   ImGui_ImplVulkan_Shutdown();
 }
@@ -44,8 +48,8 @@ void cppImguiDraw(VkCommandBuffer cmdBuf) {
 }
 
 
-void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device, VkQueue queue,
-                  VkDescriptorPool pool, VkFormat swapchainImageFormat) {
+void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device,
+                  VkQueue queue, VkDescriptorPool pool, VkFormat swapchainImageFormat) {
   ImGui::CreateContext();
   ImGui_ImplSDL3_InitForVulkan(window);
   ImGui_ImplVulkan_InitInfo init {
@@ -58,8 +62,8 @@ void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu,
       .ImageCount                  = 3,
       .MSAASamples                 = VK_SAMPLE_COUNT_1_BIT,
       .UseDynamicRendering         = true,
-      .PipelineRenderingCreateInfo = {.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-                                      .colorAttachmentCount    = 1,
+      .PipelineRenderingCreateInfo = {.sType                = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+                                      .colorAttachmentCount = 1,
                                       .pColorAttachmentFormats = &swapchainImageFormat}
   };
   SDL_CHECK(ImGui_ImplVulkan_Init(&init));

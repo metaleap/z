@@ -203,6 +203,9 @@ typedef struct VulkanEngine {
   int                    bgEffectCurIdx;
   VkPipelineLayout       triPipelineLayout;
   VkPipeline             triPipeline;
+  VkPipelineLayout       meshPipelineLayout;
+  VkPipeline             meshPipeline;
+  GpuMeshBuffers         rectangle;
 } VulkanEngine;
 
 
@@ -210,20 +213,22 @@ extern bool         isDebug;
 extern VulkanEngine vke;
 
 
-void      vkeInit();
-void      vkeRun();
-void      vkeDraw();
-void      vkeShutdown();
-VlkBuffer vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+void           vkeInit();
+void           vkeRun();
+void           vkeDraw();
+void           vkeShutdown();
+VlkBuffer      vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
 #ifdef __cplusplus
 extern "C" {
 #endif
-void cppImguiShutdown();
-void cppImguiProcessEvent(SDL_Event* evt);
-void cppImguiRender();
-void cppImguiDraw(VkCommandBuffer cmdBuf);
-void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device,
-                  VkQueue queue, VkDescriptorPool pool, VkFormat swapchainImageFormat);
+void* cppVmaAllocationGetMappedData(VmaAllocation alloc);
+void  cppImguiShutdown();
+void  cppImguiProcessEvent(SDL_Event* evt);
+void  cppImguiRender();
+void  cppImguiDraw(VkCommandBuffer cmdBuf);
+void  cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device,
+                   VkQueue queue, VkDescriptorPool pool, VkFormat swapchainImageFormat);
 #ifdef __cplusplus
 }
 #endif
