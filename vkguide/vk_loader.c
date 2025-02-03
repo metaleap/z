@@ -1,3 +1,4 @@
+#include <stddef.h>
 #define CGLTF_IMPLEMENTATION
 #include "./vkguide.h"
 
@@ -61,14 +62,14 @@ MeshAsset* vkeLoadGlb(char* filePath) {
       int* glb_indices = calloc(acc_indices->count, sizeof(int));
       auto len_indices = cgltf_accessor_unpack_indices(
           acc_indices, glb_indices, cgltf_component_size(acc_indices->component_type), acc_indices->count);
-      float* glb_positions = calloc(acc_positions->count, sizeof(float));
-      auto   len_positions = cgltf_accessor_unpack_floats(acc_positions, glb_positions, acc_positions->count);
-      float* glb_normals   = calloc(acc_normals->count, sizeof(float));
-      auto   len_normals   = cgltf_accessor_unpack_floats(acc_normals, glb_normals, acc_normals->count);
-      float* glb_texcoords = calloc(acc_texcoords->count, sizeof(float));
-      auto   len_texcoords = cgltf_accessor_unpack_floats(acc_texcoords, glb_texcoords, acc_texcoords->count);
-      float* glb_colors    = no_colors ? nullptr : calloc(acc_colors->count, sizeof(float));
-      auto   len_colors    = no_colors ? 0 : cgltf_accessor_unpack_floats(acc_colors, glb_colors, acc_colors->count);
+      float* glb_pos_floats  = calloc(acc_positions->count, sizeof(float));
+      auto   len_pos_floats  = cgltf_accessor_unpack_floats(acc_positions, glb_pos_floats, acc_positions->count);
+      float* glb_norm_floats = calloc(acc_normals->count, sizeof(float));
+      auto   len_norm_floats = cgltf_accessor_unpack_floats(acc_normals, glb_norm_floats, acc_normals->count);
+      float* glb_tc_floats   = calloc(acc_texcoords->count, sizeof(float));
+      auto   len_tc_floats   = cgltf_accessor_unpack_floats(acc_texcoords, glb_tc_floats, acc_texcoords->count);
+      float* glb_col_floats  = no_colors ? nullptr : calloc(acc_colors->count, sizeof(float));
+      auto   len_col_floats  = no_colors ? 0 : cgltf_accessor_unpack_floats(acc_colors, glb_col_floats, acc_colors->count);
       SDL_Log("P%zu | C%zu | N%zu | T%zu | I%zu", acc_positions->count, no_colors ? 0 : acc_colors->count,
               acc_normals->count, acc_texcoords->count, acc_indices->count);
       // 2: draw the rest of the friggin owl
@@ -77,16 +78,19 @@ MeshAsset* vkeLoadGlb(char* filePath) {
       for (size_t i_idx = 0; i_idx < len_indices; i_idx++)
         U32s_add(&indices, glb_indices[i_idx]);
       // 4: load vertex positions, preset the other vert attrs
-      for (size_t i_pos = 0; i_pos < len_positions; i_pos += 3)
+      for (size_t i_pos = 0; i_pos < len_pos_floats; i_pos += 3)
         Verts_add(&vertices, (Vertex) {
-                                 .position = (vec3s) {.x = glb_positions[i_pos + 0],
-                                                      .y = glb_positions[i_pos + 1],
-                                                      .z = glb_positions[i_pos + 2]},
+                                 .position = (vec3s) {.x = glb_pos_floats[i_pos + 0],
+                                                      .y = glb_pos_floats[i_pos + 1],
+                                                      .z = glb_pos_floats[i_pos + 2]},
                                  .normal   = (vec3s) {.x = 1, .y = 0, .z = 0},
                                  .color    = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 1},
                                  .uv_x     = 0,
                                  .uv_y     = 0
         });
+      for (size_t i = 0; i < vertices.count; i++)
+        SDL_Log("%zu: %g,%g,%g\n", i, vertices.buffer[i].position.x, vertices.buffer[i].position.y,
+                vertices.buffer[i].position.z);
 
       // if (index_accessor->component_type == cgltf_component_type_r_16u)
       // {
@@ -98,6 +102,7 @@ MeshAsset* vkeLoadGlb(char* filePath) {
       //   }
       // }
     }
+    break;   // temporarily, only the cube
   }
 
   return ret;
