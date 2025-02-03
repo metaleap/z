@@ -12,4 +12,5 @@ cd 3rdparty
 ./refresh_cglm.sh
 ./refresh_cgltf.sh
 ./refresh_fastgltf.sh
+./refresh_GenericDataStructures.sh
 cd ..

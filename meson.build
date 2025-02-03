@@ -13,7 +13,7 @@ add_global_arguments(
     '-march=native',
     '-Wno-switch',
     '-Wno-unused-variable',
-    '-Wno-incompatible-pointer-types', # no more `const T*` vs `T*`
+    # '-Wno-incompatible-pointer-types', # note for the future: keep disabled AND keep this reminder  =)
     language: ['c', 'cpp'],
 )
 add_global_link_arguments(
@@ -49,6 +49,7 @@ lib_zdeps = library(
         '3rdparty/cimgui_cimgui',
         '3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include',
         '3rdparty/jkuhlmann_cgltf',
+        '3rdparty/mystborn_GenericDataStructures/include',
         '3rdparty/recp_cglm/include',
         '3rdparty/spnda_fastgltf/include',
         '3rdparty/ocornut_imgui',
@@ -79,6 +80,7 @@ executable(
         '3rdparty/jkuhlmann_cgltf',
         '3rdparty/ocornut_imgui',
         '3rdparty/ocornut_imgui/backends',
+        '3rdparty/mystborn_GenericDataStructures/include',
         '3rdparty/recp_cglm/include',
         '3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include',
         '3rdparty/spnda_fastgltf/include',

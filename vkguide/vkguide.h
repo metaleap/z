@@ -1,7 +1,5 @@
 #pragma once
 
-#include "cglm/struct/vec4.h"
-#include "cglm/types-struct.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -13,40 +11,40 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
-#include <vulkan/vulkan_core.h>
 
 #define VMA_DEDICATED_ALLOCATION 1
-#include "../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include/vk_mem_alloc.h"
+#include <vk_mem_alloc.h>
 
-#include "../3rdparty/recp_cglm/include/cglm/struct.h"
-#include "../3rdparty/jkuhlmann_cgltf/cgltf.h"
+#include <cglm/struct.h>
+#include <cgltf.h>
+#include <generic_list.h>
+
+
+LIST_DEFINE_H(F32s, F32s, _Float32);
+LIST_DEFINE_H(U32s, U32s, Uint32);
 
 
 
-VkRenderingInfo           vlkRenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment,
-                                           VkRenderingAttachmentInfo* depthAttachment);
-VkRenderingAttachmentInfo vlkRenderingAttachmentInfo(VkImageView view, VkClearValue* clear,
-                                                     VkImageLayout layout);
-VkImageSubresourceRange   vlkImageSubresourceRange(VkImageAspectFlags aspectMask);
-VkCommandBufferBeginInfo  vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
-VkFenceCreateInfo         vlkFenceCreateInfo(VkFenceCreateFlags flags);
-VkSemaphoreCreateInfo     vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags);
-VkCommandPoolCreateInfo   vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags);
+VkRenderingInfo             vlkRenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment,
+                                             VkRenderingAttachmentInfo* depthAttachment);
+VkRenderingAttachmentInfo   vlkRenderingAttachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout);
+VkImageSubresourceRange     vlkImageSubresourceRange(VkImageAspectFlags aspectMask);
+VkCommandBufferBeginInfo    vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
+VkFenceCreateInfo           vlkFenceCreateInfo(VkFenceCreateFlags flags);
+VkSemaphoreCreateInfo       vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags);
+VkCommandPoolCreateInfo     vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags);
 VkCommandBufferAllocateInfo vlkCommandBufferAllocateInfo(VkCommandPool cmdPool, Uint32 cmdBufCount);
 VkSemaphoreSubmitInfo       vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
-VkSubmitInfo2               vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig,
-                                          VkSemaphoreSubmitInfo* wait);
-VkCommandBufferSubmitInfo   vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
-VkImageCreateInfo     vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
-VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
-void                  vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout,
-                                       VkImageLayout newLayout);
+VkSubmitInfo2 vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBuf, VkSemaphoreSubmitInfo* sig, VkSemaphoreSubmitInfo* wait);
+VkCommandBufferSubmitInfo vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf);
+VkImageCreateInfo         vlkImageCreateInfo(VkFormat format, VkImageUsageFlags usageFlags, VkExtent3D extent);
+VkImageViewCreateInfo     vlkImageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
+void     vlkImgTransition(VkCommandBuffer cmdBuf, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
 void     vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D srcSize, VkExtent2D dstSize);
 VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* retShaderModule,
                              VkShaderStageFlagBits shaderStage);
-VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage,
-                                                                 VkShaderModule        shaderModule,
-                                                                 const char*           entryPointName);
+VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule,
+                                                                 const char* entryPointName);
 
 
 
@@ -118,9 +116,8 @@ typedef struct VlkDescriptorLayoutBuilder {
   VkDescriptorSetLayoutBinding bindings[VDLB_CAP];   // increase (above) as needed
   Uint8                        count;
 } VlkDescriptorLayoutBuilder;
-void                  VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* self);
-void                  VlkDescriptorLayoutBuilder_addBinding(VlkDescriptorLayoutBuilder* self, Uint32 binding,
-                                                            VkDescriptorType type);
+void VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* self);
+void VlkDescriptorLayoutBuilder_addBinding(VlkDescriptorLayoutBuilder* self, Uint32 binding, VkDescriptorType type);
 VkDescriptorSetLayout VlkDescriptorLayoutBuilder_build(VlkDescriptorLayoutBuilder* self, VkDevice device,
                                                        VkShaderStageFlags shaderStages, void* pNext,
                                                        VkDescriptorSetLayoutCreateFlags flags);
@@ -135,10 +132,10 @@ typedef struct VlkDescriptorAllocator {
   VlkDescriptorAllocatorSizeRatio ratios[VDLB_CAP];
   Uint8                           ratiosCount;
 } VlkDescriptorAllocator;
-void            VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* self, VkDevice device, Uint32 maxSets,
-                                                Uint8 ratiosCount, VlkDescriptorAllocatorSizeRatio ratios[]);
-void            VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* self, VkDevice device);
-void            VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* self, VkDevice device);
+void VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* self, VkDevice device, Uint32 maxSets, Uint8 ratiosCount,
+                                     VlkDescriptorAllocatorSizeRatio ratios[]);
+void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* self, VkDevice device);
+void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* self, VkDevice device);
 VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* self, VkDevice device,
                                                 VkDescriptorSetLayout layout);
 
@@ -164,7 +161,7 @@ void       PipelineBuilder_setPolygonMode(PipelineBuilder* self, VkPolygonMode m
 void       PipelineBuilder_setCullMode(PipelineBuilder* self, VkCullModeFlags cullMode, VkFrontFace frontFace);
 void       PipelineBuilder_setDepthFormat(PipelineBuilder* self, VkFormat format);
 void       PipelineBuilder_disableDepthTest(PipelineBuilder* self);
-void PipelineBuilder_setShaders(PipelineBuilder* self, VkShaderModule vertShader, VkShaderModule fragShader);
+void       PipelineBuilder_setShaders(PipelineBuilder* self, VkShaderModule vertShader, VkShaderModule fragShader);
 
 
 
@@ -225,21 +222,11 @@ typedef struct VulkanEngine {
 } VulkanEngine;
 
 
-typedef struct List {
-  void** buf;
-  Uint32 len;
-  Uint32 cap;
-} List;
-
-
 
 extern bool         isDebug;
 extern VulkanEngine vke;
 
 
-List           List_new(Uint32 cap);
-void           List_clear(List* self);
-void           List_append(List* self, void* item);
 void           vkeInit();
 void           vkeRun();
 void           vkeDraw();
@@ -254,8 +241,8 @@ void cppImguiShutdown();
 void cppImguiProcessEvent(SDL_Event* evt);
 void cppImguiRender();
 void cppImguiDraw(VkCommandBuffer cmdBuf);
-void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device,
-                  VkQueue queue, VkDescriptorPool pool, VkFormat swapchainImageFormat);
+void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu, VkDevice device, VkQueue queue,
+                  VkDescriptorPool pool, VkFormat swapchainImageFormat);
 #ifdef __cplusplus
 }
 #endif
