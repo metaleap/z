@@ -20,7 +20,6 @@
 #include <generic_list.h>
 
 
-LIST_DEFINE_H(F32s, F32s, _Float32);
 LIST_DEFINE_H(U32s, U32s, Uint32);
 
 
@@ -96,6 +95,7 @@ typedef struct Vertex {
   float uv_y;
   vec4s color;
 } Vertex;
+LIST_DEFINE_H(Verts, Verts, Vertex);
 
 
 typedef struct GpuMeshBuffers {

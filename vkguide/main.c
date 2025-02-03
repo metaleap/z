@@ -5,7 +5,7 @@
 
 
 LIST_DEFINE_C(U32s, U32s, Uint32);
-LIST_DEFINE_C(F32s, F32s, _Float32);
+LIST_DEFINE_C(Verts, Verts, Vertex);
 
 
 int main(int argc, char* argv[]) {
