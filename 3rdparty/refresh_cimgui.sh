@@ -5,7 +5,7 @@ thisScriptsFilePath="$(readlink --canonicalize-existing "$0")"
 thisScriptsDirPath="$(dirname "$thisScriptsFilePath")"
 cd $thisScriptsDirPath
 
-depVer="1.91.7" # keep in sync with sibling dep `imgui`
+depVer="1.91.7" # NOTE!! keep in sync with sibling dep `imgui`
 depDirName="cimgui_cimgui"
 
 
@@ -17,3 +17,4 @@ wget -O .tmp.zip https://github.com/cimgui/cimgui/archive/refs/tags/$depVer.zip
 unzip .tmp.zip
 rm -f .tmp.zip
 mv cimgui-$depVer $depDirName
+cp -rf ocornut_imgui/* $depDirName/imgui/

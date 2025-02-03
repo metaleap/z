@@ -11,6 +11,8 @@ add_global_arguments(
     '-msse2',
     '-mfpmath=sse',
     '-march=native',
+    '-Wno-switch',
+    '-Wno-unused-variable',
     '-Wno-incompatible-pointer-types', # no more `const T*` vs `T*`
     language: ['c', 'cpp'],
 )
@@ -22,28 +24,57 @@ add_global_link_arguments(
 dep_pthread = dependency('threads', include_type: 'system', static: false)
 dep_sdl3 = dependency('SDL3', include_type: 'system', static: false)
 dep_vulkan = dependency('vulkan', include_type: 'system', static: false)
-dep_glslang = dependency('glslang', include_type: 'system', static: false)
-dep_glslang2 = meson.get_compiler('c').find_library('glslang-default-resource-limits', static: false)
+dep_glslang = dependency('glslang', include_type: 'system')
+dep_glslang_drl = meson.get_compiler('c').find_library('glslang-default-resource-limits')
 
-executable(
-    'fged.exec',
-    dependencies: [dep_vulkan, dep_sdl3, dep_pthread],
-    link_language: 'c',
+dep_fastgltf = meson.get_compiler('cpp').find_library(
+    'fastgltf',
+    static: true,
+    dirs: [meson.project_source_root() / '3rdparty/spnda_fastgltf/.build'],
+)
+lib_zdeps = library(
+    'zdeps',
+    dependencies: [
+        dep_fastgltf,
+        dep_glslang_drl,
+        dep_glslang,
+        dep_vulkan,
+        dep_sdl3,
+        dep_pthread,
+    ],
+    build_by_default: true,
+    implicit_include_directories: true,
+    link_language: 'cpp',
+    include_directories: [
+        '3rdparty/cimgui_cimgui',
+        '3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include',
+        '3rdparty/jkuhlmann_cgltf',
+        '3rdparty/recp_cglm/include',
+        '3rdparty/spnda_fastgltf/include',
+        '3rdparty/ocornut_imgui',
+        '3rdparty/ocornut_imgui/backends',
+    ],
+    pic: true,
     sources: [
-        'fged/main.c',
-        'fged/vec3.c',
-        'fged/mat3.c',
-        'fged/vec4.c',
-        'fged/mat4.c',
+        'zdeps/impls.c',
+        'zdeps/impls.cpp',
     ],
 )
 
 executable(
     'vkguide.exec',
-    dependencies: [dep_glslang2, dep_glslang, dep_vulkan, dep_sdl3, dep_pthread],
+    dependencies: [
+        dep_glslang_drl,
+        dep_glslang,
+        dep_vulkan,
+        dep_sdl3,
+        dep_pthread,
+    ],
     link_language: 'cpp',
+    link_with: [lib_zdeps],
     implicit_include_directories: true,
     include_directories: [
+        'zdeps/',
         '3rdparty/cimgui_cimgui',
         '3rdparty/jkuhlmann_cgltf',
         '3rdparty/ocornut_imgui',
@@ -52,6 +83,7 @@ executable(
         '3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include',
         '3rdparty/spnda_fastgltf/include',
     ],
+    # native: true, # https://github.com/mesonbuild/meson/discussions/14218
     sources: [
         'vkguide/main.c',
         'vkguide/vk_descriptors.c',

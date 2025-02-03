@@ -17,14 +17,3 @@ wget -O .tmp.zip https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocat
 unzip .tmp.zip
 rm -f .tmp.zip
 mv VulkanMemoryAllocator-$depVer $depDirName
-
-
-
-### build:
-
-cd $depDirName
-rm -rf .build
-mkdir .build
-cmake -S . -B .build
-cmake --install .build --prefix .build/install
-cd ..

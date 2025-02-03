@@ -9,8 +9,8 @@ int main(int argc, char* argv[]) {
   vke = (VulkanEngine) {
       .windowExtent = {.width = 1600, .height = 900}
   };
-  vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
   // vkeLoadGlb("../../vkguide/assets/structure.glb");
+  vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
   vkeInit();
   vkeRun();
   vkeShutdown();
