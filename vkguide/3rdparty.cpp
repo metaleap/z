@@ -1,72 +1,14 @@
-#include <SDL3/SDL_events.h>
-#include <cstdint>
 #define VMA_IMPLEMENTATION
 #include "./vkguide.h"
-
-#include <unordered_map>
-#include <filesystem>
 
 #include "../3rdparty/ocornut_imgui/imgui.h"
 #include "../3rdparty/ocornut_imgui/backends/imgui_impl_sdl3.h"
 #include "../3rdparty/ocornut_imgui/backends/imgui_impl_vulkan.h"
-#include "../3rdparty/spnda_fastgltf/include/fastgltf/core.hpp"
-#include "../3rdparty/spnda_fastgltf/include/fastgltf/tools.hpp"
 
 extern VulkanEngine vke;
 
 
 extern "C" {
-List cppLoadMeshes(char* filePath) {
-  List                  ret       = {};
-  std::filesystem::path file_path = filePath;
-  auto                  data      = fastgltf::GltfDataBuffer::FromPath(file_path);
-  if (data.error() != fastgltf::Error::None)
-    return ret;
-  fastgltf::Parser parser;
-  auto             asset = parser.loadGltfBinary(data.get(), file_path.parent_path(), fastgltf::Options::None);
-  if (auto error = asset.error(); error != fastgltf::Error::None)
-    return ret;
-
-  ret = List_new(8);
-  std::vector<uint32_t> indices;
-  std::vector<Vertex>   vertices;
-  for (fastgltf::Mesh& mesh : asset->meshes) {
-    MeshAsset newmesh;
-    newmesh.name = mesh.name.c_str();
-    indices.clear();
-    vertices.clear();
-    for (auto&& p : mesh.primitives) {
-      GeoSurface newSurface  = {.idxStart = (Uint32) indices.size(),
-                                .count    = (Uint64) asset->accessors[p.indicesAccessor.value()].count};
-      size_t     initial_vtx = vertices.size();
-      // load indexes
-      {
-        fastgltf::Accessor& indexaccessor = asset->accessors[p.indicesAccessor.value()];
-        indices.reserve(indices.size() + indexaccessor.count);
-        fastgltf::iterateAccessor<std::uint32_t>(
-            asset.get(), indexaccessor,
-            [&](std::uint32_t idx) { indices.push_back(idx + (uint32_t) initial_vtx); },
-            fastgltf::DefaultBufferDataAdapter());
-      }
-      // load vertex positions
-      {
-        fastgltf::Accessor& posAccessor = asset->accessors[p.findAttribute("POSITION")->second];
-        vertices.resize(vertices.size() + posAccessor.count);
-        fastgltf::iterateAccessorWithIndex<vec3s>(asset, posAccessor, [&](vec3s v, size_t index) {
-          Vertex newvtx;
-          newvtx.position               = v;
-          newvtx.normal                 = {1, 0, 0};
-          newvtx.color                  = glm::vec4 {1.f};
-          newvtx.uv_x                   = 0;
-          newvtx.uv_y                   = 0;
-          vertices[initial_vtx + index] = newvtx;
-        });
-      }
-    }
-  }
-  return ret;
-}
-
 void cppImguiShutdown() {
   ImGui_ImplVulkan_Shutdown();
 }

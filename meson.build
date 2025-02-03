@@ -40,19 +40,7 @@ executable(
 
 executable(
     'vkguide.exec',
-    dependencies: [
-        dep_glslang2,
-        dep_glslang,
-        dep_vulkan,
-        dep_sdl3,
-        dep_pthread,
-        meson.get_compiler('cpp').find_library(
-            'fastgltf',
-            required: true,
-            static: true,
-            dirs: [meson.project_source_root() / '3rdparty/spnda_fastgltf/.build'],
-        ),
-    ],
+    dependencies: [dep_glslang2, dep_glslang, dep_vulkan, dep_sdl3, dep_pthread],
     link_language: 'cpp',
     implicit_include_directories: true,
     include_directories: [

@@ -1,13 +1,16 @@
 #include <stdio.h>
 
 #include "./vkguide.h"
+#include <SDL3/SDL_main.h>
 
 
-
-int main() {
+int main(int argc, char* argv[]) {
+  SDL_Log("—init...\n");
   vke = (VulkanEngine) {
       .windowExtent = {.width = 1600, .height = 900}
   };
+  vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
+  // vkeLoadGlb("../../vkguide/assets/structure.glb");
   vkeInit();
   vkeRun();
   vkeShutdown();
