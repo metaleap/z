@@ -187,9 +187,11 @@ void vkeResizeSwapchain() {
   vlkDisposeSwapchain();
   int w, h;
   assert(SDL_GetWindowSize(vke.window, &w, &h));
-  vke.windowExtent.width  = w;
-  vke.windowExtent.height = h;
-  vkeCreateSwapchain(vke.windowExtent.width, vke.windowExtent.height);
+  if ((vke.windowExtent.width != (Uint32) w) || (vke.windowExtent.height != (Uint32) h)) {
+    vke.windowExtent.width  = w;
+    vke.windowExtent.height = h;
+    vkeCreateSwapchain(vke.windowExtent.width, vke.windowExtent.height);
+  }
 }
 
 
@@ -441,16 +443,18 @@ void vkeRun() {
           vke.paused = false;
           break;
         case SDL_EVENT_WINDOW_RESIZED:
-        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+          // case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
           vke.resizeRequested = true;
           break;
       }
-      if (!(quit || vke.paused))
+      if (!(quit || vke.paused || vke.resizeRequested))
         cppImguiProcessEvent(&evt);
     }
     if (quit)
       break;
-    if ((!vke.paused) || vke.resizeRequested) {
+    if (vke.resizeRequested)
+      vkeResizeSwapchain();
+    if (!vke.paused) {
       cppImguiRender();
       vkeDraw();
     }
