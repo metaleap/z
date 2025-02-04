@@ -1,7 +1,4 @@
 #include "./vkguide.h"
-#include "cglm/struct/mat4.h"
-#include <SDL3/SDL_stdinc.h>
-#include <vulkan/vulkan_core.h>
 
 
 VulkanEngine vke = {
@@ -556,6 +553,16 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
     vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
     vkCmdBindIndexBuffer(cmdBuf, vke.rectangle.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
     vkCmdDrawIndexed(cmdBuf, 6, 1, 0, 0, 0);
+    // meshes
+    push.vertexBuffer = vke.testMeshes.buffer[2].meshBuffers.vertexBufferAddress;
+    mat4s view        = glms_translate_make((vec3s) {.z = -5});
+    mat4s proj = glms_perspective(glm_rad(70), (float) vke.drawExtent.width / (float) vke.drawExtent.height, 10000, 0.1f);
+    proj.raw[1][1]   *= -1;
+    push.worldMatrix  = glms_mul(proj, view);
+    vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
+    vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[2].meshBuffers.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[2].surfaces.buffer[0].count, 1,
+                     vke.testMeshes.buffer[2].surfaces.buffer[0].idxStart, 0, 0);
   }
   vkCmdEndRendering(cmdBuf);
 }

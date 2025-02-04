@@ -183,7 +183,7 @@ typedef struct ComputeShaderEffect {
 
 typedef struct GeoSurface {
   Uint32 idxStart;
-  Uint64 count;
+  Uint32 count;
 } GeoSurface;
 LIST_DEFINE_H(GeoSurfaces, GeoSurfaces, GeoSurface);
 
@@ -193,6 +193,7 @@ typedef struct MeshAsset {
   GeoSurfaces    surfaces;
   GpuMeshBuffers meshBuffers;
 } MeshAsset;
+LIST_DEFINE_H(MeshAssets, MeshAssets, MeshAsset);
 
 
 typedef struct VulkanEngine {
@@ -219,6 +220,7 @@ typedef struct VulkanEngine {
   VkPipelineLayout       meshPipelineLayout;
   VkPipeline             meshPipeline;
   GpuMeshBuffers         rectangle;
+  MeshAssets             testMeshes;
 } VulkanEngine;
 
 
@@ -234,7 +236,7 @@ void           vkeDraw();
 void           vkeShutdown();
 VlkBuffer      vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
-MeshAsset*     vkeLoadGlb(char* filePath);
+MeshAssets     vkeLoadGlb(char* filePath);
 #ifdef __cplusplus
 extern "C" {
 #endif

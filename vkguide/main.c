@@ -7,6 +7,7 @@
 LIST_DEFINE_C(U32s, U32s, Uint32);
 LIST_DEFINE_C(Verts, Verts, Vertex);
 LIST_DEFINE_C(GeoSurfaces, GeoSurfaces, GeoSurface);
+LIST_DEFINE_C(MeshAssets, MeshAssets, MeshAsset);
 
 
 
@@ -16,7 +17,7 @@ int main(int argc, char* argv[]) {
       .windowExtent = {.width = 1600, .height = 900}
   };
   vkeInit();
-  vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
+  vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
   vkeRun();
   vkeShutdown();
   SDL_Quit();

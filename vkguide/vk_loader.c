@@ -5,7 +5,7 @@
 extern VulkanEngine vke;
 
 
-MeshAsset* vkeLoadGlb(char* filePath) {
+MeshAssets vkeLoadGlb(char* filePath) {
   cgltf_options options = {.type = cgltf_file_type_glb};
   cgltf_data*   data    = nullptr;
   cgltf_result  result  = cgltf_parse_file(&options, filePath, &data);
@@ -16,25 +16,24 @@ MeshAsset* vkeLoadGlb(char* filePath) {
     exit(1);
   }
 
-  MeshAsset* ret = calloc(data->meshes_count, sizeof(MeshAsset));
-  for (size_t i = 0; i < data->meshes_count; i++)
-    GeoSurfaces_init_capacity(&ret[i].surfaces, 16);
+  MeshAssets ret = {};
+  assert(MeshAssets_init_capacity(&ret, 8));
   U32s indices = {};
   assert(U32s_init_capacity(&indices, 128));
   Verts vertices = {};
   assert(Verts_init_capacity(&vertices, 128));
 
   for (size_t i_mesh = 0; i_mesh < data->meshes_count; i_mesh++) {
-    auto mesh      = &data->meshes[i_mesh];
-    auto new_mesh  = &ret[i_mesh];
-    new_mesh->name = mesh->name;
+    auto      mesh     = &data->meshes[i_mesh];
+    MeshAsset new_mesh = {.name = mesh->name};
+    assert(GeoSurfaces_init_capacity(&new_mesh.surfaces, 16));
     U32s_clear(&indices);
     Verts_clear(&vertices);
     for (size_t i_prim = 0; i_prim < mesh->primitives_count; i_prim++) {
       auto            prim        = &mesh->primitives[i_prim];
       cgltf_accessor* acc_indices = prim->indices;
       assert(acc_indices != nullptr);
-      GeoSurface new_surface = {.idxStart = (Uint32) indices.count, .count = (Uint64) acc_indices->count};
+      GeoSurface new_surface = {.idxStart = (Uint32) indices.count, .count = (Uint32) acc_indices->count};
       size_t     initial_vtx = vertices.count;
 
       cgltf_accessor* acc_positions    = nullptr;
@@ -170,7 +169,7 @@ MeshAsset* vkeLoadGlb(char* filePath) {
             break;
           }
       }
-      assert(GeoSurfaces_add(&new_mesh->surfaces, new_surface));
+      assert(GeoSurfaces_add(&new_mesh.surfaces, new_surface));
     }
 
     if (true)
@@ -178,11 +177,12 @@ MeshAsset* vkeLoadGlb(char* filePath) {
         auto vert   = &vertices.buffer[i_vtx];
         vert->color = (vec4s) {.r = vert->normal.x, .g = vert->normal.y, .b = vert->normal.z, .a = 1};
       }
-    new_mesh->meshBuffers = vkeUploadMesh(vertices.count, vertices.buffer, indices.count, indices.buffer);
-    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, new_mesh->meshBuffers.indexBuffer.buf,
-                   new_mesh->meshBuffers.indexBuffer.alloc);
-    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, new_mesh->meshBuffers.vertexBuffer.buf,
-                   new_mesh->meshBuffers.vertexBuffer.alloc);
+    new_mesh.meshBuffers = vkeUploadMesh(vertices.count, vertices.buffer, indices.count, indices.buffer);
+    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, new_mesh.meshBuffers.indexBuffer.buf,
+                   new_mesh.meshBuffers.indexBuffer.alloc);
+    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, new_mesh.meshBuffers.vertexBuffer.buf,
+                   new_mesh.meshBuffers.vertexBuffer.alloc);
+    assert(MeshAssets_add(&ret, new_mesh));
   }
 
   return ret;
