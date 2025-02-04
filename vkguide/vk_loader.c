@@ -1,3 +1,4 @@
+#include "cglm/types-struct.h"
 #include <stddef.h>
 #define CGLTF_IMPLEMENTATION
 #include "./vkguide.h"
@@ -7,6 +8,25 @@ extern VulkanEngine vke;
 
 
 MeshAsset* vkeLoadGlb(char* filePath) {
+  {   // TEMP CUBE
+
+    Vertex tlf = {
+        .position = {.x = -1, .y = 1, .z = -1},
+        .color    = {.r = 1, .g = 1, .b = 1, .a = 1},
+        .normal   = {.x = 0, .y = 0, .z = -1},
+        .uv_x     = 0,
+        .uv_y     = 0
+    };
+    Vertex trf = {
+        .position = {.x = 1, .y = 1, .z = -1},
+        .color    = {.r = 0, .g = 1, .b = 1, .a = 1},
+        .normal   = {.x = 0, .y = 0, .z = -1},
+        .uv_x     = 0,
+        .uv_y     = 0
+    };
+  }
+
+
   cgltf_options options = {.type = cgltf_file_type_glb};
   cgltf_data*   data    = nullptr;
   cgltf_result  result  = cgltf_parse_file(&options, filePath, &data);
@@ -30,77 +50,87 @@ MeshAsset* vkeLoadGlb(char* filePath) {
     U32s_clear(&indices);
     Verts_clear(&vertices);
     for (size_t i_prim = 0; i_prim < mesh->primitives_count; i_prim++) {
-      auto            prim          = &mesh->primitives[i_prim];
-      // 1: gather all accessors first
-      cgltf_accessor* acc_indices   = prim->indices;
-      cgltf_accessor* acc_positions = nullptr;
-      cgltf_accessor* acc_normals   = nullptr;
-      cgltf_accessor* acc_colors    = nullptr;
-      cgltf_accessor* acc_texcoords = nullptr;
+      auto prim = &mesh->primitives[i_prim];
+
+      cgltf_accessor* acc_indices      = prim->indices;
+      cgltf_accessor* acc_positions    = nullptr;
+      cgltf_accessor* acc_normals      = nullptr;
+      cgltf_accessor* acc_colors       = nullptr;
+      cgltf_accessor* acc_texcoords    = nullptr;
+      float*          floats_positions = nullptr;
+      float*          floats_normals   = nullptr;
+      float*          floats_colors    = nullptr;
+      float*          floats_texcoords = nullptr;
+      size_t          count_positions  = 0;
+      size_t          count_normals    = 0;
+      size_t          count_colors     = 0;
+      size_t          count_texcoords  = 0;
+      size_t          stride_positions = 0;
+      size_t          stride_normals   = 0;
+      size_t          stride_colors    = 0;
+      size_t          stride_texcoords = 0;
       for (size_t i_attr = 0; (i_attr < prim->attributes_count); i_attr++) {
-        auto attr = &prim->attributes[i_attr];
-        SDL_Log("  p%zu[a%zu'%s'] = %d (%zu)\n", i_prim, i_attr, attr->name, attr->type, attr->data->count);
+        auto attr     = &prim->attributes[i_attr];
+        auto acc      = attr->data;
+        auto buf_view = acc->buffer_view;
+        auto buf      = buf_view->buffer;
+        auto off      = buf + acc->offset + buf_view->offset;
         switch (attr->type) {
           case cgltf_attribute_type_position:
-            acc_positions = attr->data;
+            acc_positions    = acc;
+            count_positions  = acc->count;
+            stride_positions = utilMax(buf_view->stride, 3 * sizeof(float));
             break;
           case cgltf_attribute_type_normal:
-            acc_normals = attr->data;
+            acc_normals    = acc;
+            count_normals  = acc->count;
+            stride_normals = utilMax(buf_view->stride, 3 * sizeof(float));
             break;
           case cgltf_attribute_type_texcoord:
-            acc_texcoords = attr->data;
+            acc_texcoords    = acc;
+            count_texcoords  = acc->count;
+            stride_texcoords = utilMax(buf_view->stride, 2 * sizeof(float));
             break;
           case cgltf_attribute_type_color:
-            acc_colors = attr->data;
+            acc_colors    = acc;
+            count_colors  = acc->count;
+            stride_colors = utilMax(buf_view->stride, 3 * sizeof(float));
             break;
         }
       }
       assert((acc_indices != nullptr) && (acc_positions != nullptr) && (acc_texcoords != nullptr) &&
              (acc_normals != nullptr));
-      bool no_colors   = ((acc_colors == nullptr) || (acc_colors->count <= 0));
-      // 2: unpack accessors (load those float/int buffers)
-      int* glb_indices = calloc(acc_indices->count, sizeof(int));
-      auto len_indices = cgltf_accessor_unpack_indices(
-          acc_indices, glb_indices, cgltf_component_size(acc_indices->component_type), acc_indices->count);
-      float* glb_pos_floats  = calloc(acc_positions->count, sizeof(float));
-      auto   len_pos_floats  = cgltf_accessor_unpack_floats(acc_positions, glb_pos_floats, acc_positions->count);
-      float* glb_norm_floats = calloc(acc_normals->count, sizeof(float));
-      auto   len_norm_floats = cgltf_accessor_unpack_floats(acc_normals, glb_norm_floats, acc_normals->count);
-      float* glb_tc_floats   = calloc(acc_texcoords->count, sizeof(float));
-      auto   len_tc_floats   = cgltf_accessor_unpack_floats(acc_texcoords, glb_tc_floats, acc_texcoords->count);
-      float* glb_col_floats  = no_colors ? nullptr : calloc(acc_colors->count, sizeof(float));
-      auto   len_col_floats  = no_colors ? 0 : cgltf_accessor_unpack_floats(acc_colors, glb_col_floats, acc_colors->count);
-      SDL_Log("P%zu | C%zu | N%zu | T%zu | I%zu", acc_positions->count, no_colors ? 0 : acc_colors->count,
-              acc_normals->count, acc_texcoords->count, acc_indices->count);
-      // 2: draw the rest of the friggin owl
-      GeoSurface new_surface = {.idxStart = indices.count, .count = acc_indices->count};
-      // 3: load indexes
-      for (size_t i_idx = 0; i_idx < len_indices; i_idx++)
-        U32s_add(&indices, glb_indices[i_idx]);
-      // 4: load vertex positions, preset the other vert attrs
-      for (size_t i_pos = 0; i_pos < len_pos_floats; i_pos += 3)
-        Verts_add(&vertices, (Vertex) {
-                                 .position = (vec3s) {.x = glb_pos_floats[i_pos + 0],
-                                                      .y = glb_pos_floats[i_pos + 1],
-                                                      .z = glb_pos_floats[i_pos + 2]},
-                                 .normal   = (vec3s) {.x = 1, .y = 0, .z = 0},
-                                 .color    = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 1},
-                                 .uv_x     = 0,
-                                 .uv_y     = 0
-        });
-      for (size_t i = 0; i < vertices.count; i++)
-        SDL_Log("%zu: %g,%g,%g\n", i, vertices.buffer[i].position.x, vertices.buffer[i].position.y,
-                vertices.buffer[i].position.z);
+      bool no_colors = ((acc_colors == nullptr) || (acc_colors->count == 0) || (count_colors == 0));
 
-      // if (index_accessor->component_type == cgltf_component_type_r_16u)
-      // {
-      //   for (int indice=0;indice <index_accessor->count ;indice  ++)
-      //   {
-      //     unsigned short t_indice = cgltf_accessor_read_index(index_accessor,indice);
-      //      std::cout << "vertex1 " << *(position_data+t_indice) << " / " << *(position_data+t_indice+1) << " / " <<
-      //      *(position_data+t_indice+2) << std::endl;
-      //   }
-      // }
+      size_t count_verts   = count_positions;
+      size_t cur_positions = 0;
+      size_t cur_normals   = 0;
+      size_t cur_texcoords = 0;
+      size_t cur_colors    = 0;
+      for (size_t i_vtx = 0; i_vtx < count_verts; i_vtx++) {
+        Vertex vert = {
+            .position = {.x = floats_positions[cur_positions + 0],
+                         .y = floats_positions[cur_positions + 1],
+                         .z = floats_positions[cur_positions + 2]},
+            .normal   = {.x = floats_normals[cur_normals + 0],
+                         .y = floats_normals[cur_normals + 1],
+                         .z = floats_normals[cur_normals + 2]},
+            .uv_x     = floats_texcoords[cur_texcoords + 0],
+            .uv_y     = floats_texcoords[cur_texcoords + 1],
+            .color    = {.r = 1, .g = 1, .b = 1, .a = 1}
+        };
+        cur_positions += (stride_positions / sizeof(float));
+        cur_normals   += (stride_normals / sizeof(float));
+        cur_texcoords += (stride_texcoords / sizeof(float));
+        if (!no_colors) {
+          vert.color  = (vec4s) {.r = floats_colors[cur_colors + 0],
+                                 .g = floats_colors[cur_colors + 1],
+                                 .b = floats_colors[cur_colors + 2],
+                                 .a = 1};
+          cur_colors += (stride_colors / sizeof(float));
+        }
+        Verts_add(&vertices, vert);
+      }
     }
     break;   // temporarily, only the cube
   }

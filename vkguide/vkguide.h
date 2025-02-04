@@ -227,6 +227,7 @@ extern bool         isDebug;
 extern VulkanEngine vke;
 
 
+size_t         utilMax(size_t s1, size_t s2);
 void           vkeInit();
 void           vkeRun();
 void           vkeDraw();
@@ -266,3 +267,6 @@ void cppImguiInit(SDL_Window* window, VkInstance instance, VkPhysicalDevice gpu,
       exit(1);                                                \
     }                                                         \
   } while (false)
+
+
+#define MAX(n1, n2) ((n2 > n1) ? n2 : n1)

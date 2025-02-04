@@ -21,3 +21,8 @@ int main(int argc, char* argv[]) {
   SDL_Quit();
   return 0;
 }
+
+
+size_t utilMax(size_t s1, size_t s2) {
+  return (s1 > s2) ? s1 : s2;
+}
