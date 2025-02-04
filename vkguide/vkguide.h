@@ -155,9 +155,11 @@ typedef struct PipelineBuilder {
   VkFormat                               colorAttachmentFormat;
 } PipelineBuilder;
 void       PipelineBuilder_reset(PipelineBuilder* self);
-VkPipeline PipelineBuilder_build(PipelineBuilder* self, VkDevice device);
 void       PipelineBuilder_setColorAttachmentFormat(PipelineBuilder* self, VkFormat format);
 void       PipelineBuilder_disableBlending(PipelineBuilder* self);
+void       PipelineBuilder_enableBlending(PipelineBuilder* self, VkBlendFactor dstColorBlendFactor);
+void       PipelineBuilder_enableBlendingAdditive(PipelineBuilder* self);
+void       PipelineBuilder_enableBlendingAlphaBlend(PipelineBuilder* self);
 void       PipelineBuilder_setMultisamplingNone(PipelineBuilder* self);
 void       PipelineBuilder_setInputTopology(PipelineBuilder* self, VkPrimitiveTopology topo);
 void       PipelineBuilder_setPolygonMode(PipelineBuilder* self, VkPolygonMode mode);
@@ -166,6 +168,7 @@ void       PipelineBuilder_setDepthFormat(PipelineBuilder* self, VkFormat format
 void       PipelineBuilder_disableDepthTest(PipelineBuilder* self);
 void       PipelineBuilder_enableDepthTest(PipelineBuilder* self, bool depthWriteEnable, VkCompareOp opCmp);
 void       PipelineBuilder_setShaders(PipelineBuilder* self, VkShaderModule vertShader, VkShaderModule fragShader);
+VkPipeline PipelineBuilder_build(PipelineBuilder* self, VkDevice device);
 
 
 

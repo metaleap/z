@@ -176,6 +176,26 @@ void PipelineBuilder_disableBlending(PipelineBuilder* self) {
 
 
 
+void PipelineBuilder_enableBlending(PipelineBuilder* self, VkBlendFactor dstColorBlendFactor) {
+  self->colorBlendAttachment.colorWriteMask =
+      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  self->colorBlendAttachment.blendEnable         = VK_TRUE;
+  self->colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+  self->colorBlendAttachment.dstColorBlendFactor = dstColorBlendFactor;
+  self->colorBlendAttachment.colorBlendOp        = VK_BLEND_OP_ADD;
+  self->colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+  self->colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+  self->colorBlendAttachment.alphaBlendOp        = VK_BLEND_OP_ADD;
+}
+void PipelineBuilder_enableBlendingAdditive(PipelineBuilder* self) {
+  PipelineBuilder_enableBlending(self, VK_BLEND_FACTOR_ONE);
+}
+void PipelineBuilder_enableBlendingAlphaBlend(PipelineBuilder* self) {
+  PipelineBuilder_enableBlending(self, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA);
+}
+
+
+
 void PipelineBuilder_setColorAttachmentFormat(PipelineBuilder* self, VkFormat format) {
   self->colorAttachmentFormat              = format;
   self->renderInfo.colorAttachmentCount    = 1;

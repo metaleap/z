@@ -30,7 +30,8 @@ void vkeInitVulkan() {
 
   VkApplicationInfo inst_app      = {.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO, .apiVersion = VK_API_VERSION_1_4};
   const char*       inst_layers[] = {
-      "VK_LAYER_KHRONOS_validation"};   // "VK_LAYER_KHRONOS_validation" MUST remain the last entry!
+      "VK_LAYER_KHRONOS_validation",   // "VK_LAYER_KHRONOS_validation" MUST remain the last entry!
+  };
   VkInstanceCreateInfo inst_create = {.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
                                       .enabledExtensionCount   = num_exts,
                                       .ppEnabledExtensionNames = inst_exts,
@@ -330,7 +331,8 @@ void vkeInitMeshPipeline() {
   PipelineBuilder_setPolygonMode(&pb, VK_POLYGON_MODE_FILL);
   PipelineBuilder_setCullMode(&pb, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
   PipelineBuilder_setMultisamplingNone(&pb);
-  PipelineBuilder_disableBlending(&pb);
+  PipelineBuilder_enableBlendingAlphaBlend(&pb);
+  // PipelineBuilder_disableBlending(&pb);
   PipelineBuilder_enableDepthTest(&pb, true, VK_COMPARE_OP_GREATER_OR_EQUAL);
   PipelineBuilder_setColorAttachmentFormat(&pb, vke.drawImage.format);
   PipelineBuilder_setDepthFormat(&pb, vke.depthImage.format);
