@@ -185,12 +185,12 @@ typedef struct GeoSurface {
   Uint32 idxStart;
   Uint64 count;
 } GeoSurface;
+LIST_DEFINE_H(GeoSurfaces, GeoSurfaces, GeoSurface);
 
 
 typedef struct MeshAsset {
   const char*    name;
-  GeoSurface*    surfaces;
-  Uint32         numSurfaces;
+  GeoSurfaces    surfaces;
   GpuMeshBuffers meshBuffers;
 } MeshAsset;
 

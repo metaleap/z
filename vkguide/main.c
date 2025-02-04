@@ -6,6 +6,8 @@
 
 LIST_DEFINE_C(U32s, U32s, Uint32);
 LIST_DEFINE_C(Verts, Verts, Vertex);
+LIST_DEFINE_C(GeoSurfaces, GeoSurfaces, GeoSurface);
+
 
 
 int main(int argc, char* argv[]) {
