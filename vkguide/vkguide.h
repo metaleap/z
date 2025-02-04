@@ -29,6 +29,7 @@ LIST_DEFINE_H(U32s, U32s, Uint32);
 VkRenderingInfo             vlkRenderingInfo(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment,
                                              VkRenderingAttachmentInfo* depthAttachment);
 VkRenderingAttachmentInfo   vlkRenderingAttachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout);
+VkRenderingAttachmentInfo   vlkRenderingAttachmentInfoDepth(VkImageView view, VkImageLayout layout);
 VkImageSubresourceRange     vlkImageSubresourceRange(VkImageAspectFlags aspectMask);
 VkCommandBufferBeginInfo    vlkCommandBufferBeginInfo(VkCommandBufferUsageFlags flags);
 VkFenceCreateInfo           vlkFenceCreateInfo(VkFenceCreateFlags flags);
@@ -55,7 +56,7 @@ VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFl
 
 
 typedef struct DisposalQueue {
-#define DISP_QUEUE_CAPACITY 22
+#define DISP_QUEUE_CAPACITY 44
   int             count;
   VkStructureType types[DISP_QUEUE_CAPACITY];
   void*           args[DISP_QUEUE_CAPACITY];
@@ -163,6 +164,7 @@ void       PipelineBuilder_setPolygonMode(PipelineBuilder* self, VkPolygonMode m
 void       PipelineBuilder_setCullMode(PipelineBuilder* self, VkCullModeFlags cullMode, VkFrontFace frontFace);
 void       PipelineBuilder_setDepthFormat(PipelineBuilder* self, VkFormat format);
 void       PipelineBuilder_disableDepthTest(PipelineBuilder* self);
+void       PipelineBuilder_enableDepthTest(PipelineBuilder* self, bool depthWriteEnable, VkCompareOp opCmp);
 void       PipelineBuilder_setShaders(PipelineBuilder* self, VkShaderModule vertShader, VkShaderModule fragShader);
 
 
@@ -208,6 +210,7 @@ typedef struct VulkanEngine {
   VkExtent2D             windowExtent;
   VkExtent2D             drawExtent;
   VlkImage               drawImage;
+  VlkImage               depthImage;
   VlkDescriptorAllocator globalDescriptorAlloc;
   VkDescriptorSet        drawImageDescriptors;
   VkDescriptorSetLayout  drawImageDescriptorLayout;

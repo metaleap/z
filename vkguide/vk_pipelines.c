@@ -2,6 +2,7 @@
 
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
+#include <vulkan/vulkan_core.h>
 
 
 
@@ -12,8 +13,7 @@ typedef struct SpirVBinary {
 
 
 
-SpirVBinary compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char* shaderSource,
-                                        const char* fileName) {
+SpirVBinary compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char* shaderSource, const char* fileName) {
   const glslang_input_t input = {
       .language                          = GLSLANG_SOURCE_GLSL,
       .stage                             = stage,
@@ -106,27 +106,25 @@ VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* re
   SpirVBinary bin = compileShaderToSPIRV_Vulkan(shader_stage, bytes, filePath);
   if (bin.words == nullptr)
     exit(1);
-  VkShaderModuleCreateInfo create = {.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-                                     .pCode    = bin.words,
-                                     .codeSize = (sizeof(Uint32) * bin.size)};
+  VkShaderModuleCreateInfo create = {
+      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, .pCode = bin.words, .codeSize = (sizeof(Uint32) * bin.size)};
   return vkCreateShaderModule(device, &create, nullptr, retShaderModule);
 }
 
 
 
 void PipelineBuilder_reset(PipelineBuilder* self) {
-  self->inputAssembly = (VkPipelineInputAssemblyStateCreateInfo) {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
-  self->rasterizer = (VkPipelineRasterizationStateCreateInfo) {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
+  self->inputAssembly =
+      (VkPipelineInputAssemblyStateCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+  self->rasterizer =
+      (VkPipelineRasterizationStateCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
   self->colorBlendAttachment = (VkPipelineColorBlendAttachmentState) {};
-  self->multisampling        = (VkPipelineMultisampleStateCreateInfo) {
-             .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
+  self->multisampling =
+      (VkPipelineMultisampleStateCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
   self->pipelineLayout = nullptr;
-  self->depthStencil   = (VkPipelineDepthStencilStateCreateInfo) {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
-  self->renderInfo =
-      (VkPipelineRenderingCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
+  self->depthStencil =
+      (VkPipelineDepthStencilStateCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
+  self->renderInfo = (VkPipelineRenderingCreateInfo) {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
 }
 
 
@@ -171,8 +169,8 @@ void PipelineBuilder_setMultisamplingNone(PipelineBuilder* self) {
 
 
 void PipelineBuilder_disableBlending(PipelineBuilder* self) {
-  self->colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  self->colorBlendAttachment.colorWriteMask =
+      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
   self->colorBlendAttachment.blendEnable = VK_FALSE;
 }
 
@@ -206,37 +204,48 @@ void PipelineBuilder_disableDepthTest(PipelineBuilder* self) {
 
 
 
+void PipelineBuilder_enableDepthTest(PipelineBuilder* self, bool depthWriteEnable, VkCompareOp opCmp) {
+  self->depthStencil.depthTestEnable       = VK_TRUE;
+  self->depthStencil.depthWriteEnable      = depthWriteEnable;
+  self->depthStencil.depthCompareOp        = opCmp;
+  self->depthStencil.depthBoundsTestEnable = VK_FALSE;
+  self->depthStencil.stencilTestEnable     = VK_FALSE;
+  self->depthStencil.front                 = (VkStencilOpState) {};
+  self->depthStencil.back                  = (VkStencilOpState) {};
+  self->depthStencil.minDepthBounds        = 0;
+  self->depthStencil.maxDepthBounds        = 1;
+}
+
+
+
 VkPipeline PipelineBuilder_build(PipelineBuilder* self, VkDevice device) {
   VkPipelineViewportStateCreateInfo viewport = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO, .viewportCount = 1, .scissorCount = 1};
-  VkPipelineColorBlendStateCreateInfo color_blending = {
-      .sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-      .logicOpEnable   = VK_FALSE,
-      .logicOp         = VK_LOGIC_OP_COPY,
-      .attachmentCount = 1,
-      .pAttachments    = &self->colorBlendAttachment};
-  VkPipelineVertexInputStateCreateInfo vertex_input = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
+  VkPipelineColorBlendStateCreateInfo  color_blending = {.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                                                         .logicOpEnable   = VK_FALSE,
+                                                         .logicOp         = VK_LOGIC_OP_COPY,
+                                                         .attachmentCount = 1,
+                                                         .pAttachments    = &self->colorBlendAttachment};
+  VkPipelineVertexInputStateCreateInfo vertex_input = {.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
 
-  VkDynamicState                   state[]  = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-  VkPipelineDynamicStateCreateInfo dyn      = {.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-                                               .pDynamicStates    = &state[0],
-                                               .dynamicStateCount = 2};
-  VkGraphicsPipelineCreateInfo     pipeline = {.sType      = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-                                               .pNext      = &self->renderInfo,
-                                               .stageCount = ARR_LEN(self->shaderStages),
-                                               .pStages    = self->shaderStages,
-                                               .pVertexInputState   = &vertex_input,
-                                               .pInputAssemblyState = &self->inputAssembly,
-                                               .pViewportState      = &viewport,
-                                               .pRasterizationState = &self->rasterizer,
-                                               .pMultisampleState   = &self->multisampling,
-                                               .pColorBlendState    = &color_blending,
-                                               .pDepthStencilState  = &self->depthStencil,
-                                               .layout              = self->pipelineLayout,
-                                               .pDynamicState       = &dyn};
-  VkPipeline                       ret;
-  auto ok = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline, nullptr, &ret);
+  VkDynamicState                   state[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+  VkPipelineDynamicStateCreateInfo dyn     = {
+          .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, .pDynamicStates = &state[0], .dynamicStateCount = 2};
+  VkGraphicsPipelineCreateInfo pipeline = {.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+                                           .pNext               = &self->renderInfo,
+                                           .stageCount          = ARR_LEN(self->shaderStages),
+                                           .pStages             = self->shaderStages,
+                                           .pVertexInputState   = &vertex_input,
+                                           .pInputAssemblyState = &self->inputAssembly,
+                                           .pViewportState      = &viewport,
+                                           .pRasterizationState = &self->rasterizer,
+                                           .pMultisampleState   = &self->multisampling,
+                                           .pColorBlendState    = &color_blending,
+                                           .pDepthStencilState  = &self->depthStencil,
+                                           .layout              = self->pipelineLayout,
+                                           .pDynamicState       = &dyn};
+  VkPipeline                   ret;
+  auto                         ok = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline, nullptr, &ret);
   VK_CHECK(ok);
   if (VK_SUCCESS != ok)
     ret = VK_NULL_HANDLE;

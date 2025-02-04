@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 VulkanEngine vke = {
@@ -157,11 +158,21 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
                                         .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
   VK_CHECK(vmaCreateImage(vke.alloc, &rimg_create, &rimg_alloc, &vke.drawImage.image, &vke.drawImage.alloc, nullptr));
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.drawImage.image, vke.drawImage.alloc);
-
   VkImageViewCreateInfo rview_create =
       vlkImageViewCreateInfo(vke.drawImage.format, vke.drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
   VK_CHECK(vkCreateImageView(vlkDevice, &rview_create, nullptr, &vke.drawImage.defaultView));
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.drawImage.defaultView, nullptr);
+
+  vke.depthImage.format = VK_FORMAT_D32_SFLOAT;
+  vke.depthImage.extent = vke.drawImage.extent;
+  VkImageCreateInfo dimg_create =
+      vlkImageCreateInfo(vke.depthImage.format, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, vke.depthImage.extent);
+  VK_CHECK(vmaCreateImage(vke.alloc, &dimg_create, &rimg_alloc, &vke.depthImage.image, &vke.depthImage.alloc, nullptr));
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.depthImage.image, vke.depthImage.alloc);
+  VkImageViewCreateInfo dview_create =
+      vlkImageViewCreateInfo(vke.depthImage.format, vke.depthImage.image, VK_IMAGE_ASPECT_DEPTH_BIT);
+  VK_CHECK(vkCreateImageView(vlkDevice, &dview_create, nullptr, &vke.depthImage.defaultView));
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.depthImage.defaultView, nullptr);
 }
 
 
@@ -321,7 +332,7 @@ void vkeInitTriPipeline() {
   PipelineBuilder_disableBlending(&pb);
   PipelineBuilder_disableDepthTest(&pb);
   PipelineBuilder_setColorAttachmentFormat(&pb, vke.drawImage.format);
-  PipelineBuilder_setDepthFormat(&pb, VK_FORMAT_UNDEFINED);
+  PipelineBuilder_setDepthFormat(&pb, vke.depthImage.format);
   vke.triPipeline = PipelineBuilder_build(&pb, vlkDevice);
   vkDestroyShaderModule(vlkDevice, shader_frag, nullptr);
   vkDestroyShaderModule(vlkDevice, shader_vert, nullptr);
@@ -353,9 +364,9 @@ void vkeInitMeshPipeline() {
   PipelineBuilder_setCullMode(&pb, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
   PipelineBuilder_setMultisamplingNone(&pb);
   PipelineBuilder_disableBlending(&pb);
-  PipelineBuilder_disableDepthTest(&pb);
+  PipelineBuilder_enableDepthTest(&pb, true, VK_COMPARE_OP_GREATER_OR_EQUAL);
   PipelineBuilder_setColorAttachmentFormat(&pb, vke.drawImage.format);
-  PipelineBuilder_setDepthFormat(&pb, VK_FORMAT_UNDEFINED);
+  PipelineBuilder_setDepthFormat(&pb, vke.depthImage.format);
   vke.meshPipeline = PipelineBuilder_build(&pb, vlkDevice);
   vkDestroyShaderModule(vlkDevice, shader_frag, nullptr);
   vkDestroyShaderModule(vlkDevice, shader_vert, nullptr);
@@ -530,10 +541,12 @@ void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
 
 
 void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
-  VkRenderingAttachmentInfo color =
+  VkRenderingAttachmentInfo color_attach =
       vlkRenderingAttachmentInfo(vke.drawImage.defaultView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-  VkRenderingInfo render = vlkRenderingInfo(vke.drawExtent, &color, nullptr);
-  vkCmdBeginRendering(cmdBuf, &render);
+  VkRenderingAttachmentInfo depth_attach =
+      vlkRenderingAttachmentInfoDepth(vke.depthImage.defaultView, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+  VkRenderingInfo render_info = vlkRenderingInfo(vke.drawExtent, &color_attach, &depth_attach);
+  vkCmdBeginRendering(cmdBuf, &render_info);
   {
     vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.triPipeline);
     // dynamic viewport & scissor
@@ -596,6 +609,7 @@ void vkeDraw() {
       // vkeDraw_colorFlashingScreen(cmdbuf);
       vkeDraw_computeThreads(cmdbuf);
       vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      vlkImgTransition(cmdbuf, vke.depthImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
       vkeDraw_Geometry(cmdbuf);
     }
     // transition the draw image and the swapchain image into their correct transfer layouts

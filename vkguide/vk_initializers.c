@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 
@@ -41,6 +42,15 @@ VkRenderingAttachmentInfo vlkRenderingAttachmentInfo(VkImageView view, VkClearVa
   if (clear)
     ret.clearValue = *clear;
   return ret;
+}
+
+
+VkRenderingAttachmentInfo vlkRenderingAttachmentInfoDepth(VkImageView view, VkImageLayout layout) {
+  return (VkRenderingAttachmentInfo) {.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
+                                      .imageView   = view,
+                                      .imageLayout = layout,
+                                      .loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                      .storeOp     = VK_ATTACHMENT_STORE_OP_STORE};
 }
 
 
