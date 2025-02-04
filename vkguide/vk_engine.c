@@ -1,6 +1,6 @@
 #include "./vkguide.h"
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_log.h>
-#include <vulkan/vulkan_core.h>
 
 
 #ifdef DEVBUILD
@@ -176,6 +176,19 @@ void vkeCreateSwapchain(Uint32 width, Uint32 height) {
 
 
 void vkeInitSwapchain() {
+  vkeCreateSwapchain(vke.windowExtent.width, vke.windowExtent.height);
+}
+
+
+
+void vkeResizeSwapchain() {
+  VK_CHECK(vkDeviceWaitIdle(vlkDevice));
+  vke.resizeRequested = false;
+  vlkDisposeSwapchain();
+  int w, h;
+  assert(SDL_GetWindowSize(vke.window, &w, &h));
+  vke.windowExtent.width  = w;
+  vke.windowExtent.height = h;
   vkeCreateSwapchain(vke.windowExtent.width, vke.windowExtent.height);
 }
 
@@ -405,30 +418,42 @@ void vkeRun() {
   SDL_Event evt;
   bool      quit = false;
   while (!quit) {
-    if (vke.paused) {
-      thrd_sleep(&(struct timespec) {.tv_sec = 1}, nullptr);
-      continue;
-    }
+    if (vke.paused)
+      thrd_sleep(&(struct timespec) {.tv_nsec = 321 * 1000000}, nullptr);
 
     while ((!quit) && (SDL_PollEvent(&evt) != 0)) {
       switch (evt.type) {
         case SDL_EVENT_QUIT:
         case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+        case SDL_EVENT_WINDOW_DESTROYED:
           quit = true;
           break;
         case SDL_EVENT_WINDOW_MINIMIZED:
-          vke.paused = false;
-          break;
-        case SDL_EVENT_WINDOW_RESTORED:
+        case SDL_EVENT_WINDOW_HIDDEN:
+        case SDL_EVENT_WINDOW_OCCLUDED:
+        case SDL_EVENT_WINDOW_FOCUS_LOST:
           vke.paused = true;
           break;
+        case SDL_EVENT_WINDOW_RESTORED:
+        case SDL_EVENT_WINDOW_SHOWN:
+        case SDL_EVENT_WINDOW_EXPOSED:
+        case SDL_EVENT_WINDOW_FOCUS_GAINED:
+          vke.paused = false;
+          break;
+        case SDL_EVENT_WINDOW_RESIZED:
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+          vke.resizeRequested = true;
+          break;
       }
-      cppImguiProcessEvent(&evt);
+      if (!(quit || vke.paused))
+        cppImguiProcessEvent(&evt);
     }
     if (quit)
       break;
-    cppImguiRender();
-    vkeDraw();
+    if ((!vke.paused) || vke.resizeRequested) {
+      cppImguiRender();
+      vkeDraw();
+    }
   }
 }
 
@@ -458,15 +483,6 @@ void vkeImmediateSubmitEnd() {
   VK_CHECK(vkWaitForFences(vlkDevice, 1, &vke.immFence, true, VKE_VLK_TIMEOUTS_NS));
 }
 
-
-
-void vkeDraw_colorFlashingScreen(VkCommandBuffer cmdBuf) {
-  VkClearColorValue clear_value = {
-      .float32 = {fabsf(sinf(((float) vke.frameNr) / 44.0f)), 0.44f, 0.22f, 1.0f}
-  };
-  VkImageSubresourceRange clear_range = vlkImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
-  vkCmdClearColorImage(cmdBuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clear_value, 1, &clear_range);
-}
 
 
 void vkeDraw_computeThreads(VkCommandBuffer cmdBuf) {
@@ -548,17 +564,20 @@ void vkeDraw() {
     vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     // actual drawing:
     {
-      // vkeDraw_colorFlashingScreen(cmdbuf);
       vkeDraw_computeThreads(cmdbuf);
-      vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
       vlkImgTransition(cmdbuf, vke.depthImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
       vkeDraw_Geometry(cmdbuf);
     }
     // transition the draw image and the swapchain image into their correct transfer layouts
-    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    VK_CHECK(vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, VKE_VLK_TIMEOUTS_NS, frame->semaPresent, nullptr,
-                                   &idx_swapchain_image));
+    vlkImgTransition(cmdbuf, vke.drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VkResult err = vkAcquireNextImageKHR(vlkDevice, vlkSwapchain, VKE_VLK_TIMEOUTS_NS, frame->semaPresent, nullptr,
+                                         &idx_swapchain_image);
+    if ((err == VK_ERROR_OUT_OF_DATE_KHR) || (err == VK_SUBOPTIMAL_KHR)) {
+      vke.resizeRequested = true;
+      return;
+    }
+    VK_CHECK(err);
     vlkImgTransition(cmdbuf, vlkSwapchainImages[idx_swapchain_image], VK_IMAGE_LAYOUT_UNDEFINED,
                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     // execute a copy from the draw image into the swapchain
@@ -589,14 +608,19 @@ void vkeDraw() {
   }
 
   {   // PRESENT TO WINDOW
-    VK_CHECK(vkQueuePresentKHR(
+    VkResult err = vkQueuePresentKHR(
         vlkQueue,
         &(VkPresentInfoKHR) {.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                              .swapchainCount     = 1,
                              .pSwapchains        = &vlkSwapchain,
                              .waitSemaphoreCount = 1,   // wait on render sema to only present after all draws done:
                              .pWaitSemaphores    = &frame->semaRender,
-                             .pImageIndices      = &idx_swapchain_image}));
+                             .pImageIndices      = &idx_swapchain_image});
+    if ((err == VK_ERROR_OUT_OF_DATE_KHR) || (err == VK_SUBOPTIMAL_KHR)) {
+      vke.resizeRequested = true;
+      return;
+    }
+    VK_CHECK(err);
   }
   vke.frameNr++;
 }

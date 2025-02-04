@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <time.h>
 #include <threads.h>
 
 #include <vulkan/vulkan.h>
@@ -52,7 +53,7 @@ VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFl
 
 #define ARR_LEN(_arr_)      (sizeof((_arr_)) / sizeof((_arr_)[0]))
 #define FRAME_OVERLAP       3
-#define VKE_VLK_TIMEOUTS_NS (11u * 1000000000)
+#define VKE_VLK_TIMEOUTS_NS (12345u * 1000000)   // ms * ns
 
 
 typedef struct DisposalQueue {
@@ -227,6 +228,7 @@ typedef struct VulkanEngine {
   VkPipeline             meshPipeline;
   MeshAssets             testMeshes;
   size_t                 idxTestMesh;
+  bool                   resizeRequested;
 } VulkanEngine;
 
 
