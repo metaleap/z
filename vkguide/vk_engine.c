@@ -702,7 +702,7 @@ void disposals_flush(DisposalQueue* self) {
 VlkBuffer vkeCreateBufferMapped(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
   VkBufferCreateInfo      buf   = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, .size = allocSize, .usage = usage};
   VmaAllocationCreateInfo alloc = {.usage = memoryUsage, .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT};
-  VlkBuffer               ret;
+  VlkBuffer               ret   = {};
   VK_CHECK(vmaCreateBuffer(vke.alloc, &buf, &alloc, &ret.buf, &ret.alloc, &ret.allocInfo));
   return ret;
 }

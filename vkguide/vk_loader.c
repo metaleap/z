@@ -31,10 +31,12 @@ MeshAsset* vkeLoadGlb(char* filePath) {
     U32s_clear(&indices);
     Verts_clear(&vertices);
     for (size_t i_prim = 0; i_prim < mesh->primitives_count; i_prim++) {
-      auto       prim        = &mesh->primitives[i_prim];
-      GeoSurface new_surface = {.idxStart = (Uint32) indices.count, .count = (Uint64) 0};
+      auto            prim        = &mesh->primitives[i_prim];
+      cgltf_accessor* acc_indices = prim->indices;
+      assert(acc_indices != nullptr);
+      GeoSurface new_surface = {.idxStart = (Uint32) indices.count, .count = (Uint64) acc_indices->count};
+      size_t     initial_vtx = vertices.count;
 
-      cgltf_accessor* acc_indices      = prim->indices;
       cgltf_accessor* acc_positions    = nullptr;
       cgltf_accessor* acc_normals      = nullptr;
       cgltf_accessor* acc_colors       = nullptr;
@@ -84,9 +86,9 @@ MeshAsset* vkeLoadGlb(char* filePath) {
             break;
         }
       }
-      assert((acc_indices != nullptr) && (acc_positions != nullptr) && (acc_texcoords != nullptr) &&
-             (acc_normals != nullptr) && (floats_normals != nullptr) && (floats_positions != nullptr) &&
-             (floats_texcoords != nullptr) && (count_normals != 0) && (count_positions != 0) && (count_texcoords != 0));
+      assert((acc_positions != nullptr) && (acc_texcoords != nullptr) && (acc_normals != nullptr) &&
+             (floats_normals != nullptr) && (floats_positions != nullptr) && (floats_texcoords != nullptr) &&
+             (count_normals != 0) && (count_positions != 0) && (count_texcoords != 0));
       bool no_colors =
           ((acc_colors == nullptr) || (acc_colors->count == 0) || (count_colors == 0) || (floats_colors == nullptr));
 
@@ -129,47 +131,58 @@ MeshAsset* vkeLoadGlb(char* filePath) {
           {
             Sint8* idx = buf + acc_indices->offset + buf_view->offset;
             for (size_t i_idx = 0; i_idx < acc_indices->count; i_idx++)
-              assert(U32s_add(&indices, (Uint32) idx[i_idx]));
+              assert(U32s_add(&indices, (Uint32) initial_vtx + (Uint32) idx[i_idx]));
             break;
           }
         case cgltf_component_type_r_8u:
           {
             Uint8* idx = buf + acc_indices->offset + buf_view->offset;
             for (size_t i_idx = 0; i_idx < acc_indices->count; i_idx++)
-              assert(U32s_add(&indices, (Uint32) idx[i_idx]));
+              assert(U32s_add(&indices, (Uint32) initial_vtx + (Uint32) idx[i_idx]));
             break;
           }
         case cgltf_component_type_r_16:
           {
             Sint16* idx = buf + acc_indices->offset + buf_view->offset;
             for (size_t i_idx = 0; i_idx < acc_indices->count; i_idx++)
-              assert(U32s_add(&indices, (Uint32) idx[i_idx]));
+              assert(U32s_add(&indices, (Uint32) initial_vtx + (Uint32) idx[i_idx]));
             break;
           }
         case cgltf_component_type_r_16u:
           {
             Uint16* idx = buf + acc_indices->offset + buf_view->offset;
             for (size_t i_idx = 0; i_idx < acc_indices->count; i_idx++)
-              assert(U32s_add(&indices, (Uint32) idx[i_idx]));
+              assert(U32s_add(&indices, (Uint32) initial_vtx + (Uint32) idx[i_idx]));
             break;
           }
         case cgltf_component_type_r_32u:
           {
             Uint32* idx = buf + acc_indices->offset + buf_view->offset;
             for (size_t i_idx = 0; i_idx < acc_indices->count; i_idx++)
-              assert(U32s_add(&indices, (Uint32) idx[i_idx]));
+              assert(U32s_add(&indices, (Uint32) initial_vtx + (Uint32) idx[i_idx]));
             break;
           }
         case cgltf_component_type_r_32f:
           {
             float* idx = buf + acc_indices->offset + buf_view->offset;
             for (size_t i_idx = 0; i_idx < acc_indices->count; i_idx++)
-              assert(U32s_add(&indices, (Uint32) idx[i_idx]));
+              assert(U32s_add(&indices, (Uint32) initial_vtx + (Uint32) idx[i_idx]));
             break;
           }
       }
       assert(GeoSurfaces_add(&new_mesh->surfaces, new_surface));
     }
+
+    if (true)
+      for (size_t i_vtx = 0; i_vtx < vertices.count; i_vtx++) {
+        auto vert   = &vertices.buffer[i_vtx];
+        vert->color = (vec4s) {.r = vert->normal.x, .g = vert->normal.y, .b = vert->normal.z, .a = 1};
+      }
+    new_mesh->meshBuffers = vkeUploadMesh(vertices.count, vertices.buffer, indices.count, indices.buffer);
+    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, new_mesh->meshBuffers.indexBuffer.buf,
+                   new_mesh->meshBuffers.indexBuffer.alloc);
+    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, new_mesh->meshBuffers.vertexBuffer.buf,
+                   new_mesh->meshBuffers.vertexBuffer.alloc);
   }
 
   return ret;
