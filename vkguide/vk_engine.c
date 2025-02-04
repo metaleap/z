@@ -535,30 +535,33 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
   VkRenderingInfo render = vlkRenderingInfo(vke.drawExtent, &color, nullptr);
   vkCmdBeginRendering(cmdBuf, &render);
   {
-    // triangle
     vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.triPipeline);
-    VkViewport viewport = {.width    = (float) vke.drawExtent.width,   // dynamic viewport & scissor
-                           .height   = (float) vke.drawExtent.height,
-                           .minDepth = 0,
-                           .maxDepth = 1};
+    // dynamic viewport & scissor
+    VkViewport viewport = {
+        .width    = (float) vke.drawExtent.width,
+        .height   = -(float) vke.drawExtent.height,   // saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
+        .x        = 0,
+        .y        = (float) vke.drawExtent.height,   // saschawillems.de/blog/2019/03/29/flipping-the-vulkan-viewport/
+        .minDepth = 0,
+        .maxDepth = 1};
     vkCmdSetViewport(cmdBuf, 0, 1, &viewport);
     VkRect2D scissor = {
         .extent = {.width = vke.drawExtent.width, .height = vke.drawExtent.height}
     };
     vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
+    // triangle
     vkCmdDraw(cmdBuf, 3, 1, 0, 0);
     // rect mesh
     vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.meshPipeline);
-    GpuDrawPushConstants push = {.worldMatrix = glms_mat4_identity(), .vertexBuffer = vke.rectangle.vertexBufferAddress};
+    GpuDrawPushConstants push = {.worldMatrix = mat4_identity(), .vertexBuffer = vke.rectangle.vertexBufferAddress};
     vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
     vkCmdBindIndexBuffer(cmdBuf, vke.rectangle.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
     vkCmdDrawIndexed(cmdBuf, 6, 1, 0, 0, 0);
     // meshes
     push.vertexBuffer = vke.testMeshes.buffer[2].meshBuffers.vertexBufferAddress;
-    mat4s view        = glms_translate_make((vec3s) {.z = -5});
+    mat4s view        = glms_translate(mat4_identity(), (vec3s) {.x = 0, .y = 0, .z = -5});
     mat4s proj = glms_perspective(glm_rad(70), (float) vke.drawExtent.width / (float) vke.drawExtent.height, 10000, 0.1f);
-    proj.raw[1][1]   *= -1;
-    push.worldMatrix  = glms_mul(proj, view);
+    push.worldMatrix = glms_mul(proj, view);
     vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
     vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[2].meshBuffers.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
     vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[2].surfaces.buffer[0].count, 1,

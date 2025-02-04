@@ -1,12 +1,10 @@
 #include "./vkguide.h"
-#include <vulkan/vulkan_core.h>
 
 
 
 VkImageSubresourceRange vlkImageSubresourceRange(VkImageAspectFlags aspectMask) {
-  return (VkImageSubresourceRange) {.aspectMask = aspectMask,
-                                    .levelCount = VK_REMAINING_MIP_LEVELS,
-                                    .layerCount = VK_REMAINING_ARRAY_LAYERS};
+  return (VkImageSubresourceRange) {
+      .aspectMask = aspectMask, .levelCount = VK_REMAINING_MIP_LEVELS, .layerCount = VK_REMAINING_ARRAY_LAYERS};
 }
 
 
@@ -34,14 +32,12 @@ VkImageViewCreateInfo vlkImageViewCreateInfo(VkFormat format, VkImage image, VkI
 }
 
 
-VkRenderingAttachmentInfo vlkRenderingAttachmentInfo(VkImageView view, VkClearValue* clear,
-                                                     VkImageLayout layout) {
+VkRenderingAttachmentInfo vlkRenderingAttachmentInfo(VkImageView view, VkClearValue* clear, VkImageLayout layout) {
   VkRenderingAttachmentInfo ret = {.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
                                    .imageView   = view,
                                    .imageLayout = layout,
-                                   .loadOp =
-                                       (clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD),
-                                   .storeOp = VK_ATTACHMENT_STORE_OP_STORE};
+                                   .loadOp      = (clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD),
+                                   .storeOp     = VK_ATTACHMENT_STORE_OP_STORE};
   if (clear)
     ret.clearValue = *clear;
   return ret;
@@ -78,9 +74,8 @@ VkSemaphoreCreateInfo vlkSemaphoreCreateInfo(VkSemaphoreCreateFlags flags) {
 
 
 VkCommandPoolCreateInfo vlkCommandPoolCreateInfo(Uint32 queueFamilyIndex, VkCommandPoolCreateFlags flags) {
-  return (VkCommandPoolCreateInfo) {.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-                                    .flags            = flags,
-                                    .queueFamilyIndex = queueFamilyIndex};
+  return (VkCommandPoolCreateInfo) {
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, .flags = flags, .queueFamilyIndex = queueFamilyIndex};
 }
 
 
@@ -103,8 +98,7 @@ VkSemaphoreSubmitInfo vlkSemaphoreSubmitInfo(VkPipelineStageFlags2 stageMask, Vk
 
 
 VkCommandBufferSubmitInfo vlkCommandBufferSubmitInfo(VkCommandBuffer cmdBuf) {
-  return (VkCommandBufferSubmitInfo) {.sType         = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-                                      .commandBuffer = cmdBuf};
+  return (VkCommandBufferSubmitInfo) {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO, .commandBuffer = cmdBuf};
 }
 
 
@@ -122,9 +116,8 @@ VkSubmitInfo2 vlkSubmitInfo(VkCommandBufferSubmitInfo* cmdBufSubmitInfo, VkSemap
 }
 
 
-VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage,
-                                                                 VkShaderModule        shaderModule,
-                                                                 const char*           entryPointName) {
+VkPipelineShaderStageCreateInfo vlkPipelineShaderStageCreateInfo(VkShaderStageFlagBits stage, VkShaderModule shaderModule,
+                                                                 const char* entryPointName) {
   return (VkPipelineShaderStageCreateInfo) {.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                                             .stage  = stage,
                                             .module = shaderModule,

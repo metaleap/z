@@ -15,6 +15,8 @@
 #define VMA_DEDICATED_ALLOCATION 1
 #include <vk_mem_alloc.h>
 
+#define CGLM_OMIT_NS_FROM_STRUCT_API
+#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <cglm/struct.h>
 #include <cgltf.h>
 #include <generic_list.h>
