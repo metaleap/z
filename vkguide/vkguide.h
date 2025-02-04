@@ -220,12 +220,10 @@ typedef struct VulkanEngine {
   VkCommandBuffer        immCommandBuffer;
   ComputeShaderEffect    bgEffects[2];
   int                    bgEffectCurIdx;
-  VkPipelineLayout       triPipelineLayout;
-  VkPipeline             triPipeline;
   VkPipelineLayout       meshPipelineLayout;
   VkPipeline             meshPipeline;
-  GpuMeshBuffers         rectangle;
   MeshAssets             testMeshes;
+  size_t                 idxTestMesh;
 } VulkanEngine;
 
 

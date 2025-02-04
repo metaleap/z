@@ -10,12 +10,17 @@ LIST_DEFINE_C(GeoSurfaces, GeoSurfaces, GeoSurface);
 LIST_DEFINE_C(MeshAssets, MeshAssets, MeshAsset);
 
 
+VulkanEngine vke = {
+    .idxTestMesh  = 2,
+    .windowExtent = {
+                     .width  = 1600,
+                     .height = 900,
+                     }
+};
+
 
 int main(int argc, char* argv[]) {
   SDL_Log("—init...\n");
-  vke = (VulkanEngine) {
-      .windowExtent = {.width = 1600, .height = 900}
-  };
   vkeInit();
   vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
   vkeRun();

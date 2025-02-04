@@ -1,10 +1,7 @@
 #include "./vkguide.h"
+#include <SDL3/SDL_log.h>
 #include <vulkan/vulkan_core.h>
 
-
-VulkanEngine vke = {
-    .windowExtent = {.width = 1600, .height = 900}
-};
 
 #ifdef DEVBUILD
 bool isDebug = true;
@@ -312,36 +309,6 @@ void vkeInitBackgroundPipelines() {
 
 
 
-void vkeInitTriPipeline() {
-  VkShaderModule shader_frag, shader_vert;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.frag", vlkDevice, &shader_frag,
-                               VK_SHADER_STAGE_FRAGMENT_BIT));
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.vert", vlkDevice, &shader_vert,
-                               VK_SHADER_STAGE_VERTEX_BIT));
-
-  VkPipelineLayoutCreateInfo pipeline_layout = {.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
-  VK_CHECK(vkCreatePipelineLayout(vlkDevice, &pipeline_layout, nullptr, &vke.triPipelineLayout));
-  PipelineBuilder pb;
-  PipelineBuilder_reset(&pb);
-  PipelineBuilder_setShaders(&pb, shader_vert, shader_frag);
-  pb.pipelineLayout = vke.triPipelineLayout;
-  PipelineBuilder_setInputTopology(&pb, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-  PipelineBuilder_setPolygonMode(&pb, VK_POLYGON_MODE_FILL);
-  PipelineBuilder_setCullMode(&pb, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
-  PipelineBuilder_setMultisamplingNone(&pb);
-  PipelineBuilder_disableBlending(&pb);
-  PipelineBuilder_disableDepthTest(&pb);
-  PipelineBuilder_setColorAttachmentFormat(&pb, vke.drawImage.format);
-  PipelineBuilder_setDepthFormat(&pb, vke.depthImage.format);
-  vke.triPipeline = PipelineBuilder_build(&pb, vlkDevice);
-  vkDestroyShaderModule(vlkDevice, shader_frag, nullptr);
-  vkDestroyShaderModule(vlkDevice, shader_vert, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, vke.triPipelineLayout, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, vke.triPipeline, nullptr);
-}
-
-
-
 void vkeInitMeshPipeline() {
   VkShaderModule shader_frag, shader_vert;
   VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.frag", vlkDevice, &shader_frag,
@@ -380,25 +347,7 @@ void vkeInitPipelines() {
   // compute
   vkeInitBackgroundPipelines();
   // graphics
-  vkeInitTriPipeline();
   vkeInitMeshPipeline();
-}
-
-
-
-void vkeInitRectMesh() {
-  Vertex verts[] = {
-      { .position = {.x = 0.5, .y = -0.5, .z = 0},       .color = {.r = 0, .g = 0, .b = 0, .a = 1}},
-      {  .position = {.x = 0.5, .y = 0.5, .z = 0}, .color = {.r = 0.5, .g = 0.5, .b = 0.5, .a = 1}},
-      {.position = {.x = -0.5, .y = -0.5, .z = 0},       .color = {.r = 1, .g = 0, .b = 0, .a = 1}},
-      { .position = {.x = -0.5, .y = 0.5, .z = 0},       .color = {.r = 0, .g = 1, .b = 0, .a = 1}},
-  };
-  Uint32 idxs[] = {0, 1, 2, 2, 1, 3};
-  vke.rectangle = vkeUploadMesh(ARR_LEN(verts), verts, ARR_LEN(idxs), idxs);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, vke.rectangle.indexBuffer.buf,
-                 vke.rectangle.indexBuffer.alloc);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, vke.rectangle.vertexBuffer.buf,
-                 vke.rectangle.vertexBuffer.alloc);
 }
 
 
@@ -446,7 +395,6 @@ void vkeInit() {
   vkeInitDescriptors();
   vkeInitPipelines();
   vkeInitImgui();
-  vkeInitRectMesh();
 }
 
 
@@ -548,7 +496,7 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
   VkRenderingInfo render_info = vlkRenderingInfo(vke.drawExtent, &color_attach, &depth_attach);
   vkCmdBeginRendering(cmdBuf, &render_info);
   {
-    vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.triPipeline);
+    vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.meshPipeline);
     // dynamic viewport & scissor
     VkViewport viewport = {
         .width    = (float) vke.drawExtent.width,
@@ -562,23 +510,15 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
         .extent = {.width = vke.drawExtent.width, .height = vke.drawExtent.height}
     };
     vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
-    // triangle
-    vkCmdDraw(cmdBuf, 3, 1, 0, 0);
-    // rect mesh
-    vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.meshPipeline);
-    GpuDrawPushConstants push = {.worldMatrix = mat4_identity(), .vertexBuffer = vke.rectangle.vertexBufferAddress};
-    vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
-    vkCmdBindIndexBuffer(cmdBuf, vke.rectangle.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(cmdBuf, 6, 1, 0, 0, 0);
-    // meshes
-    push.vertexBuffer = vke.testMeshes.buffer[2].meshBuffers.vertexBufferAddress;
-    mat4s view        = glms_translate(mat4_identity(), (vec3s) {.x = 0, .y = 0, .z = -5});
+    mat4s view = glms_translate(mat4_identity(), (vec3s) {.x = 0, .y = 0, .z = -5});
     mat4s proj = glms_perspective(glm_rad(70), (float) vke.drawExtent.width / (float) vke.drawExtent.height, 10000, 0.1f);
-    push.worldMatrix = glms_mul(proj, view);
+    GpuDrawPushConstants push = {.worldMatrix  = glms_mul(proj, view),
+                                 .vertexBuffer = vke.testMeshes.buffer[vke.idxTestMesh].meshBuffers.vertexBufferAddress};
     vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
-    vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[2].meshBuffers.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[2].surfaces.buffer[0].count, 1,
-                     vke.testMeshes.buffer[2].surfaces.buffer[0].idxStart, 0, 0);
+    vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[vke.idxTestMesh].meshBuffers.indexBuffer.buf, 0,
+                         VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[vke.idxTestMesh].surfaces.buffer[0].count, 1,
+                     vke.testMeshes.buffer[vke.idxTestMesh].surfaces.buffer[0].idxStart, 0, 0);
   }
   vkCmdEndRendering(cmdBuf);
 }
