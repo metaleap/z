@@ -162,6 +162,22 @@ VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGr
                                                         VkDescriptorSetLayout layout, void* pNext);
 
 
+LIST_DEFINE_H(VkDescriptorImageInfos, VkDescriptorImageInfos, VkDescriptorImageInfo);
+LIST_DEFINE_H(VkDescriptorBufferInfos, VkDescriptorBufferInfos, VkDescriptorBufferInfo);
+LIST_DEFINE_H(VkWriteDescriptorSets, VkWriteDescriptorSets, VkWriteDescriptorSet);
+typedef struct VlkDescriptorWriter {
+  VkDescriptorImageInfos  imageInfos;
+  VkDescriptorBufferInfos bufferInfos;
+  VkWriteDescriptorSets   writes;
+} VlkDescriptorWriter;
+void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkImageView image, VkSampler sampler,
+                                    VkImageLayout layout, VkDescriptorType type);
+void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* this, int binding, VkBuffer buffer, size_t size, size_t offset,
+                                     VkDescriptorType type);
+void VlkDescriptorWriter_clear(VlkDescriptorWriter* this);
+void VlkDescriptorWriter_updateSet(VlkDescriptorWriter* this, VkDevice device, VkDescriptorSet set);
+
+
 typedef struct PipelineBuilder {
   VkPipelineShaderStageCreateInfo        shaderStages[2];
   VkPipelineInputAssemblyStateCreateInfo inputAssembly;

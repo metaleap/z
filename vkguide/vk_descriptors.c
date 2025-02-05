@@ -146,6 +146,21 @@ void VlkDescriptorAllocatorGrowable_destroyPools(VlkDescriptorAllocatorGrowable*
 
 VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGrowable* this, VkDevice device,
                                                         VkDescriptorSetLayout layout, void* pNext) {
+  VkDescriptorPool            pool_to_use = VlkDescriptorAllocatorGrowable_getOrCreateReadyPool(this, device);
+  VkDescriptorSetAllocateInfo alloc       = {.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+                                             .pNext              = pNext,
+                                             .descriptorPool     = pool_to_use,
+                                             .descriptorSetCount = 1,
+                                             .pSetLayouts        = &layout};
+
   VkDescriptorSet ret = {};
+  VkResult        err = vkAllocateDescriptorSets(device, &alloc, &ret);
+  if ((err == VK_ERROR_OUT_OF_POOL_MEMORY) || (err == VK_ERROR_FRAGMENTED_POOL)) {
+    VkDescriptorPools_add(&this->fullPools, pool_to_use);
+    pool_to_use          = VlkDescriptorAllocatorGrowable_getOrCreateReadyPool(this, device);
+    alloc.descriptorPool = pool_to_use;
+    VK_CHECK(vkAllocateDescriptorSets(device, &alloc, &ret));
+  }
+  VkDescriptorPools_add(&this->readyPools, pool_to_use);
   return ret;
 }
