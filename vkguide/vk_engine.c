@@ -631,64 +631,64 @@ void vkeDraw() {
 
 
 
-void disposals_push(DisposalQueue* self, VkStructureType type, void* arg, VmaAllocation alloc) {
-  assert((self->count < DISP_QUEUE_CAPACITY) && (arg != nullptr) && "disposals_push");
-  self->types[self->count]  = type;
-  self->args[self->count]   = arg;
-  self->allocs[self->count] = alloc;
-  self->count++;
+void disposals_push(DisposalQueue* this, VkStructureType type, void* arg, VmaAllocation alloc) {
+  assert((this->count < DISP_QUEUE_CAPACITY) && (arg != nullptr) && "disposals_push");
+  this->types[this->count]  = type;
+  this->args[this->count]   = arg;
+  this->allocs[this->count] = alloc;
+  this->count++;
 }
 
 
-void disposals_flush(DisposalQueue* self) {
-  if (self->count > 0)
-    for (int i = (self->count - 1); i >= 0; i--) {
-      switch (self->types[i]) {
+void disposals_flush(DisposalQueue* this) {
+  if (this->count > 0)
+    for (int i = (this->count - 1); i >= 0; i--) {
+      switch (this->types[i]) {
         case VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO:
-          if (self->allocs[i] != nullptr)
-            vmaDestroyImage(vke.alloc, (VkImage) self->args[i], self->allocs[i]);
+          if (this->allocs[i] != nullptr)
+            vmaDestroyImage(vke.alloc, (VkImage) this->args[i], this->allocs[i]);
           else
-            vkDestroyImage(vlkDevice, (VkImage) self->args[i], nullptr);
+            vkDestroyImage(vlkDevice, (VkImage) this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO:
-          if (self->allocs[i] != nullptr)
-            vmaDestroyBuffer(vke.alloc, (VkBuffer) self->args[i], self->allocs[i]);
+          if (this->allocs[i] != nullptr)
+            vmaDestroyBuffer(vke.alloc, (VkBuffer) this->args[i], this->allocs[i]);
           else
-            vkDestroyBuffer(vlkDevice, (VkBuffer) self->args[i], nullptr);
+            vkDestroyBuffer(vlkDevice, (VkBuffer) this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO:
-          vkDestroyImageView(vlkDevice, (VkImageView) self->args[i], nullptr);
+          vkDestroyImageView(vlkDevice, (VkImageView) this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO:
-          VlkDescriptorAllocator_destroyPool(self->args[i], vlkDevice);
+          VlkDescriptorAllocator_destroyPool(this->args[i], vlkDevice);
           break;
         case -VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO:
-          vkDestroyDescriptorPool(vlkDevice, self->args[i], nullptr);
+          vkDestroyDescriptorPool(vlkDevice, this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO:
-          vkDestroyDescriptorSetLayout(vlkDevice, self->args[i], nullptr);
+          vkDestroyDescriptorSetLayout(vlkDevice, this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO:
-          vkDestroyPipeline(vlkDevice, self->args[i], nullptr);
+          vkDestroyPipeline(vlkDevice, this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO:
-          vkDestroyPipelineLayout(vlkDevice, self->args[i], nullptr);
+          vkDestroyPipelineLayout(vlkDevice, this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO:
-          vkDestroyPipeline(vlkDevice, self->args[i], nullptr);
+          vkDestroyPipeline(vlkDevice, this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO:
-          vkDestroyCommandPool(vlkDevice, self->args[i], nullptr);
+          vkDestroyCommandPool(vlkDevice, this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_FENCE_CREATE_INFO:
-          vkDestroyFence(vlkDevice, self->args[i], nullptr);
+          vkDestroyFence(vlkDevice, this->args[i], nullptr);
           break;
         default:
-          SDL_Log(">>>%x<<<\n", self->types[i]);
+          SDL_Log(">>>%x<<<\n", this->types[i]);
           assert(false && "disposals_flush");
       }
     }
-  self->count = 0;
+  this->count = 0;
 }
 
 

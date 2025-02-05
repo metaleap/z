@@ -9,6 +9,8 @@ LIST_DEFINE_C(Verts, Verts, Vertex);
 LIST_DEFINE_C(GeoSurfaces, GeoSurfaces, GeoSurface);
 LIST_DEFINE_C(MeshAssets, MeshAssets, MeshAsset);
 LIST_DEFINE_C(VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatio);
+LIST_DEFINE_C(VkDescriptorPoolSizes, VkDescriptorPoolSizes, VkDescriptorPoolSize);
+LIST_DEFINE_C(VkDescriptorPools, VkDescriptorPools, VkDescriptorPool);
 
 
 VulkanEngine vke = {

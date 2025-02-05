@@ -133,6 +133,7 @@ typedef struct VlkDescriptorAllocatorSizeRatio {
   float            ratio;
 } VlkDescriptorAllocatorSizeRatio;
 LIST_DEFINE_H(VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatio);
+LIST_DEFINE_H(VkDescriptorPoolSizes, VkDescriptorPoolSizes, VkDescriptorPoolSize);
 
 typedef struct VlkDescriptorAllocator {
   VkDescriptorPool                pool;
@@ -153,10 +154,10 @@ typedef struct VlkDescriptorAllocatorGrowable {
   VkDescriptorPools                readyPools;
   Uint32                           setsPerPool;
 } VlkDescriptorAllocatorGrowable;
-void VlkDescriptorAllocatorGrowable_init(VlkDescriptorAllocatorGrowable* self, VkDevice device, Uint32 numInitialSets,
-                                         VlkDescriptorAllocatorSizeRatios poolRatios);
-void VlkDescriptorAllocatorGrowable_clearPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
-void VlkDescriptorAllocatorGrowable_destroyPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
+void            VlkDescriptorAllocatorGrowable_init(VlkDescriptorAllocatorGrowable* self, VkDevice device, Uint32 maxSets,
+                                                    VlkDescriptorAllocatorSizeRatios poolRatios);
+void            VlkDescriptorAllocatorGrowable_clearPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
+void            VlkDescriptorAllocatorGrowable_destroyPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
 VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGrowable* self, VkDevice device,
                                                         VkDescriptorSetLayout layout, void* pNext);
 
