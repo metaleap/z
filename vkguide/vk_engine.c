@@ -482,6 +482,23 @@ void vkeRun() {
 
 
 
+VlkImage vkeCreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped) {
+  VlkImage          ret        = {.format = format, .extent = size};
+  VkImageCreateInfo img_create = vlkImageCreateInfo(format, usage, size);
+  if (mipMapped)
+    img_create.mipLevels = 1 + floor(log2((double) utilMax(size.width, size.height)));
+  VmaAllocationCreateInfo alloc = {.usage         = VMA_MEMORY_USAGE_GPU_ONLY,
+                                   .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+  VK_CHECK(vmaCreateImage(vke.alloc, &img_create, &alloc, &ret.image, &ret.alloc, nullptr));
+  VkImageViewCreateInfo view_create = vlkImageViewCreateInfo(
+      format, ret.image, (format == VK_FORMAT_D32_SFLOAT) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
+  view_create.subresourceRange.levelCount = img_create.mipLevels;
+  VK_CHECK(vkCreateImageView(vlkDevice, &view_create, nullptr, &ret.defaultView));
+  return ret;
+}
+
+
+
 VlkBuffer vkeCreateBufferMapped(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
   VkBufferCreateInfo      buf   = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, .size = allocSize, .usage = usage};
   VmaAllocationCreateInfo alloc = {.usage = memoryUsage, .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT};
@@ -773,5 +790,28 @@ GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uin
   }
   vkeImmediateSubmitEnd();
   vmaDestroyBuffer(vke.alloc, staging.buf, staging.alloc);
+  return ret;
+}
+
+
+
+VlkImage vkeUploadImage(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped) {
+  size_t    data_size  = 4 * size.depth * size.width * size.height;
+  VlkBuffer buf_upload = vkeCreateBufferMapped(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  memcpy(buf_upload.allocInfo.pMappedData, data, data_size);
+  VlkImage ret = vkeCreateImage(size, format, usage, mipMapped);
+  vkeImmediateSubmitBegin();
+  {
+    vlkImgTransition(vke.immCommandBuffer, ret.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    vkCmdCopyBufferToImage(
+        vke.immCommandBuffer, buf_upload.buf, ret.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+        &(VkBufferImageCopy) {
+            .imageExtent = size, .imageSubresource = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 0}
+    });
+    vlkImgTransition(vke.immCommandBuffer, ret.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
+  vkeImmediateSubmitEnd();
+  vmaDestroyBuffer(vke.alloc, buf_upload.buf, buf_upload.alloc);
   return ret;
 }

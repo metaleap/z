@@ -75,6 +75,7 @@ typedef struct VlkImage {
   VkFormat      format;
   VmaAllocation alloc;
 } VlkImage;
+void VlkImage_destroy(VlkImage* img);
 
 
 typedef struct VlkBuffer {
