@@ -68,15 +68,6 @@ void disposals_push(DisposalQueue* self, VkStructureType type, void* arg, VmaAll
 void disposals_flush(DisposalQueue* self);
 
 
-typedef struct FrameData {
-  VkCommandPool   commandPool;
-  VkCommandBuffer mainCommandBuffer;
-  VkFence         fenceRender;
-  VkSemaphore     semaPresent, semaRender;
-  DisposalQueue   disposals;
-} FrameData;
-
-
 typedef struct VlkImage {
   VkImage       image;
   VkImageView   defaultView;
@@ -236,6 +227,16 @@ typedef struct MeshAsset {
   GpuMeshBuffers meshBuffers;
 } MeshAsset;
 LIST_DEFINE_H(MeshAssets, MeshAssets, MeshAsset);
+
+
+typedef struct FrameData {
+  VkCommandPool                  commandPool;
+  VkCommandBuffer                mainCommandBuffer;
+  VkFence                        fenceRender;
+  VkSemaphore                    semaPresent, semaRender;
+  DisposalQueue                  disposals;
+  VlkDescriptorAllocatorGrowable frameDescriptors;
+} FrameData;
 
 
 typedef struct VulkanEngine {

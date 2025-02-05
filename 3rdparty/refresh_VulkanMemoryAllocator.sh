@@ -5,7 +5,7 @@ thisScriptsFilePath="$(readlink --canonicalize-existing "$0")"
 thisScriptsDirPath="$(dirname "$thisScriptsFilePath")"
 cd $thisScriptsDirPath
 
-depVer="3.2.0"
+depVer="3.2.1"
 depDirName="GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator"
 
 

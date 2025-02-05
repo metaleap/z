@@ -234,6 +234,19 @@ void vkeInitDescriptors() {
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.drawImageDescriptorLayout,
                  nullptr);
+
+  static constexpr VlkDescriptorAllocatorSizeRatio frame_sizes[] = {
+      {         .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .ratio = 3},
+      {        .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .ratio = 3},
+      {        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, .ratio = 3},
+      {.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .ratio = 4},
+  };
+  for (size_t i = 0; i < FRAME_OVERLAP; i++) {
+    vke.frames[i].frameDescriptors = (VlkDescriptorAllocatorGrowable) {};
+    VlkDescriptorAllocatorGrowable_init(
+        &vke.frames[i].frameDescriptors, vlkDevice, 1000,
+        (VlkDescriptorAllocatorSizeRatios) {.buffer = frame_sizes, .count = 4, .capacity = 4});
+  }
 }
 
 
@@ -264,6 +277,7 @@ void vkeShutdown() {
     vkDestroySemaphore(vlkDevice, vke.frames[i].semaRender, nullptr);
     vkDestroySemaphore(vlkDevice, vke.frames[i].semaPresent, nullptr);
     disposals_flush(&vke.frames[i].disposals);
+    VlkDescriptorAllocatorGrowable_destroyPools(&vke.frames[i].frameDescriptors, vlkDevice);
   }
   disposals_flush(&vke.disposals);
   vlkDisposeSwapchain();
@@ -552,6 +566,7 @@ void vkeDraw() {
   FrameData* frame = vkeCurrentFrame();
   VK_CHECK(vkWaitForFences(vlkDevice, 1, &frame->fenceRender, true, VKE_VLK_TIMEOUTS_NS));
   disposals_flush(&frame->disposals);
+  VlkDescriptorAllocatorGrowable_clearPools(&frame->frameDescriptors, vlkDevice);
   VK_CHECK(vkResetFences(vlkDevice, 1, &frame->fenceRender));
 
   Uint32          idx_swapchain_image;

@@ -188,13 +188,11 @@ void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* this, int binding, VkB
 
 void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkImageView image, VkSampler sampler,
                                     VkImageLayout layout, VkDescriptorType type) {
-  thrd_sleep(&(struct timespec) {.tv_nsec = 1000000}, nullptr);
   assert(VkDescriptorImageInfos_add(&this->imageInfos, (VkDescriptorImageInfo) {
                                                            .sampler     = sampler,
                                                            .imageView   = image,
                                                            .imageLayout = layout,
                                                        }));
-  thrd_sleep(&(struct timespec) {.tv_nsec = 1000000}, nullptr);
   assert(VkWriteDescriptorSets_add(&this->writes,
                                    (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                                                            .dstBinding      = binding,
@@ -202,7 +200,6 @@ void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkIm
                                                            .dstSet          = VK_NULL_HANDLE,
                                                            .descriptorCount = this->imageInfos.count,
                                                            .descriptorType  = type}));
-  thrd_sleep(&(struct timespec) {.tv_nsec = 1000000}, nullptr);
 }
 
 
