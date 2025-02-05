@@ -253,6 +253,8 @@ void vkeInitDescriptors() {
   VlkDescriptorLayoutBuilder_addBinding(&builder_scene, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
   vke.gpuSceneDataDescriptorLayout = VlkDescriptorLayoutBuilder_build(
       &builder_scene, vlkDevice, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr, 0);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.gpuSceneDataDescriptorLayout,
+                 nullptr);
 }
 
 
@@ -541,19 +543,18 @@ void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
 
 void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
   {
-    // FrameData* frame = vkeCurrentFrame();
-    // VlkBuffer  buf_scene_data =
-    //     vkeCreateBufferMapped(sizeof(GpuSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    // disposals_push(&frame->disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, buf_scene_data.buf, buf_scene_data.alloc);
-    // GpuSceneData* scene_data        = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
-    // *scene_data                     = vke.gpuSceneData;
-    // VkDescriptorSet     global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
-    //                                                                           vke.gpuSceneDataDescriptorLayout,
-    //                                                                           nullptr);
-    // VlkDescriptorWriter writer_desc = {};
-    // VlkDescriptorWriter_writeBuffer(&writer_desc, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
-    //                                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    // VlkDescriptorWriter_updateSet(&writer_desc, vlkDevice, global_desc);
+    FrameData* frame = vkeCurrentFrame();
+    VlkBuffer  buf_scene_data =
+        vkeCreateBufferMapped(sizeof(GpuSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    disposals_push(&frame->disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, buf_scene_data.buf, buf_scene_data.alloc);
+    GpuSceneData* scene_data        = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
+    *scene_data                     = vke.gpuSceneData;
+    VkDescriptorSet     global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
+                                                                              vke.gpuSceneDataDescriptorLayout, nullptr);
+    VlkDescriptorWriter writer_desc = {};
+    VlkDescriptorWriter_writeBuffer(&writer_desc, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    VlkDescriptorWriter_updateSet(&writer_desc, vlkDevice, global_desc);
   }
 
   VkRenderingAttachmentInfo color_attach =
