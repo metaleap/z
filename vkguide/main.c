@@ -8,10 +8,10 @@ LIST_DEFINE_C(U32s, U32s, Uint32);
 LIST_DEFINE_C(Verts, Verts, Vertex);
 LIST_DEFINE_C(GeoSurfaces, GeoSurfaces, GeoSurface);
 LIST_DEFINE_C(MeshAssets, MeshAssets, MeshAsset);
+LIST_DEFINE_C(VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatio);
 
 
 VulkanEngine vke = {
-    .idxTestMesh  = 2,
     .windowExtent = {
                      .width  = 1600,
                      .height = 900,

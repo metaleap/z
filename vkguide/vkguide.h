@@ -12,6 +12,7 @@
 #include <vulkan/vk_enum_string_helper.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_vulkan.h>
+#include <vulkan/vulkan_core.h>
 
 #define VMA_DEDICATED_ALLOCATION 1
 #include <vk_mem_alloc.h>
@@ -131,6 +132,8 @@ typedef struct VlkDescriptorAllocatorSizeRatio {
   VkDescriptorType type;
   float            ratio;
 } VlkDescriptorAllocatorSizeRatio;
+LIST_DEFINE_H(VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatio);
+
 typedef struct VlkDescriptorAllocator {
   VkDescriptorPool                pool;
   VlkDescriptorAllocatorSizeRatio ratios[VDLB_CAP];
@@ -142,6 +145,20 @@ void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* self, VkDev
 void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* self, VkDevice device);
 VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* self, VkDevice device,
                                                 VkDescriptorSetLayout layout);
+
+LIST_DEFINE_H(VkDescriptorPools, VkDescriptorPools, VkDescriptorPool);
+typedef struct VlkDescriptorAllocatorGrowable {
+  VlkDescriptorAllocatorSizeRatios ratios;
+  VkDescriptorPools                fullPools;
+  VkDescriptorPools                readyPools;
+  Uint32                           setsPerPool;
+} VlkDescriptorAllocatorGrowable;
+void VlkDescriptorAllocatorGrowable_init(VlkDescriptorAllocatorGrowable* self, VkDevice device, Uint32 numInitialSets,
+                                         VlkDescriptorAllocatorSizeRatios poolRatios);
+void VlkDescriptorAllocatorGrowable_clearPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
+void VlkDescriptorAllocatorGrowable_destroyPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
+VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGrowable* self, VkDevice device,
+                                                        VkDescriptorSetLayout layout, void* pNext);
 
 
 typedef struct PipelineBuilder {
@@ -227,7 +244,6 @@ typedef struct VulkanEngine {
   VkPipelineLayout       meshPipelineLayout;
   VkPipeline             meshPipeline;
   MeshAssets             testMeshes;
-  size_t                 idxTestMesh;
   bool                   resizeRequested;
 } VulkanEngine;
 

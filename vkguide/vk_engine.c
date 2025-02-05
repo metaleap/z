@@ -1,6 +1,4 @@
 #include "./vkguide.h"
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_log.h>
 
 
 #ifdef DEVBUILD
@@ -534,13 +532,15 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
     vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
     mat4s view = glms_translate(mat4_identity(), (vec3s) {.x = 0, .y = 0, .z = -5});
     mat4s proj = glms_perspective(glm_rad(70), (float) vke.drawExtent.width / (float) vke.drawExtent.height, 10000, 0.1f);
-    GpuDrawPushConstants push = {.worldMatrix  = glms_mul(proj, view),
-                                 .vertexBuffer = vke.testMeshes.buffer[vke.idxTestMesh].meshBuffers.vertexBufferAddress};
-    vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
-    vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[vke.idxTestMesh].meshBuffers.indexBuffer.buf, 0,
-                         VK_INDEX_TYPE_UINT32);
-    vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[vke.idxTestMesh].surfaces.buffer[0].count, 1,
-                     vke.testMeshes.buffer[vke.idxTestMesh].surfaces.buffer[0].idxStart, 0, 0);
+    for (int i = vke.testMeshes.count - 1; i >= 0; i--) {
+      GpuDrawPushConstants push = {.worldMatrix  = glms_mul(proj, view),
+                                   .vertexBuffer = vke.testMeshes.buffer[i].meshBuffers.vertexBufferAddress};
+      vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants),
+                         &push);
+      vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[i].meshBuffers.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
+      vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[i].surfaces.buffer[0].count, 1,
+                       vke.testMeshes.buffer[i].surfaces.buffer[0].idxStart, 0, 0);
+    }
   }
   vkCmdEndRendering(cmdBuf);
 }
