@@ -107,6 +107,16 @@ typedef struct GpuDrawPushConstants {
 } GpuDrawPushConstants;
 
 
+typedef struct GpuSceneData {
+  mat4s view;
+  mat4s proj;
+  mat4s viewProj;
+  vec4s ambientColor;
+  vec4s sunlightDirectionAndPower;
+  vec4s sunlightColor;
+} GpuSceneData;
+
+
 typedef struct VlkDescriptorLayoutBuilder {
 #define VDLB_CAP 8
   VkDescriptorSetLayoutBinding bindings[VDLB_CAP];   // increase (above) as needed
@@ -263,6 +273,9 @@ typedef struct VulkanEngine {
   VkPipeline             meshPipeline;
   MeshAssets             testMeshes;
   bool                   resizeRequested;
+
+  GpuSceneData          gpuSceneData;
+  VkDescriptorSetLayout gpuSceneDataDescriptorLayout;
 } VulkanEngine;
 
 
@@ -276,9 +289,8 @@ void           vkeInit();
 void           vkeRun();
 void           vkeDraw();
 void           vkeShutdown();
-VlkBuffer      vkeCreateBuffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
-GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
 MeshAssets     vkeLoadGlb(char* filePath);
+GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
 #ifdef __cplusplus
 extern "C" {
 #endif

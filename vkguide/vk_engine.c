@@ -218,10 +218,10 @@ void vkeInitDescriptors() {
   };
   VlkDescriptorAllocator_initPool(&vke.globalDescriptorAlloc, vlkDevice, 10, ARR_LEN(size_ratios), size_ratios);
 
-  VlkDescriptorLayoutBuilder builder = {};
-  VlkDescriptorLayoutBuilder_addBinding(&builder, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+  VlkDescriptorLayoutBuilder builder_compute = {};
+  VlkDescriptorLayoutBuilder_addBinding(&builder_compute, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
   vke.drawImageDescriptorLayout =
-      VlkDescriptorLayoutBuilder_build(&builder, vlkDevice, VK_SHADER_STAGE_COMPUTE_BIT, nullptr, 0);
+      VlkDescriptorLayoutBuilder_build(&builder_compute, vlkDevice, VK_SHADER_STAGE_COMPUTE_BIT, nullptr, 0);
 
   vke.drawImageDescriptors =
       VlkDescriptorAllocator_allocate(&vke.globalDescriptorAlloc, vlkDevice, vke.drawImageDescriptorLayout);
@@ -247,6 +247,12 @@ void vkeInitDescriptors() {
         &vke.frames[i].frameDescriptors, vlkDevice, 1000,
         (VlkDescriptorAllocatorSizeRatios) {.buffer = frame_sizes, .count = 4, .capacity = 4});
   }
+
+  vke.gpuSceneData                         = (GpuSceneData) {};
+  VlkDescriptorLayoutBuilder builder_scene = {};
+  VlkDescriptorLayoutBuilder_addBinding(&builder_scene, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+  vke.gpuSceneDataDescriptorLayout = VlkDescriptorLayoutBuilder_build(
+      &builder_scene, vlkDevice, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr, 0);
 }
 
 
@@ -290,7 +296,7 @@ void vkeShutdown() {
 
 
 
-void vkeInitBackgroundPipelines() {
+void vkeInitComputePipelines() {
   VkPushConstantRange pushes = {.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT, .size = sizeof(ComputeShaderPushConstants)};
   VkPipelineLayoutCreateInfo layout = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                        .setLayoutCount         = 1,
@@ -373,7 +379,7 @@ void vkeInitMeshPipeline() {
 
 void vkeInitPipelines() {
   // compute
-  vkeInitBackgroundPipelines();
+  vkeInitComputePipelines();
   // graphics
   vkeInitMeshPipeline();
 }
@@ -474,6 +480,16 @@ void vkeRun() {
 
 
 
+VlkBuffer vkeCreateBufferMapped(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
+  VkBufferCreateInfo      buf   = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, .size = allocSize, .usage = usage};
+  VmaAllocationCreateInfo alloc = {.usage = memoryUsage, .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT};
+  VlkBuffer               ret   = {};
+  VK_CHECK(vmaCreateBuffer(vke.alloc, &buf, &alloc, &ret.buf, &ret.alloc, &ret.allocInfo));
+  return ret;
+}
+
+
+
 FrameData* vkeCurrentFrame() {
   return &vke.frames[vke.frameNr % FRAME_OVERLAP];
 }
@@ -511,6 +527,7 @@ void vkeDraw_computeThreads(VkCommandBuffer cmdBuf) {
 }
 
 
+
 void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
   VkRenderingAttachmentInfo attach =
       vlkRenderingAttachmentInfo(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -521,7 +538,23 @@ void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
 }
 
 
+
 void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
+  {
+    FrameData* frame = vkeCurrentFrame();
+    VlkBuffer  buf_scene_data =
+        vkeCreateBufferMapped(sizeof(GpuSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+    disposals_push(&frame->disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, buf_scene_data.buf, buf_scene_data.alloc);
+    GpuSceneData* scene_data        = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
+    *scene_data                     = vke.gpuSceneData;
+    VkDescriptorSet     global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
+                                                                              vke.gpuSceneDataDescriptorLayout, nullptr);
+    VlkDescriptorWriter writer_desc = {};
+    VlkDescriptorWriter_writeBuffer(&writer_desc, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+    VlkDescriptorWriter_updateSet(&writer_desc, vlkDevice, global_desc);
+  }
+
   VkRenderingAttachmentInfo color_attach =
       vlkRenderingAttachmentInfo(vke.drawImage.defaultView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   VkRenderingAttachmentInfo depth_attach =
@@ -557,6 +590,7 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
   }
   vkCmdEndRendering(cmdBuf);
 }
+
 
 
 void vkeDraw() {
@@ -654,6 +688,7 @@ void disposals_push(DisposalQueue* this, VkStructureType type, void* arg, VmaAll
 }
 
 
+
 void disposals_flush(DisposalQueue* this) {
   if (this->count > 0)
     for (int i = (this->count - 1); i >= 0; i--) {
@@ -703,16 +738,6 @@ void disposals_flush(DisposalQueue* this) {
       }
     }
   this->count = 0;
-}
-
-
-
-VlkBuffer vkeCreateBufferMapped(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
-  VkBufferCreateInfo      buf   = {.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, .size = allocSize, .usage = usage};
-  VmaAllocationCreateInfo alloc = {.usage = memoryUsage, .flags = VMA_ALLOCATION_CREATE_MAPPED_BIT};
-  VlkBuffer               ret   = {};
-  VK_CHECK(vmaCreateBuffer(vke.alloc, &buf, &alloc, &ret.buf, &ret.alloc, &ret.allocInfo));
-  return ret;
 }
 
 

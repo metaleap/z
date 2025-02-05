@@ -9,7 +9,7 @@ void VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* this) {
 
 
 void VlkDescriptorLayoutBuilder_addBinding(VlkDescriptorLayoutBuilder* this, Uint32 binding, VkDescriptorType type) {
-  assert(this->count < VDLB_CAP && "VlkDescriptorLayoutBuilder_addBinding");
+  assert((this->count < VDLB_CAP) && "VlkDescriptorLayoutBuilder_addBinding");
   this->bindings[this->count] =
       (VkDescriptorSetLayoutBinding) {.binding = binding, .descriptorCount = 1, .descriptorType = type};
   this->count++;
