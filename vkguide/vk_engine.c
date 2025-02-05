@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 #ifdef DEVBUILD
@@ -209,6 +210,7 @@ void vkeInitCommands() {
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO, vke.immCommandPool, nullptr);
 }
 
+VlkDescriptorWriter writer = {};
 
 
 void vkeInitDescriptors() {
@@ -224,14 +226,48 @@ void vkeInitDescriptors() {
 
   vke.drawImageDescriptors =
       VlkDescriptorAllocator_allocate(&vke.globalDescriptorAlloc, vlkDevice, vke.drawImageDescriptorLayout);
-  VkDescriptorImageInfo img = {.imageLayout = VK_IMAGE_LAYOUT_GENERAL, .imageView = vke.drawImage.defaultView};
-  VkWriteDescriptorSet  draw_image_write = {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                            .dstBinding      = 0,
-                                            .dstSet          = vke.drawImageDescriptors,
-                                            .descriptorCount = 1,
-                                            .descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                                            .pImageInfo      = &img};
-  vkUpdateDescriptorSets(vlkDevice, 1, &draw_image_write, 0, nullptr);
+
+
+
+  // VkDescriptorImageInfo img = {.imageLayout = VK_IMAGE_LAYOUT_GENERAL, .imageView = vke.drawImage.defaultView};
+  // VkWriteDescriptorSet  draw_image_write = {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+  //                                           .dstBinding      = 0,
+  //                                           .dstSet          = vke.drawImageDescriptors,
+  //                                           .descriptorCount = 1,
+  //                                           .descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+  //                                           .pImageInfo      = &img};
+  // vkUpdateDescriptorSets(vlkDevice, 1, &draw_image_write, 0, nullptr);
+
+
+  assert(VkDescriptorImageInfos_add(&writer.imageInfos, (VkDescriptorImageInfo) {
+                                                            .sampler     = VK_NULL_HANDLE,
+                                                            .imageView   = vke.drawImage.defaultView,
+                                                            .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+                                                        }));
+  assert(VkWriteDescriptorSets_add(
+      &writer.writes,
+      (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                              .dstBinding      = 0,
+                              .pImageInfo      = &writer.imageInfos.buffer[writer.imageInfos.count - 1],   // added above
+                              .dstSet          = VK_NULL_HANDLE,
+                              .descriptorCount = 1,
+                              .descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE}));
+  for (size_t i = 0; i < writer.writes.count; i++)
+    writer.writes.buffer[i].dstSet = vke.drawImageDescriptors;
+  vkUpdateDescriptorSets(vlkDevice, writer.writes.count, writer.writes.buffer, 0, nullptr);
+
+
+
+
+  // VlkDescriptorWriter_writeImage(&writer, 0, vke.drawImage.defaultView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL,
+  //                                VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+  // VlkDescriptorWriter_updateSet(&writer, vlkDevice, vke.drawImageDescriptors);
+
+
+
+
+
+
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.drawImageDescriptorLayout,
                  nullptr);

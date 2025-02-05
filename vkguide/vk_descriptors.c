@@ -77,11 +77,11 @@ VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* this, Vk
 VkDescriptorPool VlkDescriptorAllocatorGrowable_createPool(VkDevice device, Uint32 numSets,
                                                            VlkDescriptorAllocatorSizeRatios poolRatios) {
   VkDescriptorPoolSizes pool_sizes = {};
-  VkDescriptorPoolSizes_init_capacity(&pool_sizes, poolRatios.count);
+  assert(VkDescriptorPoolSizes_init_capacity(&pool_sizes, poolRatios.count));
   for (size_t i = 0; i < poolRatios.count; i++)
-    VkDescriptorPoolSizes_add(&pool_sizes,
-                              (VkDescriptorPoolSize) {.type            = poolRatios.buffer[i].type,
-                                                      .descriptorCount = poolRatios.buffer[i].ratio * (float) numSets});
+    assert(VkDescriptorPoolSizes_add(
+        &pool_sizes, (VkDescriptorPoolSize) {.type            = poolRatios.buffer[i].type,
+                                             .descriptorCount = poolRatios.buffer[i].ratio * (float) numSets}));
   VkDescriptorPoolCreateInfo pool_create = {.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
                                             .maxSets       = numSets,
                                             .poolSizeCount = pool_sizes.count,
@@ -116,7 +116,7 @@ void VlkDescriptorAllocatorGrowable_init(VlkDescriptorAllocatorGrowable* this, V
   *this = (VlkDescriptorAllocatorGrowable) {
       .ratios = poolRatios, .setsPerPool = (1.5 * (float) maxSets), .fullPools = {}, .readyPools = {}};
   VkDescriptorPool new_pool = VlkDescriptorAllocatorGrowable_createPool(device, maxSets, poolRatios);
-  VkDescriptorPools_add(&this->readyPools, new_pool);
+  assert(VkDescriptorPools_add(&this->readyPools, new_pool));
 }
 
 
@@ -126,7 +126,7 @@ void VlkDescriptorAllocatorGrowable_clearPools(VlkDescriptorAllocatorGrowable* t
     vkResetDescriptorPool(device, this->readyPools.buffer[i], 0);
   for (size_t i = 0; i < this->fullPools.count; i++) {
     vkResetDescriptorPool(device, this->fullPools.buffer[i], 0);
-    VkDescriptorPools_add(&this->readyPools, this->fullPools.buffer[i]);
+    assert(VkDescriptorPools_add(&this->readyPools, this->fullPools.buffer[i]));
   }
   VkDescriptorPools_clear(&this->fullPools);
 }
@@ -156,11 +156,65 @@ VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGr
   VkDescriptorSet ret = {};
   VkResult        err = vkAllocateDescriptorSets(device, &alloc, &ret);
   if ((err == VK_ERROR_OUT_OF_POOL_MEMORY) || (err == VK_ERROR_FRAGMENTED_POOL)) {
-    VkDescriptorPools_add(&this->fullPools, pool_to_use);
+    assert(VkDescriptorPools_add(&this->fullPools, pool_to_use));
     pool_to_use          = VlkDescriptorAllocatorGrowable_getOrCreateReadyPool(this, device);
     alloc.descriptorPool = pool_to_use;
     VK_CHECK(vkAllocateDescriptorSets(device, &alloc, &ret));
   }
-  VkDescriptorPools_add(&this->readyPools, pool_to_use);
+  assert(VkDescriptorPools_add(&this->readyPools, pool_to_use));
   return ret;
+}
+
+
+
+void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkImageView image, VkSampler sampler,
+                                    VkImageLayout layout, VkDescriptorType type) {
+  assert(VkDescriptorImageInfos_add(&this->imageInfos, (VkDescriptorImageInfo) {
+                                                           .sampler     = sampler,
+                                                           .imageView   = image,
+                                                           .imageLayout = layout,
+                                                       }));
+  assert(VkWriteDescriptorSets_add(
+      &this->writes,
+      (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                              .dstBinding      = binding,
+                              .pImageInfo      = &this->imageInfos.buffer[this->imageInfos.count - 1],   // added above
+                              .dstSet          = VK_NULL_HANDLE,
+                              .descriptorCount = 1,
+                              .descriptorType  = type}));
+}
+
+
+
+void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* this, int binding, VkBuffer buffer, size_t size, size_t offset,
+                                     VkDescriptorType type) {
+  assert(VkDescriptorBufferInfos_add(&this->bufferInfos, (VkDescriptorBufferInfo) {
+                                                             .buffer = buffer,
+                                                             .offset = offset,
+                                                             .range  = size,
+                                                         }));
+  assert(VkWriteDescriptorSets_add(
+      &this->writes,
+      (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                              .dstBinding      = binding,
+                              .dstSet          = VK_NULL_HANDLE,
+                              .pBufferInfo     = &this->bufferInfos.buffer[this->bufferInfos.count - 1],   // added above
+                              .descriptorCount = 1,
+                              .descriptorType  = type}));
+}
+
+
+
+void VlkDescriptorWriter_clear(VlkDescriptorWriter* this) {
+  VkDescriptorBufferInfos_clear(&this->bufferInfos);
+  VkDescriptorImageInfos_clear(&this->imageInfos);
+  VkWriteDescriptorSets_clear(&this->writes);
+}
+
+
+
+void VlkDescriptorWriter_updateSet(VlkDescriptorWriter* this, VkDevice device, VkDescriptorSet set) {
+  for (size_t i = 0; i < this->writes.count; i++)
+    this->writes.buffer[i].dstSet = set;
+  vkUpdateDescriptorSets(device, this->writes.count, this->writes.buffer, 0, nullptr);
 }

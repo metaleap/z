@@ -170,12 +170,12 @@ typedef struct VlkDescriptorWriter {
   VkDescriptorBufferInfos bufferInfos;
   VkWriteDescriptorSets   writes;
 } VlkDescriptorWriter;
-void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkImageView image, VkSampler sampler,
+void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* self, int binding, VkImageView image, VkSampler sampler,
                                     VkImageLayout layout, VkDescriptorType type);
-void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* this, int binding, VkBuffer buffer, size_t size, size_t offset,
+void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* self, int binding, VkBuffer buffer, size_t size, size_t offset,
                                      VkDescriptorType type);
-void VlkDescriptorWriter_clear(VlkDescriptorWriter* this);
-void VlkDescriptorWriter_updateSet(VlkDescriptorWriter* this, VkDevice device, VkDescriptorSet set);
+void VlkDescriptorWriter_clear(VlkDescriptorWriter* self);
+void VlkDescriptorWriter_updateSet(VlkDescriptorWriter* self, VkDevice device, VkDescriptorSet set);
 
 
 typedef struct PipelineBuilder {
