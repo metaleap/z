@@ -167,25 +167,6 @@ VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGr
 
 
 
-void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkImageView image, VkSampler sampler,
-                                    VkImageLayout layout, VkDescriptorType type) {
-  assert(VkDescriptorImageInfos_add(&this->imageInfos, (VkDescriptorImageInfo) {
-                                                           .sampler     = sampler,
-                                                           .imageView   = image,
-                                                           .imageLayout = layout,
-                                                       }));
-  assert(VkWriteDescriptorSets_add(
-      &this->writes,
-      (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                              .dstBinding      = binding,
-                              .pImageInfo      = &this->imageInfos.buffer[this->imageInfos.count - 1],   // added above
-                              .dstSet          = VK_NULL_HANDLE,
-                              .descriptorCount = 1,
-                              .descriptorType  = type}));
-}
-
-
-
 void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* this, int binding, VkBuffer buffer, size_t size, size_t offset,
                                      VkDescriptorType type) {
   assert(VkDescriptorBufferInfos_add(&this->bufferInfos, (VkDescriptorBufferInfo) {
@@ -201,6 +182,27 @@ void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* this, int binding, VkB
                               .pBufferInfo     = &this->bufferInfos.buffer[this->bufferInfos.count - 1],   // added above
                               .descriptorCount = 1,
                               .descriptorType  = type}));
+}
+
+
+
+void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkImageView image, VkSampler sampler,
+                                    VkImageLayout layout, VkDescriptorType type) {
+  thrd_sleep(&(struct timespec) {.tv_nsec = 1000000}, nullptr);
+  assert(VkDescriptorImageInfos_add(&this->imageInfos, (VkDescriptorImageInfo) {
+                                                           .sampler     = sampler,
+                                                           .imageView   = image,
+                                                           .imageLayout = layout,
+                                                       }));
+  thrd_sleep(&(struct timespec) {.tv_nsec = 1000000}, nullptr);
+  assert(VkWriteDescriptorSets_add(&this->writes,
+                                   (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                                           .dstBinding      = binding,
+                                                           .pImageInfo      = this->imageInfos.buffer,   // added above
+                                                           .dstSet          = VK_NULL_HANDLE,
+                                                           .descriptorCount = this->imageInfos.count,
+                                                           .descriptorType  = type}));
+  thrd_sleep(&(struct timespec) {.tv_nsec = 1000000}, nullptr);
 }
 
 
