@@ -112,7 +112,7 @@ VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGr
                                              .descriptorSetCount = 1,
                                              .pSetLayouts        = &layout};
 
-  VkDescriptorSet ret = {};
+  VkDescriptorSet ret;
   VkResult        err = vkAllocateDescriptorSets(device, &alloc, &ret);
   if ((err == VK_ERROR_OUT_OF_POOL_MEMORY) || (err == VK_ERROR_FRAGMENTED_POOL)) {
     assert(VkDescriptorPools_add(&this->fullPools, pool_to_use));
@@ -137,11 +137,12 @@ void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* this, int binding, VkB
       &this->writes,
       (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
                               .dstBinding      = binding,
-                              .dstSet          = VK_NULL_HANDLE,
                               .pBufferInfo     = &this->bufferInfos.buffer[this->bufferInfos.count - 1],   // added above
                               .descriptorCount = 1,
                               .descriptorType  = type}));
 }
+
+
 
 
 
@@ -152,13 +153,13 @@ void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* this, int binding, VkIm
                                                            .imageView   = image,
                                                            .imageLayout = layout,
                                                        }));
-  assert(VkWriteDescriptorSets_add(&this->writes,
-                                   (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                                           .dstBinding      = binding,
-                                                           .pImageInfo      = this->imageInfos.buffer,   // added above
-                                                           .dstSet          = VK_NULL_HANDLE,
-                                                           .descriptorCount = this->imageInfos.count,
-                                                           .descriptorType  = type}));
+  assert(VkWriteDescriptorSets_add(
+      &this->writes,
+      (VkWriteDescriptorSet) {.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                              .dstBinding      = binding,
+                              .pImageInfo      = &this->imageInfos.buffer[this->imageInfos.count - 1],   // added above
+                              .descriptorCount = 1,
+                              .descriptorType  = type}));
 }
 
 

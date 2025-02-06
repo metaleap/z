@@ -1,108 +1,108 @@
 [
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ilibzdeps.so.p -I. -I../.. -I../../3rdparty/cimgui_cimgui -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/spnda_fastgltf/include -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -fPIC -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ libzdeps.so.p/zdeps_impls.c.o -MF libzdeps.so.p/zdeps_impls.c.o.d -o libzdeps.so.p/zdeps_impls.c.o -c ../../zdeps/impls.c",
     "file": "../../zdeps/impls.c",
     "output": "libzdeps.so.p/zdeps_impls.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ilibzdeps.so.p -I. -I../.. -I../../3rdparty/cimgui_cimgui -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/spnda_fastgltf/include -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -fPIC -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ libzdeps.so.p/zdeps_impls.cpp.o -MF libzdeps.so.p/zdeps_impls.cpp.o.d -o libzdeps.so.p/zdeps_impls.cpp.o -c ../../zdeps/impls.cpp",
     "file": "../../zdeps/impls.cpp",
     "output": "libzdeps.so.p/zdeps_impls.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_main.c.o -MF vkguide.exec.p/vkguide_main.c.o.d -o vkguide.exec.p/vkguide_main.c.o -c ../../vkguide/main.c",
     "file": "../../vkguide/main.c",
     "output": "vkguide.exec.p/vkguide_main.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_engine.c.o -MF vkguide.exec.p/vkguide_vk_engine.c.o.d -o vkguide.exec.p/vkguide_vk_engine.c.o -c ../../vkguide/vk_engine.c",
     "file": "../../vkguide/vk_engine.c",
     "output": "vkguide.exec.p/vkguide_vk_engine.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_descriptors.c.o -MF vkguide.exec.p/vkguide_vk_descriptors.c.o.d -o vkguide.exec.p/vkguide_vk_descriptors.c.o -c ../../vkguide/vk_descriptors.c",
     "file": "../../vkguide/vk_descriptors.c",
     "output": "vkguide.exec.p/vkguide_vk_descriptors.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_images.c.o -MF vkguide.exec.p/vkguide_vk_images.c.o.d -o vkguide.exec.p/vkguide_vk_images.c.o -c ../../vkguide/vk_images.c",
     "file": "../../vkguide/vk_images.c",
     "output": "vkguide.exec.p/vkguide_vk_images.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_initializers.c.o -MF vkguide.exec.p/vkguide_vk_initializers.c.o.d -o vkguide.exec.p/vkguide_vk_initializers.c.o -c ../../vkguide/vk_initializers.c",
     "file": "../../vkguide/vk_initializers.c",
     "output": "vkguide.exec.p/vkguide_vk_initializers.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_loader.c.o -MF vkguide.exec.p/vkguide_vk_loader.c.o.d -o vkguide.exec.p/vkguide_vk_loader.c.o -c ../../vkguide/vk_loader.c",
     "file": "../../vkguide/vk_loader.c",
     "output": "vkguide.exec.p/vkguide_vk_loader.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_pipelines.c.o -MF vkguide.exec.p/vkguide_vk_pipelines.c.o.d -o vkguide.exec.p/vkguide_vk_pipelines.c.o -c ../../vkguide/vk_pipelines.c",
     "file": "../../vkguide/vk_pipelines.c",
     "output": "vkguide.exec.p/vkguide_vk_pipelines.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_materials.c.o -MF vkguide.exec.p/vkguide_materials.c.o.d -o vkguide.exec.p/vkguide_materials.c.o -c ../../vkguide/materials.c",
     "file": "../../vkguide/materials.c",
     "output": "vkguide.exec.p/vkguide_materials.c.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_3rdparty.cpp.o -MF vkguide.exec.p/vkguide_3rdparty.cpp.o.d -o vkguide.exec.p/vkguide_3rdparty.cpp.o -c ../../vkguide/3rdparty.cpp",
     "file": "../../vkguide/3rdparty.cpp",
     "output": "vkguide.exec.p/vkguide_3rdparty.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_imgui.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_imgui.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_imgui.cpp.o -c ../../3rdparty/ocornut_imgui/imgui.cpp",
     "file": "../../3rdparty/ocornut_imgui/imgui.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_imgui.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o -c ../../3rdparty/ocornut_imgui/imgui_demo.cpp",
     "file": "../../3rdparty/ocornut_imgui/imgui_demo.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_imgui_demo.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o -c ../../3rdparty/ocornut_imgui/imgui_draw.cpp",
     "file": "../../3rdparty/ocornut_imgui/imgui_draw.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_imgui_draw.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_imgui_tables.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_imgui_tables.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_imgui_tables.cpp.o -c ../../3rdparty/ocornut_imgui/imgui_tables.cpp",
     "file": "../../3rdparty/ocornut_imgui/imgui_tables.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_imgui_tables.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_imgui_widgets.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_imgui_widgets.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_imgui_widgets.cpp.o -c ../../3rdparty/ocornut_imgui/imgui_widgets.cpp",
     "file": "../../3rdparty/ocornut_imgui/imgui_widgets.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_imgui_widgets.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_sdl3.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_sdl3.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_sdl3.cpp.o -c ../../3rdparty/ocornut_imgui/backends/imgui_impl_sdl3.cpp",
     "file": "../../3rdparty/ocornut_imgui/backends/imgui_impl_sdl3.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_sdl3.cpp.o"
   },
   {
-    "directory": "/home/_/c/c/a0/.build/debug",
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache c++ -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++20 -fno-exceptions -fno-rtti -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_vulkan.cpp.o -MF vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_vulkan.cpp.o.d -o vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_vulkan.cpp.o -c ../../3rdparty/ocornut_imgui/backends/imgui_impl_vulkan.cpp",
     "file": "../../3rdparty/ocornut_imgui/backends/imgui_impl_vulkan.cpp",
     "output": "vkguide.exec.p/3rdparty_ocornut_imgui_backends_imgui_impl_vulkan.cpp.o"

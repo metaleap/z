@@ -1,5 +1,5 @@
 project(
-    'a0',
+    'z',
     ['c', 'cpp'],
     version: '0.0.1',
     default_options: ['cpp_std=c++20', 'c_std=c23', 'cpp_rtti=false', 'cpp_eh=none'],

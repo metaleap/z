@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <vulkan/vulkan_core.h>
 
 
 #ifdef DEVBUILD
@@ -395,6 +396,7 @@ void vkeInitPipelines() {
   vkeInitComputePipelines();
   // graphics
   vkeInitMeshPipeline();
+
   MatGltfMetallicRoughness_buildPipelines(&vke.defaultMaterialMetalRough);
 }
 
@@ -449,6 +451,20 @@ void vkeInitDefaultData() {
   mat_res.dataBuffer          = mat_consts.buf;
   vke.defaultMaterialInstance = MatGltfMetallicRoughness_writeMaterial(
       &vke.defaultMaterialMetalRough, MaterialPass_MainColor, &mat_res, &vke.globalDescriptorAlloc);
+
+
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+                 vke.defaultMaterialMetalRough.materialLayout, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                 vke.defaultMaterialMetalRough.opaquePipeline.layout, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+                 vke.defaultMaterialMetalRough.opaquePipeline.pipeline, nullptr);
+  if (vke.defaultMaterialMetalRough.transparentPipeline.layout != vke.defaultMaterialMetalRough.opaquePipeline.layout)
+    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                   vke.defaultMaterialMetalRough.transparentPipeline.layout, nullptr);
+  if (vke.defaultMaterialMetalRough.transparentPipeline.pipeline != vke.defaultMaterialMetalRough.opaquePipeline.pipeline)
+    disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+                   vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 }
 
 
