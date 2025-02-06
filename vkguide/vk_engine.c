@@ -232,9 +232,9 @@ void vkeInitDescriptors() {
                                  VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
   VlkDescriptorWriter_updateSet(&writer, vlkDevice, vke.drawImageDescriptors);
 
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.drawImageDescriptorLayout,
                  nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
 
   static constexpr VlkDescriptorAllocatorSizeRatio frame_sizes[] = {
       {         .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .ratio = 3},
@@ -397,7 +397,6 @@ void vkeInitPipelines() {
   vkeInitMeshPipeline();
   MatGltfMetallicRoughness_buildPipelines(&vke.defaultMaterialMetalRough);
 }
-
 
 
 

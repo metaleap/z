@@ -34,16 +34,18 @@ void MatGltfMetallicRoughness_buildPipelines(MatGltfMetallicRoughness* this) {
 
   // build the stage-create-info for both vertex and fragment stages.
   // This lets the pipeline know the shader modules per stage
-  PipelineBuilder pipeline_builder = {.pipelineLayout = new_layout};
+  PipelineBuilder pipeline_builder = {};
   PipelineBuilder_setShaders(&pipeline_builder, shader_vert, shader_frag);
   PipelineBuilder_setInputTopology(&pipeline_builder, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
   PipelineBuilder_setPolygonMode(&pipeline_builder, VK_POLYGON_MODE_FILL);
   PipelineBuilder_setCullMode(&pipeline_builder, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
   PipelineBuilder_setMultisamplingNone(&pipeline_builder);
+  PipelineBuilder_disableBlending(&pipeline_builder);
   PipelineBuilder_enableDepthTest(&pipeline_builder, true, VK_COMPARE_OP_GREATER_OR_EQUAL);
   PipelineBuilder_setColorAttachmentFormat(&pipeline_builder, vke.drawImage.format);
   PipelineBuilder_setDepthFormat(&pipeline_builder, vke.depthImage.format);
-  this->opaquePipeline.pipeline = PipelineBuilder_build(&pipeline_builder, vlkDevice);
+  pipeline_builder.pipelineLayout = new_layout;
+  this->opaquePipeline.pipeline   = PipelineBuilder_build(&pipeline_builder, vlkDevice);
   PipelineBuilder_enableBlendingAdditive(&pipeline_builder);
   PipelineBuilder_enableDepthTest(&pipeline_builder, false, VK_COMPARE_OP_GREATER_OR_EQUAL);
   this->transparentPipeline.pipeline = PipelineBuilder_build(&pipeline_builder, vlkDevice);
