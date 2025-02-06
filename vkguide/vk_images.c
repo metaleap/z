@@ -42,11 +42,3 @@ void vlkImgCopy(VkCommandBuffer cmdBuf, VkImage src, VkImage dst, VkExtent2D src
                                                .regionCount    = 1,
                                                .pRegions       = &blit_region});
 }
-
-
-
-void VlkImage_destroy(VlkImage* img) {
-  extern VkDevice vlkDevice;
-  vkDestroyImageView(vlkDevice, img->defaultView, nullptr);
-  vmaDestroyImage(vke.alloc, img->image, img->alloc);
-}

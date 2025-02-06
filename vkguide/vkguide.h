@@ -75,7 +75,6 @@ typedef struct VlkImage {
   VkFormat      format;
   VmaAllocation alloc;
 } VlkImage;
-void VlkImage_destroy(VlkImage* img);
 
 
 typedef struct VlkBuffer {
@@ -274,9 +273,15 @@ typedef struct VulkanEngine {
   VkPipeline             meshPipeline;
   MeshAssets             testMeshes;
   bool                   resizeRequested;
+  GpuSceneData           gpuSceneData;
+  VkDescriptorSetLayout  gpuSceneDataDescriptorLayout;
 
-  GpuSceneData          gpuSceneData;
-  VkDescriptorSetLayout gpuSceneDataDescriptorLayout;
+  VlkImage  imgWhite;
+  VlkImage  imgGrey;
+  VlkImage  imgBlack;
+  VlkImage  imgCheckerboard;
+  VkSampler defaultSamplerLinear;
+  VkSampler defaultSamplerNearest;
 } VulkanEngine;
 
 
@@ -292,6 +297,8 @@ void           vkeDraw();
 void           vkeShutdown();
 MeshAssets     vkeLoadGlb(char* filePath);
 GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
+VlkImage       vkeUploadImage(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped);
+VlkImage       vkeCreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped);
 #ifdef __cplusplus
 extern "C" {
 #endif

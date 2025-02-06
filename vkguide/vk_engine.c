@@ -388,6 +388,61 @@ void vkeInitPipelines() {
 
 
 
+
+void vkeInitDefaultData() {
+  typedef union Unorm4x8 {
+    Uint32 raw;
+    struct {
+      Uint8 r;
+      Uint8 g;
+      Uint8 b;
+      Uint8 a;
+    } rgba;
+  } Unorm4x8;
+  Unorm4x8 col_white = {
+      .rgba = {.r = 255, .g = 255, .b = 255, .a = 255}
+  };
+  Unorm4x8 col_black = {.rgba = {.a = 255}};
+  Unorm4x8 col_gray  = {
+       .rgba = {.r = 168, .g = 168, .b = 168, .a = 255}
+  };
+  Unorm4x8 col_magenta = {
+      .rgba = {.r = 255, .g = 0, .b = 255, .a = 255}
+  };
+  vke.imgBlack = vkeUploadImage(&col_black.raw, (VkExtent3D) {.depth = 1, .width = 1, .height = 1},
+                                VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  vke.imgGrey = vkeUploadImage(&col_gray.raw, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+                               VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  vke.imgWhite = vkeUploadImage(&col_white.raw, (VkExtent3D) {.depth = 1, .width = 1, .height = 1},
+                                VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  Uint32 pix_checkerboard[16 * 16];
+  for (int x = 0; x < 16; x++)
+    for (int y = 0; y < 16; y++)
+      pix_checkerboard[y * 16 + x] = (((x % 2) ^ (y % 2)) ? col_magenta.raw : col_black.raw);
+  vke.imgCheckerboard = vkeUploadImage(pix_checkerboard, (VkExtent3D) {.depth = 16, .width = 16, .height = 16},
+                                       VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+
+  VkSamplerCreateInfo sampl = {
+      .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, .magFilter = VK_FILTER_NEAREST, .minFilter = VK_FILTER_NEAREST};
+  vkCreateSampler(vlkDevice, &sampl, nullptr, &vke.defaultSamplerNearest);
+  sampl.magFilter = VK_FILTER_LINEAR;
+  sampl.minFilter = VK_FILTER_LINEAR;
+  vkCreateSampler(vlkDevice, &sampl, nullptr, &vke.defaultSamplerLinear);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, vke.defaultSamplerLinear, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, vke.defaultSamplerNearest, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgBlack.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgGrey.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgWhite.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgCheckerboard.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgBlack.image, vke.imgBlack.alloc);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgGrey.image, vke.imgGrey.alloc);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgWhite.image, vke.imgWhite.alloc);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgCheckerboard.image,
+                 vke.imgCheckerboard.alloc);
+}
+
+
+
 void vkeInitImgui() {
   // 1: create descriptor pool for IMGUI. the size of the pool is very oversize
   VkDescriptorPoolSize pool_sizes[] = {
@@ -430,6 +485,7 @@ void vkeInit() {
   vkeInitSyncStructures();
   vkeInitDescriptors();
   vkeInitPipelines();
+  vkeInitDefaultData();
   vkeInitImgui();
 }
 
@@ -478,23 +534,6 @@ void vkeRun() {
       vkeDraw();
     }
   }
-}
-
-
-
-VlkImage vkeCreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped) {
-  VlkImage          ret        = {.format = format, .extent = size};
-  VkImageCreateInfo img_create = vlkImageCreateInfo(format, usage, size);
-  if (mipMapped)
-    img_create.mipLevels = 1 + floor(log2((double) utilMax(size.width, size.height)));
-  VmaAllocationCreateInfo alloc = {.usage         = VMA_MEMORY_USAGE_GPU_ONLY,
-                                   .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
-  VK_CHECK(vmaCreateImage(vke.alloc, &img_create, &alloc, &ret.image, &ret.alloc, nullptr));
-  VkImageViewCreateInfo view_create = vlkImageViewCreateInfo(
-      format, ret.image, (format == VK_FORMAT_D32_SFLOAT) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
-  view_create.subresourceRange.levelCount = img_create.mipLevels;
-  VK_CHECK(vkCreateImageView(vlkDevice, &view_create, nullptr, &ret.defaultView));
-  return ret;
 }
 
 
@@ -813,5 +852,22 @@ VlkImage vkeUploadImage(void* data, VkExtent3D size, VkFormat format, VkImageUsa
   }
   vkeImmediateSubmitEnd();
   vmaDestroyBuffer(vke.alloc, buf_upload.buf, buf_upload.alloc);
+  return ret;
+}
+
+
+
+VlkImage vkeCreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped) {
+  VlkImage          ret        = {.format = format, .extent = size};
+  VkImageCreateInfo img_create = vlkImageCreateInfo(format, usage, size);
+  if (mipMapped)
+    img_create.mipLevels = 1 + floor(log2((double) utilMax(size.width, size.height)));
+  VmaAllocationCreateInfo alloc = {.usage         = VMA_MEMORY_USAGE_GPU_ONLY,
+                                   .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+  VK_CHECK(vmaCreateImage(vke.alloc, &img_create, &alloc, &ret.image, &ret.alloc, nullptr));
+  VkImageViewCreateInfo view_create = vlkImageViewCreateInfo(
+      format, ret.image, (format == VK_FORMAT_D32_SFLOAT) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
+  view_create.subresourceRange.levelCount = img_create.mipLevels;
+  VK_CHECK(vkCreateImageView(vlkDevice, &view_create, nullptr, &ret.defaultView));
   return ret;
 }
