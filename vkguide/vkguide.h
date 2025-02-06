@@ -239,6 +239,36 @@ typedef struct MeshAsset {
 LIST_DEFINE_H(MeshAssets, MeshAssets, MeshAsset);
 
 
+typedef struct MaterialPipeline {
+  VkPipeline       pipeline;
+  VkPipelineLayout layout;
+} MaterialPipeline;
+
+
+typedef enum MaterialPass {
+  MaterialPass_MainColor,
+  MaterialPass_Transparent,
+  MaterialPass_Other,
+} MaterialPass;
+
+
+typedef struct MaterialInstance {
+  MaterialPipeline* pipeline;
+  VkDescriptorSet   materialSet;
+  MaterialPass      passType;
+} MaterialInstance;
+
+
+typedef struct RenderObject {
+  Uint32            indexCount;
+  Uint32            firstIndex;
+  VkBuffer          indexBuffer;
+  MaterialInstance* material;
+  mat4s             transform;
+  VkDeviceAddress   vertexBufferAddress;
+} RenderObject;
+
+
 typedef struct FrameData {
   VkCommandPool                  commandPool;
   VkCommandBuffer                mainCommandBuffer;
