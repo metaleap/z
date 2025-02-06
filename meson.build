@@ -88,13 +88,13 @@ executable(
     # native: true, # https://github.com/mesonbuild/meson/discussions/14218
     sources: [
         'vkguide/main.c',
-        'vkguide/vk_descriptors.c',
         'vkguide/vk_engine.c',
+        'vkguide/vk_descriptors.c',
         'vkguide/vk_images.c',
         'vkguide/vk_initializers.c',
         'vkguide/vk_loader.c',
         'vkguide/vk_pipelines.c',
-        'vkguide/vk_types.c',
+        'vkguide/materials.c',
         'vkguide/3rdparty.cpp',
         '3rdparty/ocornut_imgui/imgui.cpp',
         '3rdparty/ocornut_imgui/imgui_demo.cpp',

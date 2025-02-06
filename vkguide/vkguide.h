@@ -259,6 +259,34 @@ typedef struct MaterialInstance {
 } MaterialInstance;
 
 
+typedef struct MatGltfMetallicRoughnessMaterialConstants {
+  vec4s colorFactors;
+  vec4s metalRoughFactors;
+  vec4s _padding[14];
+} MatGltfMetallicRoughnessMaterialConstants;
+typedef struct MatGltfMetallicRoughnessMaterialResources {
+  VlkImage  colorImage;
+  VkSampler colorSampler;
+  VlkImage  metalRoughImage;
+  VkSampler metalRoughSampler;
+  VkBuffer  dataBuffer;
+  Uint32    dataBufferOffset;
+} MatGltfMetallicRoughnessMaterialResources;
+typedef struct MatGltfMetallicRoughness {
+  MaterialPipeline                          opaquePipeline;
+  MaterialPipeline                          transparentPipeline;
+  VkDescriptorSetLayout                     materialLayout;
+  MatGltfMetallicRoughnessMaterialConstants materialConstants;
+  MatGltfMetallicRoughnessMaterialResources materialResources;
+  VlkDescriptorWriter                       descriptorWriter;
+} MatGltfMetallicRoughness;
+void MatGltfMetallicRoughness_buildPipelines(MatGltfMetallicRoughness* self);
+void MatGltfMetallicRoughness_clearResources(MatGltfMetallicRoughness* self);
+void MatGltfMetallicRoughness_writeMaterial(MatGltfMetallicRoughness* self, MaterialPass pass,
+                                            MatGltfMetallicRoughnessMaterialResources* resources,
+                                            VlkDescriptorAllocatorGrowable*            descriptorAlloc);
+
+
 typedef struct RenderObject {
   Uint32            indexCount;
   Uint32            firstIndex;
@@ -319,6 +347,8 @@ typedef struct VulkanEngine {
 
 extern bool         isDebug;
 extern VulkanEngine vke;
+extern VkDevice     vlkDevice;
+
 
 
 size_t         utilMax(size_t s1, size_t s2);

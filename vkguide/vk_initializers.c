@@ -1,5 +1,4 @@
 #include "./vkguide.h"
-#include <vulkan/vulkan_core.h>
 
 
 

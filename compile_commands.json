@@ -19,15 +19,15 @@
   },
   {
     "directory": "/home/_/c/c/a0/.build/debug",
-    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_descriptors.c.o -MF vkguide.exec.p/vkguide_vk_descriptors.c.o.d -o vkguide.exec.p/vkguide_vk_descriptors.c.o -c ../../vkguide/vk_descriptors.c",
-    "file": "../../vkguide/vk_descriptors.c",
-    "output": "vkguide.exec.p/vkguide_vk_descriptors.c.o"
-  },
-  {
-    "directory": "/home/_/c/c/a0/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_engine.c.o -MF vkguide.exec.p/vkguide_vk_engine.c.o.d -o vkguide.exec.p/vkguide_vk_engine.c.o -c ../../vkguide/vk_engine.c",
     "file": "../../vkguide/vk_engine.c",
     "output": "vkguide.exec.p/vkguide_vk_engine.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/a0/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_descriptors.c.o -MF vkguide.exec.p/vkguide_vk_descriptors.c.o.d -o vkguide.exec.p/vkguide_vk_descriptors.c.o -c ../../vkguide/vk_descriptors.c",
+    "file": "../../vkguide/vk_descriptors.c",
+    "output": "vkguide.exec.p/vkguide_vk_descriptors.c.o"
   },
   {
     "directory": "/home/_/c/c/a0/.build/debug",
@@ -55,9 +55,9 @@
   },
   {
     "directory": "/home/_/c/c/a0/.build/debug",
-    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_types.c.o -MF vkguide.exec.p/vkguide_vk_types.c.o.d -o vkguide.exec.p/vkguide_vk_types.c.o -c ../../vkguide/vk_types.c",
-    "file": "../../vkguide/vk_types.c",
-    "output": "vkguide.exec.p/vkguide_vk_types.c.o"
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_materials.c.o -MF vkguide.exec.p/vkguide_materials.c.o.d -o vkguide.exec.p/vkguide_materials.c.o -c ../../vkguide/materials.c",
+    "file": "../../vkguide/materials.c",
+    "output": "vkguide.exec.p/vkguide_materials.c.o"
   },
   {
     "directory": "/home/_/c/c/a0/.build/debug",

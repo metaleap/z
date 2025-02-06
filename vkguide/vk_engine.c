@@ -1,6 +1,4 @@
 #include "./vkguide.h"
-#include <SDL3/SDL_stdinc.h>
-#include <vulkan/vulkan_core.h>
 
 
 #ifdef DEVBUILD
