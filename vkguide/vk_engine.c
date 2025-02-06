@@ -419,7 +419,7 @@ void vkeInitDefaultData() {
   for (int x = 0; x < 16; x++)
     for (int y = 0; y < 16; y++)
       pix_checkerboard[y * 16 + x] = (((x % 2) ^ (y % 2)) ? col_magenta.raw : col_black.raw);
-  vke.imgCheckerboard = vkeUploadImage(pix_checkerboard, (VkExtent3D) {.depth = 16, .width = 16, .height = 16},
+  vke.imgCheckerboard = vkeUploadImage(pix_checkerboard, (VkExtent3D) {.depth = 1, .width = 16, .height = 16},
                                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
   VkSamplerCreateInfo sampl = {
@@ -766,6 +766,9 @@ void disposals_flush(DisposalQueue* this) {
         case VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO:
           vkDestroyImageView(vlkDevice, (VkImageView) this->args[i], nullptr);
           break;
+        case VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO:
+          vkDestroySampler(vlkDevice, this->args[i], nullptr);
+          break;
         case VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO:
           VlkDescriptorAllocator_destroyPool(this->args[i], vlkDevice);
           break;
@@ -791,7 +794,7 @@ void disposals_flush(DisposalQueue* this) {
           vkDestroyFence(vlkDevice, this->args[i], nullptr);
           break;
         default:
-          SDL_Log(">>>%x<<<\n", this->types[i]);
+          SDL_Log(">>>%d<<<\n", this->types[i]);
           assert(false && "disposals_flush");
       }
     }
@@ -838,15 +841,16 @@ VlkImage vkeUploadImage(void* data, VkExtent3D size, VkFormat format, VkImageUsa
   size_t    data_size  = 4 * size.depth * size.width * size.height;
   VlkBuffer buf_upload = vkeCreateBufferMapped(data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   memcpy(buf_upload.allocInfo.pMappedData, data, data_size);
-  VlkImage ret = vkeCreateImage(size, format, usage, mipMapped);
+  VlkImage ret =
+      vkeCreateImage(size, format, usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, mipMapped);
   vkeImmediateSubmitBegin();
   {
     vlkImgTransition(vke.immCommandBuffer, ret.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    vkCmdCopyBufferToImage(
-        vke.immCommandBuffer, buf_upload.buf, ret.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
-        &(VkBufferImageCopy) {
-            .imageExtent = size, .imageSubresource = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 0}
-    });
+    VkBufferImageCopy copy_region = {
+        .imageExtent = size, .imageSubresource = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .layerCount = 1}
+    };
+    vkCmdCopyBufferToImage(vke.immCommandBuffer, buf_upload.buf, ret.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                           &copy_region);
     vlkImgTransition(vke.immCommandBuffer, ret.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   }
@@ -863,7 +867,7 @@ VlkImage vkeCreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usag
   if (mipMapped)
     img_create.mipLevels = 1 + floor(log2((double) utilMax(size.width, size.height)));
   VmaAllocationCreateInfo alloc = {.usage         = VMA_MEMORY_USAGE_GPU_ONLY,
-                                   .requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
+                                   .requiredFlags = (VkMemoryPropertyFlags) VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT};
   VK_CHECK(vmaCreateImage(vke.alloc, &img_create, &alloc, &ret.image, &ret.alloc, nullptr));
   VkImageViewCreateInfo view_create = vlkImageViewCreateInfo(
       format, ret.image, (format == VK_FORMAT_D32_SFLOAT) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT);
