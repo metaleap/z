@@ -1,4 +1,5 @@
 #include "./vkguide.h"
+#include <SDL3/SDL_stdinc.h>
 #include <vulkan/vulkan_core.h>
 
 
@@ -255,6 +256,13 @@ void vkeInitDescriptors() {
       &builder_scene, vlkDevice, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr, 0);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.gpuSceneDataDescriptorLayout,
                  nullptr);
+
+  VlkDescriptorLayoutBuilder builder_single_image = {};
+  VlkDescriptorLayoutBuilder_addBinding(&builder_single_image, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+  vke.singleImageDescriptorLayout =
+      VlkDescriptorLayoutBuilder_build(&builder_single_image, vlkDevice, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr, 0);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.singleImageDescriptorLayout,
+                 nullptr);
 }
 
 
@@ -346,17 +354,20 @@ void vkeInitComputePipelines() {
 
 void vkeInitMeshPipeline() {
   VkShaderModule shader_frag, shader_vert;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle.frag", vlkDevice, &shader_frag,
-                               VK_SHADER_STAGE_FRAGMENT_BIT));
+  VK_CHECK(
+      vlkLoadShaderModule("../../vkguide/shaders/tex_image.frag", vlkDevice, &shader_frag, VK_SHADER_STAGE_FRAGMENT_BIT));
   VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle_mesh.vert", vlkDevice, &shader_vert,
                                VK_SHADER_STAGE_VERTEX_BIT));
 
   VkPushConstantRange push_range = {.size = sizeof(GpuDrawPushConstants), .stageFlags = VK_SHADER_STAGE_VERTEX_BIT};
 
   VkPipelineLayoutCreateInfo pipeline_layout = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                                .setLayoutCount         = 1,
+                                                .pSetLayouts            = &vke.singleImageDescriptorLayout,
                                                 .pushConstantRangeCount = 1,
                                                 .pPushConstantRanges    = &push_range};
   VK_CHECK(vkCreatePipelineLayout(vlkDevice, &pipeline_layout, nullptr, &vke.meshPipelineLayout));
+
   PipelineBuilder pb;
   PipelineBuilder_reset(&pb);
   PipelineBuilder_setShaders(&pb, shader_vert, shader_frag);
@@ -390,44 +401,29 @@ void vkeInitPipelines() {
 
 
 void vkeInitDefaultData() {
-  typedef union Unorm4x8 {
-    Uint32 raw;
-    struct {
-      Uint8 r;
-      Uint8 g;
-      Uint8 b;
-      Uint8 a;
-    } rgba;
-  } Unorm4x8;
-  Unorm4x8 col_white = {
-      .rgba = {.r = 255, .g = 255, .b = 255, .a = 255}
-  };
-  Unorm4x8 col_black = {.rgba = {.a = 255}};
-  Unorm4x8 col_gray  = {
-       .rgba = {.r = 168, .g = 168, .b = 168, .a = 255}
-  };
-  Unorm4x8 col_magenta = {
-      .rgba = {.r = 255, .g = 0, .b = 255, .a = 255}
-  };
-  vke.imgBlack = vkeUploadImage(&col_black.raw, (VkExtent3D) {.depth = 1, .width = 1, .height = 1},
-                                VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
-  vke.imgGrey = vkeUploadImage(&col_gray.raw, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
-                               VK_IMAGE_USAGE_SAMPLED_BIT, false);
-  vke.imgWhite = vkeUploadImage(&col_white.raw, (VkExtent3D) {.depth = 1, .width = 1, .height = 1},
-                                VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  Uint32 col_white   = 0xffffffff;
+  Uint32 col_black   = 0xff000000;
+  Uint32 col_gray    = 0xffaaaaaa;
+  Uint32 col_magenta = 0xffff00ff;
+  vke.imgBlack = vkeUploadImage(&col_black, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+                                VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  vke.imgGrey  = vkeUploadImage(&col_gray, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+                                VK_IMAGE_USAGE_SAMPLED_BIT, false);
+  vke.imgWhite = vkeUploadImage(&col_white, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+                                VK_IMAGE_USAGE_SAMPLED_BIT, false);
   Uint32 pix_checkerboard[16 * 16];
   for (int x = 0; x < 16; x++)
     for (int y = 0; y < 16; y++)
-      pix_checkerboard[y * 16 + x] = (((x % 2) ^ (y % 2)) ? col_magenta.raw : col_black.raw);
+      pix_checkerboard[x + (y * 16)] = (((x % 2) ^ (y % 2)) ? col_magenta : col_black);
   vke.imgCheckerboard = vkeUploadImage(pix_checkerboard, (VkExtent3D) {.depth = 1, .width = 16, .height = 16},
                                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
   VkSamplerCreateInfo sampl = {
       .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, .magFilter = VK_FILTER_NEAREST, .minFilter = VK_FILTER_NEAREST};
-  vkCreateSampler(vlkDevice, &sampl, nullptr, &vke.defaultSamplerNearest);
+  VK_CHECK(vkCreateSampler(vlkDevice, &sampl, nullptr, &vke.defaultSamplerNearest));
   sampl.magFilter = VK_FILTER_LINEAR;
   sampl.minFilter = VK_FILTER_LINEAR;
-  vkCreateSampler(vlkDevice, &sampl, nullptr, &vke.defaultSamplerLinear);
+  VK_CHECK(vkCreateSampler(vlkDevice, &sampl, nullptr, &vke.defaultSamplerLinear));
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, vke.defaultSamplerLinear, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, vke.defaultSamplerNearest, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgBlack.defaultView, nullptr);
@@ -598,20 +594,21 @@ void vkeDraw_Imgui(VkCommandBuffer cmdBuf, VkImageView targetImageView) {
 
 
 void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
-  {
-    FrameData* frame = vkeCurrentFrame();
-    VlkBuffer  buf_scene_data =
-        vkeCreateBufferMapped(sizeof(GpuSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
-    disposals_push(&frame->disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, buf_scene_data.buf, buf_scene_data.alloc);
-    GpuSceneData* scene_data        = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
-    *scene_data                     = vke.gpuSceneData;
-    VkDescriptorSet     global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
-                                                                              vke.gpuSceneDataDescriptorLayout, nullptr);
-    VlkDescriptorWriter writer_desc = {};
-    VlkDescriptorWriter_writeBuffer(&writer_desc, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
-                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-    VlkDescriptorWriter_updateSet(&writer_desc, vlkDevice, global_desc);
-  }
+  FrameData* frame = vkeCurrentFrame();
+  // {
+  //   VlkBuffer buf_scene_data =
+  //       vkeCreateBufferMapped(sizeof(GpuSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  //   disposals_push(&frame->disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, buf_scene_data.buf, buf_scene_data.alloc);
+  //   GpuSceneData* scene_data        = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
+  //   *scene_data                     = vke.gpuSceneData;
+  //   VkDescriptorSet     global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
+  //                                                                             vke.gpuSceneDataDescriptorLayout,
+  //                                                                             nullptr);
+  //   VlkDescriptorWriter writer_desc = {};
+  //   VlkDescriptorWriter_writeBuffer(&writer_desc, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
+  //                                   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+  //   VlkDescriptorWriter_updateSet(&writer_desc, vlkDevice, global_desc);
+  // }
 
   VkRenderingAttachmentInfo color_attach =
       vlkRenderingAttachmentInfo(vke.drawImage.defaultView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -634,17 +631,24 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
         .extent = {.width = vke.drawExtent.width, .height = vke.drawExtent.height}
     };
     vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
+
+    VkDescriptorSet     descset_singleimg = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
+                                                                                    vke.singleImageDescriptorLayout, nullptr);
+    VlkDescriptorWriter writer_singleimg  = {};
+    VlkDescriptorWriter_writeImage(&writer_singleimg, 0, vke.imgCheckerboard.defaultView, vke.defaultSamplerNearest,
+                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+    VlkDescriptorWriter_updateSet(&writer_singleimg, vlkDevice, descset_singleimg);
+    vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.meshPipelineLayout, 0, 1, &descset_singleimg, 0,
+                            nullptr);
+
     mat4s view = glms_translate(mat4_identity(), (vec3s) {.x = 0, .y = 0, .z = -5});
     mat4s proj = glms_perspective(glm_rad(70), (float) vke.drawExtent.width / (float) vke.drawExtent.height, 10000, 0.1f);
-    for (int i = vke.testMeshes.count - 1; i >= 0; i--) {
-      GpuDrawPushConstants push = {.worldMatrix  = glms_mul(proj, view),
-                                   .vertexBuffer = vke.testMeshes.buffer[i].meshBuffers.vertexBufferAddress};
-      vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants),
-                         &push);
-      vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[i].meshBuffers.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
-      vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[i].surfaces.buffer[0].count, 1,
-                       vke.testMeshes.buffer[i].surfaces.buffer[0].idxStart, 0, 0);
-    }
+    GpuDrawPushConstants push = {.worldMatrix  = glms_mul(proj, view),
+                                 .vertexBuffer = vke.testMeshes.buffer[2].meshBuffers.vertexBufferAddress};
+    vkCmdPushConstants(cmdBuf, vke.meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants), &push);
+    vkCmdBindIndexBuffer(cmdBuf, vke.testMeshes.buffer[2].meshBuffers.indexBuffer.buf, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdDrawIndexed(cmdBuf, vke.testMeshes.buffer[2].surfaces.buffer[0].count, 1,
+                     vke.testMeshes.buffer[2].surfaces.buffer[0].idxStart, 0, 0);
   }
   vkCmdEndRendering(cmdBuf);
 }

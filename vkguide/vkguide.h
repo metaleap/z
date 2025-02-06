@@ -276,12 +276,13 @@ typedef struct VulkanEngine {
   GpuSceneData           gpuSceneData;
   VkDescriptorSetLayout  gpuSceneDataDescriptorLayout;
 
-  VlkImage  imgWhite;
-  VlkImage  imgGrey;
-  VlkImage  imgBlack;
-  VlkImage  imgCheckerboard;
-  VkSampler defaultSamplerLinear;
-  VkSampler defaultSamplerNearest;
+  VlkImage              imgWhite;
+  VlkImage              imgGrey;
+  VlkImage              imgBlack;
+  VlkImage              imgCheckerboard;
+  VkSampler             defaultSamplerLinear;
+  VkSampler             defaultSamplerNearest;
+  VkDescriptorSetLayout singleImageDescriptorLayout;
 } VulkanEngine;
 
 
