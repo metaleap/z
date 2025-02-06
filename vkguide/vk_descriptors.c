@@ -33,46 +33,6 @@ VkDescriptorSetLayout VlkDescriptorLayoutBuilder_build(VlkDescriptorLayoutBuilde
 
 
 
-void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* this, VkDevice device) {
-  VK_CHECK(vkResetDescriptorPool(device, this->pool, 0));
-}
-
-
-
-void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* this, VkDevice device) {
-  vkDestroyDescriptorPool(device, this->pool, nullptr);
-}
-
-
-
-void VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* this, VkDevice device, Uint32 maxSets, Uint8 ratiosCount,
-                                     VlkDescriptorAllocatorSizeRatio ratios[]) {
-  VkDescriptorPoolSize pool_sizes[ratiosCount];
-  for (Uint8 i = 0; i < ratiosCount; i++)
-    pool_sizes[i] =
-        (VkDescriptorPoolSize) {.type = ratios[i].type, .descriptorCount = (((float) maxSets) * ratios[i].ratio)};
-  VkDescriptorPoolCreateInfo pool_create = {.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-                                            .pPoolSizes    = pool_sizes,
-                                            .maxSets       = maxSets,
-                                            .poolSizeCount = ratiosCount};
-  VK_CHECK(vkCreateDescriptorPool(device, &pool_create, nullptr, &this->pool));
-}
-
-
-
-VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* this, VkDevice device,
-                                                VkDescriptorSetLayout layout) {
-  VkDescriptorSetAllocateInfo alloc = {.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-                                       .descriptorPool     = this->pool,
-                                       .descriptorSetCount = 1,
-                                       .pSetLayouts        = &layout};
-  VkDescriptorSet             ret;
-  VK_CHECK(vkAllocateDescriptorSets(device, &alloc, &ret));
-  return ret;
-}
-
-
-
 VkDescriptorPool VlkDescriptorAllocatorGrowable_createPool(VkDevice device, Uint32 numSets,
                                                            VlkDescriptorAllocatorSizeRatios poolRatios) {
   VkDescriptorPoolSizes pool_sizes = {};

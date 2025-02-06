@@ -136,22 +136,11 @@ typedef struct VlkDescriptorAllocatorSizeRatio {
 LIST_DEFINE_H(VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatio);
 LIST_DEFINE_H(VkDescriptorPoolSizes, VkDescriptorPoolSizes, VkDescriptorPoolSize);
 
-typedef struct VlkDescriptorAllocator {
-  VkDescriptorPool                pool;
-  VlkDescriptorAllocatorSizeRatio ratios[VDLB_CAP];
-  Uint8                           ratiosCount;
-} VlkDescriptorAllocator;
-void VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* _, VkDevice device, Uint32 maxSets, Uint8 ratiosCount,
-                                     VlkDescriptorAllocatorSizeRatio ratios[]);
-void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* _, VkDevice device);
-void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* _, VkDevice device);
-VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* _, VkDevice device, VkDescriptorSetLayout layout);
-
 LIST_DEFINE_H(VkDescriptorPools, VkDescriptorPools, VkDescriptorPool);
 typedef struct VlkDescriptorAllocatorGrowable {
-  VlkDescriptorAllocatorSizeRatios ratios;
   VkDescriptorPools                fullPools;
   VkDescriptorPools                readyPools;
+  VlkDescriptorAllocatorSizeRatios ratios;
   Uint32                           setsPerPool;
 } VlkDescriptorAllocatorGrowable;
 void            VlkDescriptorAllocatorGrowable_init(VlkDescriptorAllocatorGrowable* _, VkDevice device, Uint32 maxSets,
@@ -307,40 +296,40 @@ typedef struct FrameData {
 
 
 typedef struct VulkanEngine {
-  VmaAllocator             alloc;
-  size_t                   frameNr;
-  FrameData                frames[FRAME_OVERLAP];
-  bool                     paused;
-  SDL_Window*              window;
-  DisposalQueue            disposals;
-  VkExtent2D               windowExtent;
-  VkExtent2D               drawExtent;
-  VlkImage                 drawImage;
-  VlkImage                 depthImage;
-  VlkDescriptorAllocator   globalDescriptorAlloc;
-  VkDescriptorSet          drawImageDescriptors;
-  VkDescriptorSetLayout    drawImageDescriptorLayout;
-  VkPipelineLayout         computePipelineLayout;
-  VkFence                  immFence;
-  VkCommandPool            immCommandPool;
-  VkCommandBuffer          immCommandBuffer;
-  ComputeShaderEffect      bgEffects[2];
-  int                      bgEffectCurIdx;
-  VkPipelineLayout         meshPipelineLayout;
-  VkPipeline               meshPipeline;
-  MeshAssets               testMeshes;
-  bool                     resizeRequested;
-  GpuSceneData             gpuSceneData;
-  VkDescriptorSetLayout    gpuSceneDataDescriptorLayout;
-  VlkImage                 texWhite;
-  VlkImage                 texGrey;
-  VlkImage                 texBlack;
-  VlkImage                 texCheckerboard;
-  VkSampler                defaultSamplerLinear;
-  VkSampler                defaultSamplerNearest;
-  VkDescriptorSetLayout    singleTexDescriptorLayout;
-  MaterialInstance         defaultMaterialInstance;
-  MatGltfMetallicRoughness defaultMaterialMetalRough;
+  VmaAllocator                   alloc;
+  size_t                         frameNr;
+  FrameData                      frames[FRAME_OVERLAP];
+  bool                           paused;
+  SDL_Window*                    window;
+  DisposalQueue                  disposals;
+  VkExtent2D                     windowExtent;
+  VkExtent2D                     drawExtent;
+  VlkImage                       drawImage;
+  VlkImage                       depthImage;
+  VlkDescriptorAllocatorGrowable globalDescriptorAlloc;
+  VkDescriptorSet                drawImageDescriptors;
+  VkDescriptorSetLayout          drawImageDescriptorLayout;
+  VkPipelineLayout               computePipelineLayout;
+  VkFence                        immFence;
+  VkCommandPool                  immCommandPool;
+  VkCommandBuffer                immCommandBuffer;
+  ComputeShaderEffect            bgEffects[2];
+  int                            bgEffectCurIdx;
+  VkPipelineLayout               meshPipelineLayout;
+  VkPipeline                     meshPipeline;
+  MeshAssets                     testMeshes;
+  bool                           resizeRequested;
+  GpuSceneData                   gpuSceneData;
+  VkDescriptorSetLayout          gpuSceneDataDescriptorLayout;
+  VlkImage                       texWhite;
+  VlkImage                       texGrey;
+  VlkImage                       texBlack;
+  VlkImage                       texCheckerboard;
+  VkSampler                      defaultSamplerLinear;
+  VkSampler                      defaultSamplerNearest;
+  VkDescriptorSetLayout          singleTexDescriptorLayout;
+  MaterialInstance               defaultMaterialInstance;
+  MatGltfMetallicRoughness       defaultMaterialMetalRough;
 } VulkanEngine;
 
 
@@ -360,6 +349,7 @@ MeshAssets     vkeLoadGlb(char* filePath);
 GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
 VlkImage       vkeUploadImage(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped);
 VlkImage       vkeCreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped);
+VlkBuffer      vkeCreateBufferMapped(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 #ifdef __cplusplus
 extern "C" {
 #endif

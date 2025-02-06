@@ -212,27 +212,29 @@ void vkeInitCommands() {
 
 
 void vkeInitDescriptors() {
-  VlkDescriptorAllocatorSizeRatio size_ratios[] = {
+  static constexpr VlkDescriptorAllocatorSizeRatio size_ratios[] = {
       {.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .ratio = 1}
   };
-  VlkDescriptorAllocator_initPool(&vke.globalDescriptorAlloc, vlkDevice, 10, ARR_LEN(size_ratios), size_ratios);
+  VlkDescriptorAllocatorGrowable_init(
+      &vke.globalDescriptorAlloc, vlkDevice, 10,
+      (VlkDescriptorAllocatorSizeRatios) {.buffer = size_ratios, .capacity = 1, .count = 1});
 
   VlkDescriptorLayoutBuilder builder_compute = {};
   VlkDescriptorLayoutBuilder_addBinding(&builder_compute, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
   vke.drawImageDescriptorLayout =
       VlkDescriptorLayoutBuilder_build(&builder_compute, vlkDevice, VK_SHADER_STAGE_COMPUTE_BIT, nullptr, 0);
 
-  vke.drawImageDescriptors =
-      VlkDescriptorAllocator_allocate(&vke.globalDescriptorAlloc, vlkDevice, vke.drawImageDescriptorLayout);
+  vke.drawImageDescriptors = VlkDescriptorAllocatorGrowable_allocate(&vke.globalDescriptorAlloc, vlkDevice,
+                                                                     vke.drawImageDescriptorLayout, nullptr);
 
   VlkDescriptorWriter writer = {};
   VlkDescriptorWriter_writeImage(&writer, 0, vke.drawImage.defaultView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL,
                                  VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
   VlkDescriptorWriter_updateSet(&writer, vlkDevice, vke.drawImageDescriptors);
 
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.drawImageDescriptorLayout,
                  nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
 
   static constexpr VlkDescriptorAllocatorSizeRatio frame_sizes[] = {
       {         .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .ratio = 3},
@@ -439,7 +441,15 @@ void vkeInitDefaultData() {
                                                        .colorSampler      = vke.defaultSamplerLinear,
                                                        .metalRoughImage   = vke.texWhite,
                                                        .metalRoughSampler = vke.defaultSamplerLinear};
-  // VlkBuffer
+  VlkBuffer mat_consts = vkeCreateBufferMapped(sizeof(MatGltfMetallicRoughnessMaterialConstants),
+                                               VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+  MatGltfMetallicRoughnessMaterialConstants* unif_data = mat_consts.allocInfo.pMappedData;
+  unif_data->colorFactors                              = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 1};
+  unif_data->metalRoughFactors                         = (vec4s) {.r = 1, .g = 0.5, .b = 0, .a = 0};
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, mat_consts.buf, mat_consts.alloc);
+  mat_res.dataBuffer          = mat_consts.buf;
+  vke.defaultMaterialInstance = MatGltfMetallicRoughness_writeMaterial(
+      &vke.defaultMaterialMetalRough, MaterialPass_MainColor, &mat_res, &vke.globalDescriptorAlloc);
 }
 
 
@@ -779,7 +789,7 @@ void disposals_flush(DisposalQueue* this) {
           vkDestroySampler(vlkDevice, this->args[i], nullptr);
           break;
         case VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO:
-          VlkDescriptorAllocator_destroyPool(this->args[i], vlkDevice);
+          VlkDescriptorAllocatorGrowable_destroyPools(this->args[i], vlkDevice);
           break;
         case -VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO:
           vkDestroyDescriptorPool(vlkDevice, this->args[i], nullptr);
