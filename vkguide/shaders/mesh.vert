@@ -1,8 +1,8 @@
 #version 460
 
-#extension GL_GOOGLE_include_directive : require
 #extension GL_EXT_buffer_reference : require
-#include "./mesh.incl.glsl"
+#extension GL_GOOGLE_include_directive : require
+#include "mesh.incl.glsl"
 
 layout(location = 0) out vec3 outNormal;
 layout(location = 1) out vec3 outColor;

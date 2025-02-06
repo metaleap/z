@@ -13,21 +13,19 @@ typedef struct SpirVBinary {
 
 
 SpirVBinary compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char* shaderSource, const char* fileName) {
-  const glslang_input_t input = {
-      .language                          = GLSLANG_SOURCE_GLSL,
-      .stage                             = stage,
-      .client                            = GLSLANG_CLIENT_VULKAN,
-      .client_version                    = GLSLANG_TARGET_VULKAN_1_4,
-      .target_language                   = GLSLANG_TARGET_SPV,
-      .target_language_version           = GLSLANG_TARGET_SPV_1_6,
-      .code                              = shaderSource,
-      .default_version                   = 100,
-      .default_profile                   = GLSLANG_NO_PROFILE,
-      .force_default_version_and_profile = false,
-      .forward_compatible                = false,
-      .messages                          = GLSLANG_MSG_DEFAULT_BIT,
-      .resource                          = glslang_default_resource(),
-  };
+  const glslang_input_t input = {.language                          = GLSLANG_SOURCE_GLSL,
+                                 .stage                             = stage,
+                                 .client                            = GLSLANG_CLIENT_VULKAN,
+                                 .client_version                    = GLSLANG_TARGET_VULKAN_1_4,
+                                 .target_language                   = GLSLANG_TARGET_SPV,
+                                 .target_language_version           = GLSLANG_TARGET_SPV_1_6,
+                                 .code                              = shaderSource,
+                                 .default_version                   = 460,
+                                 .default_profile                   = GLSLANG_NO_PROFILE,
+                                 .force_default_version_and_profile = false,
+                                 .forward_compatible                = false,
+                                 .messages                          = GLSLANG_MSG_DEFAULT_BIT,
+                                 .resource                          = glslang_default_resource()};
 
   glslang_shader_t* shader = glslang_shader_create(&input);
 

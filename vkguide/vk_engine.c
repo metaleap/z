@@ -257,9 +257,9 @@ void vkeInitDescriptors() {
 
   VlkDescriptorLayoutBuilder builder_single_image = {};
   VlkDescriptorLayoutBuilder_addBinding(&builder_single_image, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-  vke.singleImageDescriptorLayout =
+  vke.singleTexDescriptorLayout =
       VlkDescriptorLayoutBuilder_build(&builder_single_image, vlkDevice, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr, 0);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.singleImageDescriptorLayout,
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.singleTexDescriptorLayout,
                  nullptr);
 }
 
@@ -361,7 +361,7 @@ void vkeInitMeshPipeline() {
 
   VkPipelineLayoutCreateInfo pipeline_layout = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                                 .setLayoutCount         = 1,
-                                                .pSetLayouts            = &vke.singleImageDescriptorLayout,
+                                                .pSetLayouts            = &vke.singleTexDescriptorLayout,
                                                 .pushConstantRangeCount = 1,
                                                 .pPushConstantRanges    = &push_range};
   VK_CHECK(vkCreatePipelineLayout(vlkDevice, &pipeline_layout, nullptr, &vke.meshPipelineLayout));
@@ -393,6 +393,7 @@ void vkeInitPipelines() {
   vkeInitComputePipelines();
   // graphics
   vkeInitMeshPipeline();
+  MatGltfMetallicRoughness_buildPipelines(&vke.defaultMaterialMetalRough);
 }
 
 
@@ -403,17 +404,17 @@ void vkeInitDefaultData() {
   Uint32 col_black   = 0xff000000;
   Uint32 col_gray    = 0xffaaaaaa;
   Uint32 col_magenta = 0xffff00ff;
-  vke.imgBlack = vkeUploadImage(&col_black, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+  vke.texBlack = vkeUploadImage(&col_black, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_USAGE_SAMPLED_BIT, false);
-  vke.imgGrey  = vkeUploadImage(&col_gray, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+  vke.texGrey  = vkeUploadImage(&col_gray, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_USAGE_SAMPLED_BIT, false);
-  vke.imgWhite = vkeUploadImage(&col_white, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+  vke.texWhite = vkeUploadImage(&col_white, (VkExtent3D) {.depth = 1, .width = 1, .height = 1}, VK_FORMAT_R8G8B8A8_UNORM,
                                 VK_IMAGE_USAGE_SAMPLED_BIT, false);
   Uint32 pix_checkerboard[16 * 16];
   for (int x = 0; x < 16; x++)
     for (int y = 0; y < 16; y++)
       pix_checkerboard[x + (y * 16)] = (((x % 2) ^ (y % 2)) ? col_magenta : col_black);
-  vke.imgCheckerboard = vkeUploadImage(pix_checkerboard, (VkExtent3D) {.depth = 1, .width = 16, .height = 16},
+  vke.texCheckerboard = vkeUploadImage(pix_checkerboard, (VkExtent3D) {.depth = 1, .width = 16, .height = 16},
                                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
   VkSamplerCreateInfo sampl = {
@@ -424,15 +425,21 @@ void vkeInitDefaultData() {
   VK_CHECK(vkCreateSampler(vlkDevice, &sampl, nullptr, &vke.defaultSamplerLinear));
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, vke.defaultSamplerLinear, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO, vke.defaultSamplerNearest, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgBlack.defaultView, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgGrey.defaultView, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgWhite.defaultView, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.imgCheckerboard.defaultView, nullptr);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgBlack.image, vke.imgBlack.alloc);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgGrey.image, vke.imgGrey.alloc);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgWhite.image, vke.imgWhite.alloc);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.imgCheckerboard.image,
-                 vke.imgCheckerboard.alloc);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.texBlack.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.texGrey.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.texWhite.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO, vke.texCheckerboard.defaultView, nullptr);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.texBlack.image, vke.texBlack.alloc);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.texGrey.image, vke.texGrey.alloc);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.texWhite.image, vke.texWhite.alloc);
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, vke.texCheckerboard.image,
+                 vke.texCheckerboard.alloc);
+
+  MatGltfMetallicRoughnessMaterialResources mat_res = {.colorImage        = vke.texWhite,
+                                                       .colorSampler      = vke.defaultSamplerLinear,
+                                                       .metalRoughImage   = vke.texWhite,
+                                                       .metalRoughSampler = vke.defaultSamplerLinear};
+  // VlkBuffer
 }
 
 
@@ -631,9 +638,9 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
     vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
 
     VkDescriptorSet     descset_singleimg = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
-                                                                                    vke.singleImageDescriptorLayout, nullptr);
+                                                                                    vke.singleTexDescriptorLayout, nullptr);
     VlkDescriptorWriter writer_singleimg  = {};
-    VlkDescriptorWriter_writeImage(&writer_singleimg, 0, vke.imgCheckerboard.defaultView, vke.defaultSamplerNearest,
+    VlkDescriptorWriter_writeImage(&writer_singleimg, 0, vke.texCheckerboard.defaultView, vke.defaultSamplerNearest,
                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
     VlkDescriptorWriter_updateSet(&writer_singleimg, vlkDevice, descset_singleimg);
     vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, vke.meshPipelineLayout, 0, 1, &descset_singleimg, 0,

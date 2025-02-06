@@ -50,3 +50,25 @@ void MatGltfMetallicRoughness_buildPipelines(MatGltfMetallicRoughness* this) {
   vkDestroyShaderModule(vlkDevice, shader_vert, nullptr);
   vkDestroyShaderModule(vlkDevice, shader_frag, nullptr);
 }
+
+
+
+MaterialInstance MatGltfMetallicRoughness_writeMaterial(MatGltfMetallicRoughness* this, MaterialPass pass,
+                                                        MatGltfMetallicRoughnessMaterialResources* resources,
+                                                        VlkDescriptorAllocatorGrowable*            descriptorAlloc) {
+  MaterialInstance mat_data = {
+      .passType    = pass,
+      .pipeline    = ((pass == MaterialPass_Transparent) ? &this->transparentPipeline : &this->opaquePipeline),
+      .materialSet = VlkDescriptorAllocatorGrowable_allocate(descriptorAlloc, vlkDevice, this->materialLayout, nullptr)};
+  VlkDescriptorWriter_clear(&this->descriptorWriter);
+  VlkDescriptorWriter_writeBuffer(&this->descriptorWriter, 0, resources->dataBuffer,
+                                  sizeof(MatGltfMetallicRoughnessMaterialConstants), resources->dataBufferOffset,
+                                  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+  VlkDescriptorWriter_writeImage(&this->descriptorWriter, 1, resources->colorImage.defaultView, resources->colorSampler,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+  VlkDescriptorWriter_writeImage(&this->descriptorWriter, 2, resources->metalRoughImage.defaultView,
+                                 resources->metalRoughSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+  VlkDescriptorWriter_updateSet(&this->descriptorWriter, vlkDevice, mat_data.materialSet);
+  return mat_data;
+}

@@ -64,8 +64,8 @@ typedef struct DisposalQueue {
   void*           args[DISP_QUEUE_CAPACITY];
   VmaAllocation   allocs[DISP_QUEUE_CAPACITY];
 } DisposalQueue;
-void disposals_push(DisposalQueue* self, VkStructureType type, void* arg, VmaAllocation alloc);
-void disposals_flush(DisposalQueue* self);
+void disposals_push(DisposalQueue* _, VkStructureType type, void* arg, VmaAllocation alloc);
+void disposals_flush(DisposalQueue*);
 
 
 typedef struct VlkImage {
@@ -122,9 +122,9 @@ typedef struct VlkDescriptorLayoutBuilder {
   VkDescriptorSetLayoutBinding bindings[VDLB_CAP];   // increase (above) as needed
   Uint8                        count;
 } VlkDescriptorLayoutBuilder;
-void VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* self);
-void VlkDescriptorLayoutBuilder_addBinding(VlkDescriptorLayoutBuilder* self, Uint32 binding, VkDescriptorType type);
-VkDescriptorSetLayout VlkDescriptorLayoutBuilder_build(VlkDescriptorLayoutBuilder* self, VkDevice device,
+void VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* _);
+void VlkDescriptorLayoutBuilder_addBinding(VlkDescriptorLayoutBuilder* _, Uint32 binding, VkDescriptorType type);
+VkDescriptorSetLayout VlkDescriptorLayoutBuilder_build(VlkDescriptorLayoutBuilder* _, VkDevice device,
                                                        VkShaderStageFlags shaderStages, void* pNext,
                                                        VkDescriptorSetLayoutCreateFlags flags);
 
@@ -141,12 +141,11 @@ typedef struct VlkDescriptorAllocator {
   VlkDescriptorAllocatorSizeRatio ratios[VDLB_CAP];
   Uint8                           ratiosCount;
 } VlkDescriptorAllocator;
-void VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* self, VkDevice device, Uint32 maxSets, Uint8 ratiosCount,
+void VlkDescriptorAllocator_initPool(VlkDescriptorAllocator* _, VkDevice device, Uint32 maxSets, Uint8 ratiosCount,
                                      VlkDescriptorAllocatorSizeRatio ratios[]);
-void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* self, VkDevice device);
-void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* self, VkDevice device);
-VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* self, VkDevice device,
-                                                VkDescriptorSetLayout layout);
+void VlkDescriptorAllocator_clearDescriptors(VlkDescriptorAllocator* _, VkDevice device);
+void VlkDescriptorAllocator_destroyPool(VlkDescriptorAllocator* _, VkDevice device);
+VkDescriptorSet VlkDescriptorAllocator_allocate(VlkDescriptorAllocator* _, VkDevice device, VkDescriptorSetLayout layout);
 
 LIST_DEFINE_H(VkDescriptorPools, VkDescriptorPools, VkDescriptorPool);
 typedef struct VlkDescriptorAllocatorGrowable {
@@ -155,11 +154,11 @@ typedef struct VlkDescriptorAllocatorGrowable {
   VkDescriptorPools                readyPools;
   Uint32                           setsPerPool;
 } VlkDescriptorAllocatorGrowable;
-void            VlkDescriptorAllocatorGrowable_init(VlkDescriptorAllocatorGrowable* self, VkDevice device, Uint32 maxSets,
+void            VlkDescriptorAllocatorGrowable_init(VlkDescriptorAllocatorGrowable* _, VkDevice device, Uint32 maxSets,
                                                     VlkDescriptorAllocatorSizeRatios poolRatios);
-void            VlkDescriptorAllocatorGrowable_clearPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
-void            VlkDescriptorAllocatorGrowable_destroyPools(VlkDescriptorAllocatorGrowable* self, VkDevice device);
-VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGrowable* self, VkDevice device,
+void            VlkDescriptorAllocatorGrowable_clearPools(VlkDescriptorAllocatorGrowable* _, VkDevice device);
+void            VlkDescriptorAllocatorGrowable_destroyPools(VlkDescriptorAllocatorGrowable* _, VkDevice device);
+VkDescriptorSet VlkDescriptorAllocatorGrowable_allocate(VlkDescriptorAllocatorGrowable* _, VkDevice device,
                                                         VkDescriptorSetLayout layout, void* pNext);
 
 
@@ -171,12 +170,12 @@ typedef struct VlkDescriptorWriter {
   VkDescriptorBufferInfos bufferInfos;
   VkWriteDescriptorSets   writes;
 } VlkDescriptorWriter;
-void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* self, int binding, VkImageView image, VkSampler sampler,
+void VlkDescriptorWriter_writeImage(VlkDescriptorWriter* _, int binding, VkImageView image, VkSampler sampler,
                                     VkImageLayout layout, VkDescriptorType type);
-void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* self, int binding, VkBuffer buffer, size_t size, size_t offset,
+void VlkDescriptorWriter_writeBuffer(VlkDescriptorWriter* _, int binding, VkBuffer buffer, size_t size, size_t offset,
                                      VkDescriptorType type);
-void VlkDescriptorWriter_clear(VlkDescriptorWriter* self);
-void VlkDescriptorWriter_updateSet(VlkDescriptorWriter* self, VkDevice device, VkDescriptorSet set);
+void VlkDescriptorWriter_clear(VlkDescriptorWriter* _);
+void VlkDescriptorWriter_updateSet(VlkDescriptorWriter* _, VkDevice device, VkDescriptorSet set);
 
 
 typedef struct PipelineBuilder {
@@ -190,21 +189,21 @@ typedef struct PipelineBuilder {
   VkPipelineRenderingCreateInfo          renderInfo;
   VkFormat                               colorAttachmentFormat;
 } PipelineBuilder;
-void       PipelineBuilder_reset(PipelineBuilder* self);
-void       PipelineBuilder_setColorAttachmentFormat(PipelineBuilder* self, VkFormat format);
-void       PipelineBuilder_disableBlending(PipelineBuilder* self);
-void       PipelineBuilder_enableBlending(PipelineBuilder* self, VkBlendFactor dstColorBlendFactor);
-void       PipelineBuilder_enableBlendingAdditive(PipelineBuilder* self);
-void       PipelineBuilder_enableBlendingAlphaBlend(PipelineBuilder* self);
-void       PipelineBuilder_setMultisamplingNone(PipelineBuilder* self);
-void       PipelineBuilder_setInputTopology(PipelineBuilder* self, VkPrimitiveTopology topo);
-void       PipelineBuilder_setPolygonMode(PipelineBuilder* self, VkPolygonMode mode);
-void       PipelineBuilder_setCullMode(PipelineBuilder* self, VkCullModeFlags cullMode, VkFrontFace frontFace);
-void       PipelineBuilder_setDepthFormat(PipelineBuilder* self, VkFormat format);
-void       PipelineBuilder_disableDepthTest(PipelineBuilder* self);
-void       PipelineBuilder_enableDepthTest(PipelineBuilder* self, bool depthWriteEnable, VkCompareOp opCmp);
-void       PipelineBuilder_setShaders(PipelineBuilder* self, VkShaderModule vertShader, VkShaderModule fragShader);
-VkPipeline PipelineBuilder_build(PipelineBuilder* self, VkDevice device);
+void       PipelineBuilder_reset(PipelineBuilder* _);
+void       PipelineBuilder_setColorAttachmentFormat(PipelineBuilder* _, VkFormat format);
+void       PipelineBuilder_disableBlending(PipelineBuilder* _);
+void       PipelineBuilder_enableBlending(PipelineBuilder* _, VkBlendFactor dstColorBlendFactor);
+void       PipelineBuilder_enableBlendingAdditive(PipelineBuilder* _);
+void       PipelineBuilder_enableBlendingAlphaBlend(PipelineBuilder* _);
+void       PipelineBuilder_setMultisamplingNone(PipelineBuilder* _);
+void       PipelineBuilder_setInputTopology(PipelineBuilder* _, VkPrimitiveTopology topo);
+void       PipelineBuilder_setPolygonMode(PipelineBuilder* _, VkPolygonMode mode);
+void       PipelineBuilder_setCullMode(PipelineBuilder* _, VkCullModeFlags cullMode, VkFrontFace frontFace);
+void       PipelineBuilder_setDepthFormat(PipelineBuilder* _, VkFormat format);
+void       PipelineBuilder_disableDepthTest(PipelineBuilder* _);
+void       PipelineBuilder_enableDepthTest(PipelineBuilder* _, bool depthWriteEnable, VkCompareOp opCmp);
+void       PipelineBuilder_setShaders(PipelineBuilder* _, VkShaderModule vertShader, VkShaderModule fragShader);
+VkPipeline PipelineBuilder_build(PipelineBuilder* _, VkDevice device);
 
 
 
@@ -280,11 +279,11 @@ typedef struct MatGltfMetallicRoughness {
   MatGltfMetallicRoughnessMaterialResources materialResources;
   VlkDescriptorWriter                       descriptorWriter;
 } MatGltfMetallicRoughness;
-void MatGltfMetallicRoughness_buildPipelines(MatGltfMetallicRoughness* self);
-void MatGltfMetallicRoughness_clearResources(MatGltfMetallicRoughness* self);
-void MatGltfMetallicRoughness_writeMaterial(MatGltfMetallicRoughness* self, MaterialPass pass,
-                                            MatGltfMetallicRoughnessMaterialResources* resources,
-                                            VlkDescriptorAllocatorGrowable*            descriptorAlloc);
+void             MatGltfMetallicRoughness_buildPipelines(MatGltfMetallicRoughness* _);
+void             MatGltfMetallicRoughness_clearResources(MatGltfMetallicRoughness* _);
+MaterialInstance MatGltfMetallicRoughness_writeMaterial(MatGltfMetallicRoughness* _, MaterialPass pass,
+                                                        MatGltfMetallicRoughnessMaterialResources* resources,
+                                                        VlkDescriptorAllocatorGrowable*            descriptorAlloc);
 
 
 typedef struct RenderObject {
@@ -308,39 +307,40 @@ typedef struct FrameData {
 
 
 typedef struct VulkanEngine {
-  VmaAllocator           alloc;
-  size_t                 frameNr;
-  FrameData              frames[FRAME_OVERLAP];
-  bool                   paused;
-  SDL_Window*            window;
-  DisposalQueue          disposals;
-  VkExtent2D             windowExtent;
-  VkExtent2D             drawExtent;
-  VlkImage               drawImage;
-  VlkImage               depthImage;
-  VlkDescriptorAllocator globalDescriptorAlloc;
-  VkDescriptorSet        drawImageDescriptors;
-  VkDescriptorSetLayout  drawImageDescriptorLayout;
-  VkPipelineLayout       computePipelineLayout;
-  VkFence                immFence;
-  VkCommandPool          immCommandPool;
-  VkCommandBuffer        immCommandBuffer;
-  ComputeShaderEffect    bgEffects[2];
-  int                    bgEffectCurIdx;
-  VkPipelineLayout       meshPipelineLayout;
-  VkPipeline             meshPipeline;
-  MeshAssets             testMeshes;
-  bool                   resizeRequested;
-  GpuSceneData           gpuSceneData;
-  VkDescriptorSetLayout  gpuSceneDataDescriptorLayout;
-
-  VlkImage              imgWhite;
-  VlkImage              imgGrey;
-  VlkImage              imgBlack;
-  VlkImage              imgCheckerboard;
-  VkSampler             defaultSamplerLinear;
-  VkSampler             defaultSamplerNearest;
-  VkDescriptorSetLayout singleImageDescriptorLayout;
+  VmaAllocator             alloc;
+  size_t                   frameNr;
+  FrameData                frames[FRAME_OVERLAP];
+  bool                     paused;
+  SDL_Window*              window;
+  DisposalQueue            disposals;
+  VkExtent2D               windowExtent;
+  VkExtent2D               drawExtent;
+  VlkImage                 drawImage;
+  VlkImage                 depthImage;
+  VlkDescriptorAllocator   globalDescriptorAlloc;
+  VkDescriptorSet          drawImageDescriptors;
+  VkDescriptorSetLayout    drawImageDescriptorLayout;
+  VkPipelineLayout         computePipelineLayout;
+  VkFence                  immFence;
+  VkCommandPool            immCommandPool;
+  VkCommandBuffer          immCommandBuffer;
+  ComputeShaderEffect      bgEffects[2];
+  int                      bgEffectCurIdx;
+  VkPipelineLayout         meshPipelineLayout;
+  VkPipeline               meshPipeline;
+  MeshAssets               testMeshes;
+  bool                     resizeRequested;
+  GpuSceneData             gpuSceneData;
+  VkDescriptorSetLayout    gpuSceneDataDescriptorLayout;
+  VlkImage                 texWhite;
+  VlkImage                 texGrey;
+  VlkImage                 texBlack;
+  VlkImage                 texCheckerboard;
+  VkSampler                defaultSamplerLinear;
+  VkSampler                defaultSamplerNearest;
+  VkDescriptorSetLayout    singleTexDescriptorLayout;
+  MaterialInstance         defaultMaterialInstance;
+  MatGltfMetallicRoughness defaultMaterialMetalRough;
 } VulkanEngine;
 
 
