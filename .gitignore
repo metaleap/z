@@ -1,5 +1,7 @@
-*.kate-swp
 .build
 .cache
 .tmp
 3rdparty/*/*
+
+*.kate-swp
+compile_commands.json

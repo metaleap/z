@@ -2,6 +2,7 @@
 
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
+#include <vulkan/vulkan_core.h>
 
 
 
@@ -29,10 +30,7 @@ SpirVBinary compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char* shade
 
   glslang_shader_t* shader = glslang_shader_create(&input);
 
-  SpirVBinary bin = {
-      .words = nullptr,
-      .size  = 0,
-  };
+  SpirVBinary bin = {};
   if (!glslang_shader_preprocess(shader, &input)) {
     printf("GLSL preprocessing failed %s\n", fileName);
     printf("%s\n", glslang_shader_get_info_log(shader));
@@ -105,7 +103,9 @@ VkResult vlkLoadShaderModule(char* filePath, VkDevice device, VkShaderModule* re
     exit(1);
   VkShaderModuleCreateInfo create = {
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, .pCode = bin.words, .codeSize = (sizeof(Uint32) * bin.size)};
-  return vkCreateShaderModule(device, &create, nullptr, retShaderModule);
+  VkResult ret = vkCreateShaderModule(device, &create, nullptr, retShaderModule);
+  free(bin.words);
+  return ret;
 }
 
 

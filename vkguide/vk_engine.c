@@ -49,13 +49,13 @@ void vkeInitVulkan() {
   for (Uint32 i = 0; i < num_gpus; i++) {
     VkPhysicalDeviceProperties gpu_props = {};
     vkGetPhysicalDeviceProperties(gpus[i], &gpu_props);
-    SDL_Log("GPU>>%d %d %s<<\n", gpu_props.deviceID, gpu_props.deviceType, gpu_props.deviceName);
-    vlkGpu = gpus[i];
-    break;
+    SDL_Log("GPU>>ID=%d Type=%d Name=%s Ver=%d<<\n", gpu_props.deviceID, gpu_props.deviceType, gpu_props.deviceName,
+            gpu_props.apiVersion);
   }
+  vlkGpu = gpus[0];
 
-  const char* device_exts[] = {"VK_KHR_swapchain",           "VK_KHR_maintenance1",          "VK_KHR_synchronization2",
-                               "VK_EXT_descriptor_indexing", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
+  const char* device_exts[] = {"VK_KHR_swapchain",     "VK_KHR_synchronization2",      "VK_EXT_descriptor_indexing",
+                               "VK_EXT_shader_object", "VK_KHR_buffer_device_address", "VK_KHR_dynamic_rendering"};
   VkDeviceQueueCreateInfo          queue_create = {.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
                                                    .queueCount       = 1,
                                                    .queueFamilyIndex = 0,
