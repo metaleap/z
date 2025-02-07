@@ -12,7 +12,7 @@ rm -rf .build
 mkdir .build
 
 mkdir .build/debug
-meson setup --native-file meson_native.ini .build/debug -Db_sanitize=undefined
+meson setup --native-file meson_native.ini .build/debug -Db_sanitize=address,undefined
 
 mkdir .build/release_gcc
 meson setup -Dbuildtype=release -Dprefer_static=true .build/release_gcc

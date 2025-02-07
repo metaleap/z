@@ -7,6 +7,9 @@
             "request": "launch",
             "target": "vkguide.exec",
             "cwd": "${fileWorkspaceFolder}/.build/debug",
+            "env": {
+                "UBSAN_OPTIONS": "print_stacktrace=1"
+            },
             "valuesFormatting": "disabled",
             "preLaunchTask": "mesonBuildDebug",
             "internalConsoleOptions": "openOnSessionStart"

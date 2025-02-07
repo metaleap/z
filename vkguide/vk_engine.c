@@ -469,34 +469,16 @@ void vkeInitDefaultData() {
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
   vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
-  // SceneNodes_init_capacity(&vke.loadedNodes,vke.testMeshes.count);
+  // SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
     auto      mesh     = &vke.testMeshes.buffer[i_mesh];
-    SceneNode new_node = {.mesh = mesh /*, .localTransform = mat4_identity(), .worldTransform = mat4_identity()*/};
+    SceneNode new_node = {.mesh = mesh, .localTransform = mat4_identity(), .worldTransform = mat4_identity()};
     for (size_t i_sur = 0; i_sur < mesh->surfaces.count; i_sur++) {
       MatGltf* mat                          = calloc(1, sizeof(MatGltf));
       mat->data                             = vke.defaultMaterialInstance;
       mesh->surfaces.buffer[i_sur].material = mat;
     }
-    // SceneNodes_add(&vke.loadedNodes, new_node);
-    {
-      SDL_Log("A:%lu\n", i_mesh);
-      SceneNodes* this = &vke.loadedNodes;
-      if (this->count == this->capacity) {
-        SDL_Log("B%lu\n", i_mesh);
-        this->capacity    = (this->capacity == 0) ? 2 : (this->capacity * 2);
-        SceneNode* buffer = realloc(this->buffer, this->capacity * sizeof(SceneNode));
-        if (!buffer)
-          abort();
-        this->buffer = buffer;
-        SDL_Log("C%lu\n", i_mesh);
-      }
-      SDL_Log("D%lu\n", i_mesh);
-      this->buffer[this->count] = (new_node);
-      SDL_Log("E%lu\n", i_mesh);
-      this->count = this->count + 1;
-      SDL_Log("Z%lu\n", i_mesh);
-    }
+    SceneNodes_add(&vke.loadedNodes, new_node);
   }
 }
 
