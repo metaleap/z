@@ -107,7 +107,7 @@ MeshAssets vkeLoadGlb(char* filePath) {
                          .z = floats_normals[cur_normals + 2]},
             .uv_x     = floats_texcoords[cur_texcoords + 0],
             .uv_y     = floats_texcoords[cur_texcoords + 1],
-            .color    = {.r = 1, .g = 1, .b = 1, .a = 1}
+            .color    = {.r = 0.5f, .g = 0.5f, .b = 0.5f, .a = 1}
         };
         cur_positions += (stride_positions / sizeof(float));
         cur_normals   += (stride_normals / sizeof(float));
@@ -185,5 +185,6 @@ MeshAssets vkeLoadGlb(char* filePath) {
     assert(MeshAssets_add(&ret, new_mesh));
   }
 
+  cgltf_free(data);
   return ret;
 }

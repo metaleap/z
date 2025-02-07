@@ -181,6 +181,14 @@ void VlkDescriptorWriter_clear(VlkDescriptorWriter* this) {
 
 
 
+void VlkDescriptorWriter_free(VlkDescriptorWriter* this) {
+  VkDescriptorBufferInfos_free_resources(&this->bufferInfos);
+  VkDescriptorImageInfos_free_resources(&this->imageInfos);
+  VkWriteDescriptorSets_free_resources(&this->writes);
+}
+
+
+
 void VlkDescriptorWriter_updateSet(VlkDescriptorWriter* this, VkDevice device, VkDescriptorSet set) {
   for (size_t i = 0; i < this->writes.count; i++)
     this->writes.buffer[i].dstSet = set;

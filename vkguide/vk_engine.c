@@ -236,6 +236,8 @@ void vkeInitDescriptors() {
   VlkDescriptorWriter_writeImage(&writer, 0, vke.drawImage.defaultView, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL,
                                  VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
   VlkDescriptorWriter_updateSet(&writer, vlkDevice, vke.drawImageDescriptors);
+  VlkDescriptorWriter_free(&writer);
+
 
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO, &vke.globalDescriptorAlloc, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.drawImageDescriptorLayout,
@@ -290,6 +292,9 @@ void vkeInitSyncStructures() {
 
 void vkeShutdown() {
   vkDeviceWaitIdle(vlkDevice);
+  RenderObjects_free_resources(&vke.mainDrawContext.opaqueSurfaces);
+  SceneNodes_free_resources(&vke.loadedNodes);
+  VlkDescriptorWriter_free(&vke.defaultMaterialMetalRough.descriptorWriter);
 
   cppImguiShutdown();
   for (size_t i = 0; i < FRAME_OVERLAP; i++) {
@@ -468,17 +473,15 @@ void vkeInitDefaultData() {
     disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
+  RenderObjects_init_capacity(&vke.mainDrawContext.opaqueSurfaces, 128);
   vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
-  // SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
+  SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
-    auto      mesh     = &vke.testMeshes.buffer[i_mesh];
-    SceneNode new_node = {.mesh = mesh, .localTransform = mat4_identity(), .worldTransform = mat4_identity()};
-    for (size_t i_sur = 0; i_sur < mesh->surfaces.count; i_sur++) {
-      MatGltf* mat                          = calloc(1, sizeof(MatGltf));
-      mat->data                             = vke.defaultMaterialInstance;
-      mesh->surfaces.buffer[i_sur].material = mat;
-    }
-    SceneNodes_add(&vke.loadedNodes, new_node);
+    auto mesh = &vke.testMeshes.buffer[i_mesh];
+    for (size_t i_sur = 0; i_sur < mesh->surfaces.count; i_sur++)
+      mesh->surfaces.buffer[i_sur].material.data = vke.defaultMaterialInstance;
+    SceneNode new_node = {.mesh = mesh, .worldTransform = mat4_identity(), .localTransform = mat4_identity()};
+    SceneNodes_addAligned(&vke.loadedNodes, new_node);
   }
 }
 
@@ -647,10 +650,11 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
   *scene_data                     = vke.gpuSceneData;
   VkDescriptorSet     global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
                                                                             vke.gpuSceneDataDescriptorLayout, nullptr);
-  VlkDescriptorWriter writer_desc = {};
-  VlkDescriptorWriter_writeBuffer(&writer_desc, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
+  VlkDescriptorWriter writer      = {};
+  VlkDescriptorWriter_writeBuffer(&writer, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
                                   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-  VlkDescriptorWriter_updateSet(&writer_desc, vlkDevice, global_desc);
+  VlkDescriptorWriter_updateSet(&writer, vlkDevice, global_desc);
+  VlkDescriptorWriter_free(&writer);
 
   VkRenderingAttachmentInfo color_attach =
       vlkRenderingAttachmentInfo(vke.drawImage.defaultView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -674,7 +678,7 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
     vkCmdSetScissor(cmdBuf, 0, 1, &scissor);
 
     for (size_t i = 0; i < vke.mainDrawContext.opaqueSurfaces.count; i++) {
-      auto draw = &vke.mainDrawContext.opaqueSurfaces.buffer[i];
+      RenderObject* draw = &vke.mainDrawContext.opaqueSurfaces.buffer[i];
       vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, draw->material->pipeline->pipeline);
       vkCmdBindDescriptorSets(cmdBuf, VK_PIPELINE_BIND_POINT_GRAPHICS, draw->material->pipeline->layout, 0, 1,
                               &global_desc, 0, nullptr);
@@ -683,7 +687,7 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
       vkCmdBindIndexBuffer(cmdBuf, draw->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
       vkCmdPushConstants(
           cmdBuf, draw->material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants),
-          &(GpuDrawPushConstants) {.vertexBuffer = draw->vertexBufferAddress, /*.worldMatrix = draw->transform*/});
+          &(GpuDrawPushConstants) {.vertexBuffer = draw->vertexBufferAddress, .worldMatrix = draw->transform});
       vkCmdDrawIndexed(cmdBuf, draw->indexCount, 1, draw->firstIndex, 0, 0);
     }
   }

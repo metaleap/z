@@ -13,13 +13,13 @@ void SceneNode_draw(SceneNode* this, mat4s* topMatrix, DrawContext* ctx) {
     mat4s node_matrix = mat4_mul(*topMatrix, this->worldTransform);
     for (size_t i = 0; i < this->mesh->surfaces.count; i++) {
       GeoSurface*  surface = &this->mesh->surfaces.buffer[i];
-      RenderObject obj     = {.indexCount          = surface->count,
+      RenderObject draw    = {.indexCount          = surface->count,
                               .firstIndex          = surface->idxStart,
-                              .material            = &surface->material->data,
-                              .transform           = node_matrix,
                               .indexBuffer         = this->mesh->meshBuffers.indexBuffer.buf,
-                              .vertexBufferAddress = this->mesh->meshBuffers.vertexBufferAddress};
-      RenderObjects_add(&ctx->opaqueSurfaces, obj);
+                              .vertexBufferAddress = this->mesh->meshBuffers.vertexBufferAddress,
+                              .material            = &surface->material.data,
+                              .transform           = node_matrix};
+      RenderObjects_addAligned(&ctx->opaqueSurfaces, draw);
     }
   }
   if (this->children != nullptr)
