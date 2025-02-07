@@ -454,8 +454,6 @@ void vkeInitDefaultData() {
   mat_res.dataBuffer          = mat_consts.buf;
   vke.defaultMaterialInstance = MatGltfMetallicRoughness_writeMaterial(
       &vke.defaultMaterialMetalRough, MaterialPass_MainColor, &mat_res, &vke.globalDescriptorAlloc);
-
-
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
                  vke.defaultMaterialMetalRough.materialLayout, nullptr);
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
@@ -470,6 +468,7 @@ void vkeInitDefaultData() {
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
   vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
+  SceneNodes_init_capacity(&vke.loadedNodes, 1);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
     auto      mesh     = &vke.testMeshes.buffer[i_mesh];
     SceneNode new_node = {.mesh = mesh, .localTransform = mat4_identity(), .worldTransform = mat4_identity()};
@@ -478,7 +477,17 @@ void vkeInitDefaultData() {
       mat->data                             = vke.defaultMaterialInstance;
       mesh->surfaces.buffer[i_sur].material = mat;
     }
-    SceneNodes_add(&vke.loadedNodes, new_node);
+    // SceneNodes_add(&vke.loadedNodes, new_node);
+    {
+      //       if (list->count == list->capacity) {                                                                   \
+    //   list->capacity     = (list->capacity == 0) ? 2 : (list->capacity * 2);                               \
+    //   value_type* buffer = realloc(list->buffer, list->capacity * sizeof(value_type));                     \
+    //   if (!buffer)                                                                                         \
+    //     return false;                                                                                      \
+    //   list->buffer = buffer;                                                                               \
+    // }                                                                                                      \
+    // list->buffer[list->count++] = value;
+    }
   }
 }
 
@@ -695,7 +704,8 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
 void vkeUpdateScene() {
   auto top_transform = mat4_identity();
   RenderObjects_clear(&vke.mainDrawContext.opaqueSurfaces);
-  SceneNode_draw(&vke.loadedNodes.buffer[2], &top_transform, &vke.mainDrawContext);
+  if (vke.loadedNodes.count > 2)
+    SceneNode_draw(&vke.loadedNodes.buffer[2], &top_transform, &vke.mainDrawContext);
   vke.gpuSceneData.view = glms_translate_make((vec3s) {.x = 0, .y = 0, .z = -5});
   vke.gpuSceneData.proj =
       glms_perspective(glm_rad(70), (float) vke.windowExtent.width / (float) vke.windowExtent.height, 10000, 0.1f);
