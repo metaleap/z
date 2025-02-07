@@ -17,8 +17,8 @@
 #define VMA_DEDICATED_ALLOCATION 1
 #include <vk_mem_alloc.h>
 
-#define CGLM_OMIT_NS_FROM_STRUCT_API
-#define CGLM_FORCE_DEPTH_ZERO_TO_ONE
+#define CGLM_OMIT_NS_FROM_STRUCT_API 1
+#define CGLM_FORCE_DEPTH_ZERO_TO_ONE 1
 #include <cglm/struct.h>
 #include <cgltf.h>
 #include <generic_list.h>
@@ -282,12 +282,12 @@ LIST_DEFINE_H(MeshAssets, MeshAssets, MeshAsset);
 
 
 typedef struct RenderObject {
-  Uint32            indexCount;
-  Uint32            firstIndex;
-  VkBuffer          indexBuffer;
-  MaterialInstance* material;
-  mat4s             transform;
-  VkDeviceAddress   vertexBufferAddress;
+  Uint32               indexCount;
+  Uint32               firstIndex;
+  VkBuffer             indexBuffer;
+  MaterialInstance*    material;
+  VkDeviceAddress      vertexBufferAddress;
+  CGLM_ALIGN_MAT mat4s transform;
 } RenderObject;
 LIST_DEFINE_H(RenderObjects, RenderObjects, RenderObject);
 
@@ -297,14 +297,12 @@ typedef struct DrawContext {
 } DrawContext;
 
 
-typedef struct SceneNode  SceneNode;
-typedef struct SceneNodes SceneNodes;
 typedef struct SceneNode {
-  SceneNode*  parent;
-  SceneNodes* children;
-  mat4s       localTransform;
-  mat4s       worldTransform;
-  MeshAsset*  mesh;
+  struct SceneNode*  parent;
+  struct SceneNodes* children;
+  // mat4s              localTransform;
+  // mat4s              worldTransform;
+  MeshAsset*         mesh;
 } SceneNode;
 LIST_DEFINE_H(SceneNodes, SceneNodes, SceneNode);
 void SceneNode_refreshTransform(SceneNode*, mat4s* parentMatrix);

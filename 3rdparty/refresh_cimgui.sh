@@ -5,7 +5,7 @@ thisScriptsFilePath="$(readlink --canonicalize-existing "$0")"
 thisScriptsDirPath="$(dirname "$thisScriptsFilePath")"
 cd $thisScriptsDirPath
 
-depVer="1.91.7" # NOTE!! keep in sync with sibling dep `imgui`
+depVer="1.91.8" # NOTE!! keep in sync with sibling dep `imgui`
 depDirName="cimgui_cimgui"
 
 

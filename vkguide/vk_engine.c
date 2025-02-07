@@ -3,6 +3,7 @@
 #include "cglm/struct/cam.h"
 #include "cglm/struct/mat4.h"
 #include "cglm/util.h"
+#include <SDL3/SDL_log.h>
 
 
 #ifdef DEVBUILD
@@ -468,10 +469,10 @@ void vkeInitDefaultData() {
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
   vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
-  SceneNodes_init_capacity(&vke.loadedNodes, 1);
+  // SceneNodes_init_capacity(&vke.loadedNodes,vke.testMeshes.count);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
     auto      mesh     = &vke.testMeshes.buffer[i_mesh];
-    SceneNode new_node = {.mesh = mesh, .localTransform = mat4_identity(), .worldTransform = mat4_identity()};
+    SceneNode new_node = {.mesh = mesh /*, .localTransform = mat4_identity(), .worldTransform = mat4_identity()*/};
     for (size_t i_sur = 0; i_sur < mesh->surfaces.count; i_sur++) {
       MatGltf* mat                          = calloc(1, sizeof(MatGltf));
       mat->data                             = vke.defaultMaterialInstance;
@@ -479,14 +480,22 @@ void vkeInitDefaultData() {
     }
     // SceneNodes_add(&vke.loadedNodes, new_node);
     {
-      //       if (list->count == list->capacity) {                                                                   \
-    //   list->capacity     = (list->capacity == 0) ? 2 : (list->capacity * 2);                               \
-    //   value_type* buffer = realloc(list->buffer, list->capacity * sizeof(value_type));                     \
-    //   if (!buffer)                                                                                         \
-    //     return false;                                                                                      \
-    //   list->buffer = buffer;                                                                               \
-    // }                                                                                                      \
-    // list->buffer[list->count++] = value;
+      SDL_Log("A:%lu\n", i_mesh);
+      SceneNodes* this = &vke.loadedNodes;
+      if (this->count == this->capacity) {
+        SDL_Log("B%lu\n", i_mesh);
+        this->capacity    = (this->capacity == 0) ? 2 : (this->capacity * 2);
+        SceneNode* buffer = realloc(this->buffer, this->capacity * sizeof(SceneNode));
+        if (!buffer)
+          abort();
+        this->buffer = buffer;
+        SDL_Log("C%lu\n", i_mesh);
+      }
+      SDL_Log("D%lu\n", i_mesh);
+      this->buffer[this->count] = (new_node);
+      SDL_Log("E%lu\n", i_mesh);
+      this->count = this->count + 1;
+      SDL_Log("Z%lu\n", i_mesh);
     }
   }
 }
@@ -692,7 +701,7 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
       vkCmdBindIndexBuffer(cmdBuf, draw->indexBuffer, 0, VK_INDEX_TYPE_UINT32);
       vkCmdPushConstants(
           cmdBuf, draw->material->pipeline->layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GpuDrawPushConstants),
-          &(GpuDrawPushConstants) {.vertexBuffer = draw->vertexBufferAddress, .worldMatrix = draw->transform});
+          &(GpuDrawPushConstants) {.vertexBuffer = draw->vertexBufferAddress, /*.worldMatrix = draw->transform*/});
       vkCmdDrawIndexed(cmdBuf, draw->indexCount, 1, draw->firstIndex, 0, 0);
     }
   }
