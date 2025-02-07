@@ -172,7 +172,7 @@ MeshAssets vkeLoadGlb(char* filePath) {
       assert(GeoSurfaces_add(&new_mesh.surfaces, new_surface));
     }
 
-    if (true)
+    if (false)
       for (size_t i_vtx = 0; i_vtx < vertices.count; i_vtx++) {
         auto vert   = &vertices.buffer[i_vtx];
         vert->color = (vec4s) {.r = vert->normal.x, .g = vert->normal.y, .b = vert->normal.z, .a = 1};

@@ -356,6 +356,8 @@ typedef struct VulkanEngine {
   VkDescriptorSetLayout          singleTexDescriptorLayout;
   MaterialInstance               defaultMaterialInstance;
   MatGltfMetallicRoughness       defaultMaterialMetalRough;
+  DrawContext                    mainDrawContext;
+  SceneNodes                     loadedNodes;
 } VulkanEngine;
 
 

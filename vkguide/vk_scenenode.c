@@ -2,6 +2,10 @@
 
 
 LIST_DEFINE_C(SceneNodes, SceneNodes, SceneNode);
+LIST_DEFINE_C(GeoSurfaces, GeoSurfaces, GeoSurface);
+LIST_DEFINE_C(MeshAssets, MeshAssets, MeshAsset);
+LIST_DEFINE_C(RenderObjects, RenderObjects, RenderObject);
+
 
 
 void SceneNode_draw(SceneNode* this, mat4s* topMatrix, DrawContext* ctx) {
@@ -18,11 +22,12 @@ void SceneNode_draw(SceneNode* this, mat4s* topMatrix, DrawContext* ctx) {
                                         .vertexBufferAddress = this->mesh->meshBuffers.vertexBufferAddress});
     }
   }
-
   if (this->children != nullptr)
     for (size_t i = 0; i < this->children->count; i++)
       SceneNode_draw(&this->children->buffer[i], topMatrix, ctx);
 }
+
+
 
 void SceneNode_refreshTransform(SceneNode* this, mat4s* parentWorldTransform) {
   this->worldTransform = mat4_mul(*parentWorldTransform, this->localTransform);

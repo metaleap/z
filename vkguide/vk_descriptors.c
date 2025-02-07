@@ -1,6 +1,15 @@
 #include "./vkguide.h"
 
 
+LIST_DEFINE_C(VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatios, VlkDescriptorAllocatorSizeRatio);
+LIST_DEFINE_C(VkDescriptorPoolSizes, VkDescriptorPoolSizes, VkDescriptorPoolSize);
+LIST_DEFINE_C(VkDescriptorPools, VkDescriptorPools, VkDescriptorPool);
+LIST_DEFINE_C(VkDescriptorImageInfos, VkDescriptorImageInfos, VkDescriptorImageInfo);
+LIST_DEFINE_C(VkDescriptorBufferInfos, VkDescriptorBufferInfos, VkDescriptorBufferInfo);
+LIST_DEFINE_C(VkWriteDescriptorSets, VkWriteDescriptorSets, VkWriteDescriptorSet);
+
+
+
 void VlkDescriptorLayoutBuilder_clear(VlkDescriptorLayoutBuilder* this) {
   this->count = 0;
 }

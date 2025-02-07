@@ -55,6 +55,12 @@
   },
   {
     "directory": "/home/_/c/c/z/.build/debug",
+    "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_vk_scenenode.c.o -MF vkguide.exec.p/vkguide_vk_scenenode.c.o.d -o vkguide.exec.p/vkguide_vk_scenenode.c.o -c ../../vkguide/vk_scenenode.c",
+    "file": "../../vkguide/vk_scenenode.c",
+    "output": "vkguide.exec.p/vkguide_vk_scenenode.c.o"
+  },
+  {
+    "directory": "/home/_/c/c/z/.build/debug",
     "command": "ccache cc -Ivkguide.exec.p -I. -I../.. -I../../zdeps -I../../3rdparty/cimgui_cimgui -I../../3rdparty/jkuhlmann_cgltf -I../../3rdparty/ocornut_imgui -I../../3rdparty/ocornut_imgui/backends -I../../3rdparty/mystborn_GenericDataStructures/include -I../../3rdparty/recp_cglm/include -I../../3rdparty/GPUOpen-LibrariesAndSDKs_VulkanMemoryAllocator/include -I../../3rdparty/spnda_fastgltf/include -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c23 -O0 -g -gsplit-dwarf -fms-extensions -msse2 -mfpmath=sse -march=native -Wno-switch -Wno-unused-variable -DDEVBUILD -pthread -DGLSLANG_IS_SHARED_LIBRARY=1 -MD -MQ vkguide.exec.p/vkguide_materials.c.o -MF vkguide.exec.p/vkguide_materials.c.o.d -o vkguide.exec.p/vkguide_materials.c.o -c ../../vkguide/materials.c",
     "file": "../../vkguide/materials.c",
     "output": "vkguide.exec.p/vkguide_materials.c.o"
