@@ -94,6 +94,7 @@ executable(
         'vkguide/vk_initializers.c',
         'vkguide/vk_loader.c',
         'vkguide/vk_pipelines.c',
+        'vkguide/vk_scenenode.c',
         'vkguide/materials.c',
         'vkguide/3rdparty.cpp',
         '3rdparty/ocornut_imgui/imgui.cpp',

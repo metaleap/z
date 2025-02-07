@@ -212,21 +212,6 @@ typedef struct ComputeShaderEffect {
 } ComputeShaderEffect;
 
 
-typedef struct GeoSurface {
-  Uint32 idxStart;
-  Uint32 count;
-} GeoSurface;
-LIST_DEFINE_H(GeoSurfaces, GeoSurfaces, GeoSurface);
-
-
-typedef struct MeshAsset {
-  const char*    name;
-  GeoSurfaces    surfaces;
-  GpuMeshBuffers meshBuffers;
-} MeshAsset;
-LIST_DEFINE_H(MeshAssets, MeshAssets, MeshAsset);
-
-
 typedef struct MaterialPipeline {
   VkPipeline       pipeline;
   VkPipelineLayout layout;
@@ -245,6 +230,11 @@ typedef struct MaterialInstance {
   VkDescriptorSet   materialSet;
   MaterialPass      passType;
 } MaterialInstance;
+
+
+typedef struct MatGltf {
+  MaterialInstance data;
+} MatGltf;
 
 
 typedef struct MatGltfMetallicRoughnessMaterialConstants {
@@ -275,6 +265,22 @@ MaterialInstance MatGltfMetallicRoughness_writeMaterial(MatGltfMetallicRoughness
                                                         VlkDescriptorAllocatorGrowable*            descriptorAlloc);
 
 
+typedef struct GeoSurface {
+  Uint32   idxStart;
+  Uint32   count;
+  MatGltf* material;
+} GeoSurface;
+LIST_DEFINE_H(GeoSurfaces, GeoSurfaces, GeoSurface);
+
+
+typedef struct MeshAsset {
+  const char*    name;
+  GeoSurfaces    surfaces;
+  GpuMeshBuffers meshBuffers;
+} MeshAsset;
+LIST_DEFINE_H(MeshAssets, MeshAssets, MeshAsset);
+
+
 typedef struct RenderObject {
   Uint32            indexCount;
   Uint32            firstIndex;
@@ -283,6 +289,26 @@ typedef struct RenderObject {
   mat4s             transform;
   VkDeviceAddress   vertexBufferAddress;
 } RenderObject;
+LIST_DEFINE_H(RenderObjects, RenderObjects, RenderObject);
+
+
+typedef struct DrawContext {
+  RenderObjects opaqueSurfaces;
+} DrawContext;
+
+
+typedef struct SceneNode  SceneNode;
+typedef struct SceneNodes SceneNodes;
+typedef struct SceneNode {
+  SceneNode*  parent;
+  SceneNodes* children;
+  mat4s       localTransform;
+  mat4s       worldTransform;
+  MeshAsset*  mesh;
+} SceneNode;
+LIST_DEFINE_H(SceneNodes, SceneNodes, SceneNode);
+void SceneNode_refreshTransform(SceneNode*, mat4s* parentMatrix);
+void SceneNode_draw(SceneNode*, mat4s* topMatrix, DrawContext* ctx);
 
 
 typedef struct FrameData {
