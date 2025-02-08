@@ -475,7 +475,7 @@ void vkeInitDefaultData() {
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
   vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
-  SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
+  // SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
     auto mesh = &vke.testMeshes.buffer[i_mesh];
     for (size_t i_sur = 0; i_sur < mesh->surfaces.count; i_sur++)

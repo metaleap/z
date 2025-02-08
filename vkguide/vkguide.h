@@ -303,10 +303,10 @@ typedef struct DrawContext {
 
 
 typedef struct SceneNode {
-  mat4s              worldTransform;
   mat4s              localTransform;
-  struct SceneNodes* children;
+  mat4s              worldTransform;
   struct SceneNode*  parent;
+  struct SceneNodes* children;
   MeshAsset*         mesh;
 } SceneNode;
 LIST_DEFINE_H(SceneNodes, SceneNodes, SceneNode);

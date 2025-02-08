@@ -1,4 +1,6 @@
 #include "./vkguide.h"
+#include "cglm/struct/vec3.h"
+#include "cglm/vec3.h"
 
 
 mat4s Camera_getViewMatrix(Camera* this) {
@@ -12,23 +14,9 @@ mat4s Camera_getViewMatrix(Camera* this) {
 
 mat4s Camera_getRotationMatrix(Camera* this) {
   // fairly typical FPS style camera. we join the pitch and yaw rotations into the final rotation matrix
-
-  // TODO: cglm makes this too verbose, the GLM equivalent code is:
-  // glm::quat pitchRotation = glm::angleAxis(pitch, glm::vec3 { 1.f, 0.f, 0.f });
-  // glm::quat yawRotation = glm::angleAxis(yaw, glm::vec3 { 0.f, -1.f, 0.f });
-  // return glm::toMat4(yawRotation) * glm::toMat4(pitchRotation);
-
-  versor pitch_rot, yaw_rot;
-  float  pitch_axis[3] = {1, 0, 0};
-  float  yaw_axis[3]   = {0, -1, 0};
-  glm_quatv(pitch_rot, this->pitch, pitch_axis);
-  glm_quatv(yaw_rot, this->yaw, yaw_axis);
-  mat4 pitch_mat, yaw_mat;
-  glm_quat_mat4(yaw_rot, yaw_mat);
-  glm_quat_mat4(pitch_rot, pitch_mat);
-  mat4s ret;
-  glm_mat4_mul(yaw_mat, pitch_mat, ret.raw);
-  return ret;
+  versors pitch_rot = glms_quatv(this->pitch, GLMS_XUP);   // quatv aka GLM's angleAxis
+  versors yaw_rot   = glms_quatv(this->yaw, (vec3s) {.x = 0, .y = -1, .z = 0});
+  return mat4_mul(quat_mat4(yaw_rot), quat_mat4(pitch_rot));
 }
 
 
