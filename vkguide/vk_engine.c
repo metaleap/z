@@ -304,6 +304,7 @@ void vkeShutdown() {
     vkDestroySemaphore(vlkDevice, vke.frames[i].semaRender, nullptr);
     vkDestroySemaphore(vlkDevice, vke.frames[i].semaPresent, nullptr);
     vkDestroyCommandPool(vlkDevice, vke.frames[i].commandPool, nullptr);
+    VlkDescriptorWriter_free(&vke.frames[i].tmpWriter);
   }
   disposals_flush(&vke.disposals);
   vlkDisposeSwapchain();
@@ -473,7 +474,6 @@ void vkeInitDefaultData() {
     disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
-  RenderObjects_init_capacity(&vke.mainDrawContext.opaqueSurfaces, 128);
   vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
   SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
@@ -646,15 +646,14 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
   VlkBuffer  buf_scene_data =
       vkeCreateBufferMapped(sizeof(GpuSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   disposals_push(&frame->disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, buf_scene_data.buf, buf_scene_data.alloc);
-  GpuSceneData* scene_data        = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
-  *scene_data                     = vke.gpuSceneData;
-  VkDescriptorSet     global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
-                                                                            vke.gpuSceneDataDescriptorLayout, nullptr);
-  VlkDescriptorWriter writer      = {};
-  VlkDescriptorWriter_writeBuffer(&writer, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
+  GpuSceneData* scene_data    = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
+  *scene_data                 = vke.gpuSceneData;
+  VkDescriptorSet global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
+                                                                        vke.gpuSceneDataDescriptorLayout, nullptr);
+  VlkDescriptorWriter_clear(&frame->tmpWriter);
+  VlkDescriptorWriter_writeBuffer(&frame->tmpWriter, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
                                   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-  VlkDescriptorWriter_updateSet(&writer, vlkDevice, global_desc);
-  VlkDescriptorWriter_free(&writer);
+  VlkDescriptorWriter_updateSet(&frame->tmpWriter, vlkDevice, global_desc);
 
   VkRenderingAttachmentInfo color_attach =
       vlkRenderingAttachmentInfo(vke.drawImage.defaultView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -708,6 +707,14 @@ void vkeUpdateScene() {
   vke.gpuSceneData.ambientColor              = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
   vke.gpuSceneData.sunlightColor             = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
   vke.gpuSceneData.sunlightDirectionAndPower = (vec4s) {.x = 0, .y = 1, .z = 0.5, .w = 1};
+
+  if (vke.loadedNodes.count > 0)
+    for (int x = -3; x < 3; x++) {
+      auto scale = glms_scale_make((vec3s) {.x = 0.2f, .y = 0.2f, .z = 0.2f});
+      auto trans = glms_translate_make((vec3s) {.x = (float) x, .y = 1, .z = 0});
+      auto mat   = mat4_mul(trans, scale);
+      SceneNode_draw(&vke.loadedNodes.buffer[0], &mat, &vke.mainDrawContext);
+    }
 }
 
 

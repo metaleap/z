@@ -9,7 +9,7 @@
             "cwd": "${fileWorkspaceFolder}/.build/debug",
             "env": {
                 "UBSAN_OPTIONS": "print_stacktrace=1",
-                "LSAN_OPTIONS": "verbosity=1:log_threads=1"
+                "LSAN_OPTIONS": "log_threads=1"
             },
             "valuesFormatting": "disabled",
             "preLaunchTask": "mesonBuildDebug",

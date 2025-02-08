@@ -106,8 +106,8 @@ void VlkDescriptorAllocatorGrowable_destroyPools(VlkDescriptorAllocatorGrowable*
     vkDestroyDescriptorPool(device, this->readyPools.buffer[i], nullptr);
   for (size_t i = 0; i < this->fullPools.count; i++)
     vkDestroyDescriptorPool(device, this->fullPools.buffer[i], nullptr);
-  VkDescriptorPools_clear(&this->readyPools);
-  VkDescriptorPools_clear(&this->fullPools);
+  VkDescriptorPools_free_resources(&this->readyPools);
+  VkDescriptorPools_free_resources(&this->fullPools);
 }
 
 

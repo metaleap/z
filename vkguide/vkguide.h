@@ -318,6 +318,7 @@ typedef struct FrameData {
   VkSemaphore                    semaPresent, semaRender;
   DisposalQueue                  disposals;
   VlkDescriptorAllocatorGrowable frameDescriptors;
+  VlkDescriptorWriter            tmpWriter;
 } FrameData;
 
 
