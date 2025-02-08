@@ -2,6 +2,11 @@
 #include "./vkguide.h"
 
 
+LIST_DEFINE_C(Mats, Mats, MatGltf);
+LIST_DEFINE_C(VlkImages, VlkImages, VlkImage);
+LIST_DEFINE_C(VkSamplers, VkSamplers, VkSampler);
+
+
 extern VulkanEngine vke;
 
 

@@ -77,6 +77,7 @@ typedef struct VlkImage {
   VkFormat      format;
   VmaAllocation alloc;
 } VlkImage;
+LIST_DEFINE_H(VlkImages, VlkImages, VlkImage);
 
 
 typedef struct VlkBuffer {
@@ -238,6 +239,7 @@ typedef struct MaterialInstance {
 typedef struct MatGltf {
   MaterialInstance data;
 } MatGltf;
+LIST_DEFINE_H(Mats, Mats, MatGltf);
 
 
 typedef struct MatGltfMetallicRoughnessMaterialConstants {
@@ -310,6 +312,22 @@ typedef struct SceneNode {
 LIST_DEFINE_H(SceneNodes, SceneNodes, SceneNode);
 void SceneNode_refreshTransform(SceneNode*, mat4s* parentMatrix);
 void SceneNode_draw(SceneNode*, mat4s* topMatrix, DrawContext* ctx);
+
+
+LIST_DEFINE_H(VkSamplers, VkSamplers, VkSampler);
+typedef struct LoadedGltf {
+  MeshAssets meshes;
+  SceneNodes nodes;
+  VlkImages  images;
+  Mats       materials;
+
+  SceneNodes                     topNodes;
+  VkSamplers                     samplers;
+  VlkDescriptorAllocatorGrowable descriptorPool;
+  VlkBuffer                      materialDataBuffer;
+} LoadedGltf;
+void LoadedGltf_draw(LoadedGltf*, mat4s* topMatrix, DrawContext* ctx);
+void LoadedGltf_clearAll(LoadedGltf*);
 
 
 typedef struct Camera {
