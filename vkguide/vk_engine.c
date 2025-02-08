@@ -256,12 +256,12 @@ void vkeInitDescriptors() {
         (VlkDescriptorAllocatorSizeRatios) {.buffer = frame_sizes, .count = 4, .capacity = 4});
   }
 
-  vke.gpuSceneData                         = (GpuSceneData) {};
+  vke.sceneData                            = (GpuSceneData) {};
   VlkDescriptorLayoutBuilder builder_scene = {};
   VlkDescriptorLayoutBuilder_addBinding(&builder_scene, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-  vke.gpuSceneDataDescriptorLayout = VlkDescriptorLayoutBuilder_build(
+  vke.sceneDataDescriptorLayout = VlkDescriptorLayoutBuilder_build(
       &builder_scene, vlkDevice, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr, 0);
-  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.gpuSceneDataDescriptorLayout,
+  disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, vke.sceneDataDescriptorLayout,
                  nullptr);
 
   VlkDescriptorLayoutBuilder builder_single_image = {};
@@ -531,6 +531,8 @@ void vkeInit() {
   vkeInitPipelines();
   vkeInitDefaultData();
   vkeInitImgui();
+  // init main cam
+  vke.mainCamera.position = (vec3s) {.x = 0, .y = 0, .z = 5};
 }
 
 
@@ -562,12 +564,14 @@ void vkeRun() {
           vke.paused = false;
           break;
         case SDL_EVENT_WINDOW_RESIZED:
-          // case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+          // case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED: // TODO: find out why it crashes
           vke.resizeRequested = true;
           break;
       }
-      if (!(quit || vke.paused || vke.resizeRequested))
+      if (!(quit || vke.paused || vke.resizeRequested)) {
+        Camera_processEvent(&vke.mainCamera, &evt);
         cppImguiProcessEvent(&evt);
+      }
     }
     if (quit)
       break;
@@ -646,10 +650,10 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
   VlkBuffer  buf_scene_data =
       vkeCreateBufferMapped(sizeof(GpuSceneData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
   disposals_push(&frame->disposals, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO, buf_scene_data.buf, buf_scene_data.alloc);
-  GpuSceneData* scene_data    = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
-  *scene_data                 = vke.gpuSceneData;
-  VkDescriptorSet global_desc = VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice,
-                                                                        vke.gpuSceneDataDescriptorLayout, nullptr);
+  GpuSceneData* scene_data = (GpuSceneData*) buf_scene_data.allocInfo.pMappedData;
+  *scene_data              = vke.sceneData;
+  VkDescriptorSet global_desc =
+      VlkDescriptorAllocatorGrowable_allocate(&frame->frameDescriptors, vlkDevice, vke.sceneDataDescriptorLayout, nullptr);
   VlkDescriptorWriter_clear(&frame->tmpWriter);
   VlkDescriptorWriter_writeBuffer(&frame->tmpWriter, 0, buf_scene_data.buf, sizeof(GpuSceneData), 0,
                                   VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -696,17 +700,18 @@ void vkeDraw_Geometry(VkCommandBuffer cmdBuf) {
 
 
 void vkeUpdateScene() {
+  Camera_update(&vke.mainCamera);
   auto top_transform = mat4_identity();
   RenderObjects_clear(&vke.mainDrawContext.opaqueSurfaces);
   if (vke.loadedNodes.count > 2)
     SceneNode_draw(&vke.loadedNodes.buffer[2], &top_transform, &vke.mainDrawContext);
-  vke.gpuSceneData.view = glms_translate_make((vec3s) {.x = 0, .y = 0, .z = -5});
-  vke.gpuSceneData.proj =
+  vke.sceneData.view = Camera_getViewMatrix(&vke.mainCamera);
+  vke.sceneData.proj =
       glms_perspective(glm_rad(70), (float) vke.windowExtent.width / (float) vke.windowExtent.height, 10000, 0.1f);
-  vke.gpuSceneData.viewProj                  = mat4_mul(vke.gpuSceneData.proj, vke.gpuSceneData.view);
-  vke.gpuSceneData.ambientColor              = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
-  vke.gpuSceneData.sunlightColor             = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
-  vke.gpuSceneData.sunlightDirectionAndPower = (vec4s) {.x = 0, .y = 1, .z = 0.5, .w = 1};
+  vke.sceneData.viewProj                  = mat4_mul(vke.sceneData.proj, vke.sceneData.view);
+  vke.sceneData.ambientColor              = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
+  vke.sceneData.sunlightColor             = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
+  vke.sceneData.sunlightDirectionAndPower = (vec4s) {.x = 0, .y = 1, .z = 0.5, .w = 1};
 
   if (vke.loadedNodes.count > 0)
     for (int x = -3; x < 3; x++) {

@@ -1,13 +1,34 @@
 #include "./vkguide.h"
-#include <SDL3/SDL_events.h>
 
 
-mat4s Camera_getViewMatrix(Camera*) {
+mat4s Camera_getViewMatrix(Camera* this) {
+  // to create a correct model view, we need to move the world in opposite direction to the camera
+  //  so we will create the camera model matrix and invert
+  mat4s trans = glms_translate(mat4_identity(), this->position);
+  mat4s rot   = Camera_getRotationMatrix(this);
+  return mat4_inv(mat4_mul(trans, rot));
 }
 
 
+mat4s Camera_getRotationMatrix(Camera* this) {
+  // fairly typical FPS style camera. we join the pitch and yaw rotations into the final rotation matrix
 
-mat4s Camera_getRotationMatrix(Camera*) {
+  // TODO: cglm makes this too verbose, the GLM equivalent code is:
+  // glm::quat pitchRotation = glm::angleAxis(pitch, glm::vec3 { 1.f, 0.f, 0.f });
+  // glm::quat yawRotation = glm::angleAxis(yaw, glm::vec3 { 0.f, -1.f, 0.f });
+  // return glm::toMat4(yawRotation) * glm::toMat4(pitchRotation);
+
+  versor pitch_rot, yaw_rot;
+  float  pitch_axis[3] = {1, 0, 0};
+  float  yaw_axis[3]   = {0, -1, 0};
+  glm_quatv(pitch_rot, this->pitch, pitch_axis);
+  glm_quatv(yaw_rot, this->yaw, yaw_axis);
+  mat4 pitch_mat, yaw_mat;
+  glm_quat_mat4(yaw_rot, yaw_mat);
+  glm_quat_mat4(pitch_rot, pitch_mat);
+  mat4s ret;
+  glm_mat4_mul(yaw_mat, pitch_mat, ret.raw);
+  return ret;
 }
 
 
@@ -42,8 +63,8 @@ void Camera_processEvent(Camera* this, SDL_Event* evt) {
 
 
 void Camera_update(Camera* this) {
-  mat4s rot     = Camera_getRotationMatrix(this);
+  mat4s cam_rot = Camera_getRotationMatrix(this);
   vec4s move_by = mat4_mulv(
-      rot, (vec4s) {.x = this->velocity.x * 0.5f, .y = this->velocity.y * 0.5f, .z = this->velocity.z * 0.5f, 0});
+      cam_rot, (vec4s) {.x = this->velocity.x * 0.5f, .y = this->velocity.y * 0.5f, .z = this->velocity.z * 0.5f, 0});
   this->position = vec3_add(this->position, (vec3s) {.x = move_by.x, .y = move_by.y, .z = move_by.z});
 }

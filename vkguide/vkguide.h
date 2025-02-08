@@ -359,8 +359,8 @@ typedef struct VulkanEngine {
   VkPipeline                     meshPipeline;
   MeshAssets                     testMeshes;
   bool                           resizeRequested;
-  GpuSceneData                   gpuSceneData;
-  VkDescriptorSetLayout          gpuSceneDataDescriptorLayout;
+  GpuSceneData                   sceneData;
+  VkDescriptorSetLayout          sceneDataDescriptorLayout;
   VlkImage                       texWhite;
   VlkImage                       texGrey;
   VlkImage                       texBlack;
@@ -372,6 +372,7 @@ typedef struct VulkanEngine {
   MatGltfMetallicRoughness       defaultMaterialMetalRough;
   DrawContext                    mainDrawContext;
   SceneNodes                     loadedNodes;
+  Camera                         mainCamera;
 } VulkanEngine;
 
 

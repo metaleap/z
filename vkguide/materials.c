@@ -19,7 +19,7 @@ void MatGltfMetallicRoughness_buildPipelines(MatGltfMetallicRoughness* this) {
   VlkDescriptorLayoutBuilder_addBinding(&builder_layout, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
   this->materialLayout = VlkDescriptorLayoutBuilder_build(
       &builder_layout, vlkDevice, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr, 0);
-  VkDescriptorSetLayout layouts[] = {vke.gpuSceneDataDescriptorLayout, this->materialLayout};
+  VkDescriptorSetLayout layouts[] = {vke.sceneDataDescriptorLayout, this->materialLayout};
 
   VkPushConstantRange matrix_range = {.size = sizeof(GpuDrawPushConstants), .stageFlags = VK_SHADER_STAGE_VERTEX_BIT};
   VkPipelineLayoutCreateInfo mesh_layout_info = {.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
