@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL3/SDL_events.h>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -309,6 +310,18 @@ typedef struct SceneNode {
 LIST_DEFINE_H(SceneNodes, SceneNodes, SceneNode);
 void SceneNode_refreshTransform(SceneNode*, mat4s* parentMatrix);
 void SceneNode_draw(SceneNode*, mat4s* topMatrix, DrawContext* ctx);
+
+
+typedef struct Camera {
+  vec3s velocity;
+  vec3s position;
+  float pitch;   // vertical rot
+  float yaw;     // horizontal rot
+} Camera;
+mat4s Camera_getViewMatrix(Camera*);
+mat4s Camera_getRotationMatrix(Camera*);
+void  Camera_processEvent(Camera*, SDL_Event*);
+void  Camera_update(Camera*);
 
 
 typedef struct FrameData {
