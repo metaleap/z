@@ -317,6 +317,7 @@ typedef struct Camera {
   vec3s position;
   float pitch;   // vertical rot
   float yaw;     // horizontal rot
+  float moveSpeed;
 } Camera;
 mat4s Camera_getViewMatrix(Camera*);
 mat4s Camera_getRotationMatrix(Camera*);

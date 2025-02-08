@@ -532,7 +532,8 @@ void vkeInit() {
   vkeInitDefaultData();
   vkeInitImgui();
   // init main cam
-  vke.mainCamera.position = (vec3s) {.x = 0, .y = 0, .z = 5};
+  vke.mainCamera.position  = (vec3s) {.x = 0, .y = 0, .z = 5};
+  vke.mainCamera.moveSpeed = 0.123f;
 }
 
 
@@ -707,7 +708,7 @@ void vkeUpdateScene() {
     SceneNode_draw(&vke.loadedNodes.buffer[2], &top_transform, &vke.mainDrawContext);
   vke.sceneData.view = Camera_getViewMatrix(&vke.mainCamera);
   vke.sceneData.proj =
-      glms_perspective(glm_rad(70), (float) vke.windowExtent.width / (float) vke.windowExtent.height, 10000, 0.1f);
+      glms_perspective(glm_rad(55), (float) vke.windowExtent.width / (float) vke.windowExtent.height, 10000, 0.1f);
   vke.sceneData.viewProj                  = mat4_mul(vke.sceneData.proj, vke.sceneData.view);
   vke.sceneData.ambientColor              = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
   vke.sceneData.sunlightColor             = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};

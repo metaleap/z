@@ -35,14 +35,18 @@ mat4s Camera_getRotationMatrix(Camera* this) {
 
 void Camera_processEvent(Camera* this, SDL_Event* evt) {
   if (evt->type == SDL_EVENT_MOUSE_MOTION) {
-    this->yaw   += evt->motion.xrel / 200.0f;
-    this->pitch -= evt->motion.yrel / 200.0f;
+    this->yaw   += evt->motion.xrel / 123.45f;
+    this->pitch -= evt->motion.yrel / 123.45f;
 
   } else if (evt->type == SDL_EVENT_KEY_DOWN) {
     if (evt->key.key == SDLK_W)
       this->velocity.z = -1;
     if (evt->key.key == SDLK_S)
       this->velocity.z = 1;
+    if (evt->key.key == SDLK_Q)
+      this->velocity.y = -1;
+    if (evt->key.key == SDLK_E)
+      this->velocity.y = 1;
     if (evt->key.key == SDLK_A)
       this->velocity.x = -1;
     if (evt->key.key == SDLK_D)
@@ -53,6 +57,10 @@ void Camera_processEvent(Camera* this, SDL_Event* evt) {
       this->velocity.z = 0;
     if (evt->key.key == SDLK_S)
       this->velocity.z = 0;
+    if (evt->key.key == SDLK_Q)
+      this->velocity.y = 0;
+    if (evt->key.key == SDLK_E)
+      this->velocity.y = 0;
     if (evt->key.key == SDLK_A)
       this->velocity.x = 0;
     if (evt->key.key == SDLK_D)
@@ -63,8 +71,10 @@ void Camera_processEvent(Camera* this, SDL_Event* evt) {
 
 
 void Camera_update(Camera* this) {
-  mat4s cam_rot = Camera_getRotationMatrix(this);
-  vec4s move_by = mat4_mulv(
-      cam_rot, (vec4s) {.x = this->velocity.x * 0.5f, .y = this->velocity.y * 0.5f, .z = this->velocity.z * 0.5f, 0});
+  mat4s cam_rot  = Camera_getRotationMatrix(this);
+  vec4s move_by  = mat4_mulv(cam_rot, (vec4s) {.x = this->velocity.x * this->moveSpeed,
+                                               .y = this->velocity.y * this->moveSpeed,
+                                               .z = this->velocity.z * this->moveSpeed,
+                                               0});
   this->position = vec3_add(this->position, (vec3s) {.x = move_by.x, .y = move_by.y, .z = move_by.z});
 }
