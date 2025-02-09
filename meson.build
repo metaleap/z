@@ -21,12 +21,10 @@ add_global_link_arguments(
     language: ['c', 'cpp'],
 )
 
-dep_pthread = dependency('threads', include_type: 'system', static: false)
 dep_sdl3 = dependency('SDL3', include_type: 'system', static: false)
 dep_vulkan = dependency('vulkan', include_type: 'system', static: false)
 dep_glslang = dependency('glslang', include_type: 'system')
 dep_glslang_drl = meson.get_compiler('c').find_library('glslang-default-resource-limits')
-
 dep_fastgltf = meson.get_compiler('cpp').find_library(
     'fastgltf',
     static: true,
@@ -40,7 +38,6 @@ lib_zdeps = library(
         dep_glslang,
         dep_vulkan,
         dep_sdl3,
-        dep_pthread,
     ],
     build_by_default: true,
     implicit_include_directories: true,
@@ -69,7 +66,6 @@ executable(
         dep_glslang,
         dep_vulkan,
         dep_sdl3,
-        dep_pthread,
     ],
     link_language: 'cpp',
     link_with: [lib_zdeps],

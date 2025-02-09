@@ -1,9 +1,5 @@
+#include <libinput.h>
 #include "./vkguide.h"
-#include "cglm/struct/affine.h"
-#include "cglm/struct/cam.h"
-#include "cglm/struct/mat4.h"
-#include "cglm/util.h"
-#include <SDL3/SDL_log.h>
 
 
 #ifdef DEVBUILD
@@ -474,7 +470,7 @@ void vkeInitDefaultData() {
     disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
-  vke.testMeshes = vkeLoadGlb("../../vkguide/assets/basicmesh.glb");
+  vke.testMeshes = vkeLoadGlbMeshesOnly("../../vkguide/assets/basicmesh.glb");
   // SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
     auto mesh = &vke.testMeshes.buffer[i_mesh];
@@ -522,6 +518,8 @@ void vkeInit() {
   vke.window = SDL_CreateWindow("vkguide.dev", vke.windowExtent.width, vke.windowExtent.height,
                                 SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE);
   SDL_CHECK(vke.window);
+
+  SDL_SetWindowRelativeMouseMode(vke.window, true);
   vkeInitVulkan();
   vkeInitSwapchain();
   vkGetDeviceQueue(vlkDevice, 0, 0, &vlkQueue);
@@ -531,6 +529,7 @@ void vkeInit() {
   vkeInitPipelines();
   vkeInitDefaultData();
   vkeInitImgui();
+  vke.bgEffectCurIdx       = 1;
   // init main cam
   vke.mainCamera.position  = (vec3s) {.x = 0, .y = 0, .z = 5};
   vke.mainCamera.moveSpeed = 0.123f;
@@ -708,7 +707,7 @@ void vkeUpdateScene() {
     SceneNode_draw(&vke.loadedNodes.buffer[2], &top_transform, &vke.mainDrawContext);
   vke.sceneData.view = Camera_getViewMatrix(&vke.mainCamera);
   vke.sceneData.proj =
-      glms_perspective(glm_rad(55), (float) vke.windowExtent.width / (float) vke.windowExtent.height, 10000, 0.1f);
+      glms_perspective(glm_rad(44), (float) vke.windowExtent.width / (float) vke.windowExtent.height, 10000, 0.1f);
   vke.sceneData.viewProj                  = mat4_mul(vke.sceneData.proj, vke.sceneData.view);
   vke.sceneData.ambientColor              = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};
   vke.sceneData.sunlightColor             = (vec4s) {.r = 1, .g = 1, .b = 1, .a = 0};

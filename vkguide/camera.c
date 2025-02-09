@@ -1,6 +1,5 @@
 #include "./vkguide.h"
-#include "cglm/struct/vec3.h"
-#include "cglm/vec3.h"
+#include "cglm/util.h"
 
 
 mat4s Camera_getViewMatrix(Camera* this) {
@@ -24,7 +23,7 @@ mat4s Camera_getRotationMatrix(Camera* this) {
 void Camera_processEvent(Camera* this, SDL_Event* evt) {
   if (evt->type == SDL_EVENT_MOUSE_MOTION) {
     this->yaw   += evt->motion.xrel / 123.45f;
-    this->pitch -= evt->motion.yrel / 123.45f;
+    this->pitch  = glm_clamp(this->pitch - (evt->motion.yrel / 123.45f), glm_rad(-77), glm_rad(77));
 
   } else if (evt->type == SDL_EVENT_KEY_DOWN) {
     if (evt->key.key == SDLK_W)

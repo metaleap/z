@@ -325,9 +325,9 @@ typedef struct LoadedGltf {
   VkSamplers                     samplers;
   VlkDescriptorAllocatorGrowable descriptorPool;
   VlkBuffer                      materialDataBuffer;
-} LoadedGltf;
-void LoadedGltf_draw(LoadedGltf*, mat4s* topMatrix, DrawContext* ctx);
-void LoadedGltf_clearAll(LoadedGltf*);
+} LoadedGlbScene;
+void LoadedGltf_draw(LoadedGlbScene*, mat4s* topMatrix, DrawContext* ctx);
+void LoadedGltf_clearAll(LoadedGlbScene*);
 
 
 typedef struct Camera {
@@ -407,7 +407,8 @@ void           vkeInit();
 void           vkeRun();
 void           vkeDraw();
 void           vkeShutdown();
-MeshAssets     vkeLoadGlb(char* filePath);
+MeshAssets     vkeLoadGlbMeshesOnly(char* filePath);
+LoadedGlbScene vkeLoadGlbScene(char* filePath);
 GpuMeshBuffers vkeUploadMesh(size_t nVerts, Vertex verts[], size_t nIndices, Uint32 indices[]);
 VlkImage       vkeUploadImage(void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped);
 VlkImage       vkeCreateImage(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipMapped);

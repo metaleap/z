@@ -1,3 +1,4 @@
+#include <SDL3/SDL_stdinc.h>
 #define CGLTF_IMPLEMENTATION
 #include "./vkguide.h"
 
@@ -10,17 +11,21 @@ LIST_DEFINE_C(VkSamplers, VkSamplers, VkSampler);
 extern VulkanEngine vke;
 
 
-MeshAssets vkeLoadGlb(char* filePath) {
+cgltf_data* vkeLoadGlbFile(char* filePath) {
+  cgltf_data*   ret     = nullptr;
   cgltf_options options = {.type = cgltf_file_type_glb};
-  cgltf_data*   data    = nullptr;
-  cgltf_result  result  = cgltf_parse_file(&options, filePath, &data);
+  cgltf_result  result  = cgltf_parse_file(&options, filePath, &ret);
   if (result == cgltf_result_success)
-    result = cgltf_load_buffers(&options, data, nullptr);
+    result = cgltf_load_buffers(&options, ret, nullptr);
   if (result != cgltf_result_success) {
     SDL_Log("glTF load failure %d\n", result);
     exit(1);
   }
+  return ret;
+}
 
+
+MeshAssets vkeLoadGlbMeshesFrom(cgltf_data* glbSrc) {
   MeshAssets ret = {};
   assert(MeshAssets_init_capacity(&ret, 8));
   U32s indices = {};
@@ -28,8 +33,8 @@ MeshAssets vkeLoadGlb(char* filePath) {
   Verts vertices = {};
   assert(Verts_init_capacity(&vertices, 128));
 
-  for (size_t i_mesh = 0; i_mesh < data->meshes_count; i_mesh++) {
-    auto      mesh     = &data->meshes[i_mesh];
+  for (size_t i_mesh = 0; i_mesh < glbSrc->meshes_count; i_mesh++) {
+    auto      mesh     = &glbSrc->meshes[i_mesh];
     MeshAsset new_mesh = {.name = mesh->name};
     assert(GeoSurfaces_init_capacity(&new_mesh.surfaces, 16));
     U32s_clear(&indices);
@@ -190,6 +195,26 @@ MeshAssets vkeLoadGlb(char* filePath) {
     assert(MeshAssets_add(&ret, new_mesh));
   }
 
-  cgltf_free(data);
+  cgltf_free(glbSrc);
   return ret;
+}
+
+
+LoadedGlbScene vkeLoadGlbScene(char* filePath) {
+  LoadedGlbScene                   ret     = {};
+  cgltf_data*                      glb_src = vkeLoadGlbFile(filePath);
+  VlkDescriptorAllocatorSizeRatios sizes   = {};
+  VlkDescriptorAllocatorSizeRatios_add(&sizes,
+                                       (VlkDescriptorAllocatorSizeRatio) {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 3});
+  VlkDescriptorAllocatorSizeRatios_add(&sizes, (VlkDescriptorAllocatorSizeRatio) {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 3});
+  VlkDescriptorAllocatorSizeRatios_add(&sizes, (VlkDescriptorAllocatorSizeRatio) {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3});
+
+  VlkDescriptorAllocatorGrowable_init(&ret.descriptorPool, vlkDevice, (Uint32) glb_src->materials_count, sizes);
+  ret.meshes = vkeLoadGlbMeshesFrom(glb_src);
+  return ret;
+}
+
+
+MeshAssets vkeLoadGlbMeshesOnly(char* filePath) {
+  return vkeLoadGlbMeshesFrom(vkeLoadGlbFile(filePath));
 }
