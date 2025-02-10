@@ -1,6 +1,9 @@
 #version 460
 
 #extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_ray_tracing : require
+#extension GL_EXT_ray_query : require
+#extension GL_EXT_ray_flags_primitive_culling : require
 
 layout(set = 0, binding = 0) uniform SceneData {
   mat4 view;

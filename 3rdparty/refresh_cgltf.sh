@@ -5,7 +5,7 @@ thisScriptsFilePath="$(readlink --canonicalize-existing "$0")"
 thisScriptsDirPath="$(dirname "$thisScriptsFilePath")"
 cd $thisScriptsDirPath
 
-depVer="1.14"
+depVer="1.15"
 depDirName="jkuhlmann_cgltf"
 
 
