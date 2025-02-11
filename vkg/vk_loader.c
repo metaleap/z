@@ -1,6 +1,5 @@
-#include <SDL3/SDL_stdinc.h>
 #define CGLTF_IMPLEMENTATION
-#include "./vkguide.h"
+#include "./vkg.h"
 
 
 LIST_DEFINE_C(Mats, Mats, MatGltf);

@@ -1,5 +1,4 @@
-#include <libinput.h>
-#include "./vkguide.h"
+#include "./vkg.h"
 
 
 #ifdef DEVBUILD
@@ -323,7 +322,7 @@ void vkeInitComputePipelines() {
   VK_CHECK(vkCreatePipelineLayout(vlkDevice, &layout, nullptr, &vke.computePipelineLayout));
 
   VkShaderModule shader_gradient;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/gradient_color.comp", vlkDevice, &shader_gradient,
+  VK_CHECK(vlkLoadShaderModule("../../vkg/shaders/gradient_color.comp", vlkDevice, &shader_gradient,
                                VK_SHADER_STAGE_COMPUTE_BIT));
   ComputeShaderEffect gradient = {
       .layout   = vke.computePipelineLayout,
@@ -344,7 +343,7 @@ void vkeInitComputePipelines() {
   disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO, gradient.pipeline, nullptr);
 
   VkShaderModule shader_sky;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/sky.comp", vlkDevice, &shader_sky, VK_SHADER_STAGE_COMPUTE_BIT));
+  VK_CHECK(vlkLoadShaderModule("../../vkg/shaders/sky.comp", vlkDevice, &shader_sky, VK_SHADER_STAGE_COMPUTE_BIT));
   pipeline.stage.module   = shader_sky;
   ComputeShaderEffect sky = {.layout   = vke.computePipelineLayout,
                              .name     = "sky",
@@ -361,9 +360,8 @@ void vkeInitComputePipelines() {
 
 void vkeInitMeshPipeline() {
   VkShaderModule shader_frag, shader_vert;
-  VK_CHECK(
-      vlkLoadShaderModule("../../vkguide/shaders/tex_image.frag", vlkDevice, &shader_frag, VK_SHADER_STAGE_FRAGMENT_BIT));
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/colored_triangle_mesh.vert", vlkDevice, &shader_vert,
+  VK_CHECK(vlkLoadShaderModule("../../vkg/shaders/tex_image.frag", vlkDevice, &shader_frag, VK_SHADER_STAGE_FRAGMENT_BIT));
+  VK_CHECK(vlkLoadShaderModule("../../vkg/shaders/colored_triangle_mesh.vert", vlkDevice, &shader_vert,
                                VK_SHADER_STAGE_VERTEX_BIT));
 
   VkPushConstantRange push_range = {.size = sizeof(GpuDrawPushConstants), .stageFlags = VK_SHADER_STAGE_VERTEX_BIT};
@@ -470,7 +468,7 @@ void vkeInitDefaultData() {
     disposals_push(&vke.disposals, VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                    vke.defaultMaterialMetalRough.transparentPipeline.pipeline, nullptr);
 
-  vke.testMeshes = vkeLoadGlbMeshesOnly("../../vkguide/assets/basicmesh.glb");
+  vke.testMeshes = vkeLoadGlbMeshesOnly("../../vkg/assets/basicmesh.glb");
   // SceneNodes_init_capacity(&vke.loadedNodes, vke.testMeshes.count);
   for (size_t i_mesh = 0; i_mesh < vke.testMeshes.count; i_mesh++) {
     auto mesh = &vke.testMeshes.buffer[i_mesh];
@@ -515,7 +513,7 @@ void vkeInitImgui() {
 
 void vkeInit() {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC | SDL_INIT_JOYSTICK);
-  vke.window = SDL_CreateWindow("vkguide.dev", vke.windowExtent.width, vke.windowExtent.height,
+  vke.window = SDL_CreateWindow("Vulkan", vke.windowExtent.width, vke.windowExtent.height,
                                 SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE);
   SDL_CHECK(vke.window);
 

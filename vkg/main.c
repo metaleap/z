@@ -1,11 +1,7 @@
 #include <stdio.h>
 
 #include <SDL3/SDL_main.h>
-#include "./vkguide.h"
-#include "cglm/quat.h"
-#include "cglm/struct/quat.h"
-#include "cglm/struct/vec3.h"
-#include "cglm/types.h"
+#include "./vkg.h"
 
 
 LIST_DEFINE_C(U32s, U32s, Uint32);

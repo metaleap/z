@@ -1,5 +1,5 @@
 #define VMA_IMPLEMENTATION
-#include "./vkguide.h"
+#include "./vkg.h"
 
 #include "../3rdparty/ocornut_imgui/imgui.h"
 #include "../3rdparty/ocornut_imgui/backends/imgui_impl_sdl3.h"

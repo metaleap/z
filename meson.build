@@ -60,7 +60,7 @@ lib_zdeps = library(
 )
 
 executable(
-    'vkguide.exec',
+    'vkgfx.exec',
     dependencies: [
         dep_glslang_drl,
         dep_glslang,
@@ -83,17 +83,17 @@ executable(
     ],
     # native: true, # https://github.com/mesonbuild/meson/discussions/14218
     sources: [
-        'vkguide/main.c',
-        'vkguide/camera.c',
-        'vkguide/materials.c',
-        'vkguide/vk_engine.c',
-        'vkguide/vk_descriptors.c',
-        'vkguide/vk_images.c',
-        'vkguide/vk_initializers.c',
-        'vkguide/vk_loader.c',
-        'vkguide/vk_pipelines.c',
-        'vkguide/vk_scenenode.c',
-        'vkguide/3rdparty.cpp',
+        'vkg/main.c',
+        'vkg/camera.c',
+        'vkg/materials.c',
+        'vkg/vk_engine.c',
+        'vkg/vk_descriptors.c',
+        'vkg/vk_images.c',
+        'vkg/vk_initializers.c',
+        'vkg/vk_loader.c',
+        'vkg/vk_pipelines.c',
+        'vkg/vk_scenenode.c',
+        'vkg/3rdparty.cpp',
         '3rdparty/ocornut_imgui/imgui.cpp',
         '3rdparty/ocornut_imgui/imgui_demo.cpp',
         '3rdparty/ocornut_imgui/imgui_draw.cpp',

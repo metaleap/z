@@ -1,5 +1,4 @@
-#include "./vkguide.h"
-#include "cglm/util.h"
+#include "./vkg.h"
 
 
 mat4s Camera_getViewMatrix(Camera* this) {

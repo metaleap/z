@@ -5,7 +5,7 @@
             "name": "Run",
             "type": "gdb",
             "request": "launch",
-            "target": "vkguide.exec",
+            "target": "vkgfx.exec",
             "cwd": "${fileWorkspaceFolder}/.build/debug",
             "env": {
                 "UBSAN_OPTIONS": "print_stacktrace=1",

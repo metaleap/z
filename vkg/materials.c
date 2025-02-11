@@ -1,5 +1,4 @@
-#include "./vkguide.h"
-#include <vulkan/vulkan_core.h>
+#include "./vkg.h"
 
 
 extern VulkanEngine vke;
@@ -9,9 +8,9 @@ extern VkDevice     vlkDevice;
 
 void MatGltfMetallicRoughness_buildPipelines(MatGltfMetallicRoughness* this) {
   VkShaderModule shader_frag;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/mesh.frag", vlkDevice, &shader_frag, VK_SHADER_STAGE_FRAGMENT_BIT));
+  VK_CHECK(vlkLoadShaderModule("../../vkg/shaders/mesh.frag", vlkDevice, &shader_frag, VK_SHADER_STAGE_FRAGMENT_BIT));
   VkShaderModule shader_vert;
-  VK_CHECK(vlkLoadShaderModule("../../vkguide/shaders/mesh.vert", vlkDevice, &shader_vert, VK_SHADER_STAGE_VERTEX_BIT));
+  VK_CHECK(vlkLoadShaderModule("../../vkg/shaders/mesh.vert", vlkDevice, &shader_vert, VK_SHADER_STAGE_VERTEX_BIT));
 
   VlkDescriptorLayoutBuilder builder_layout = {};
   VlkDescriptorLayoutBuilder_addBinding(&builder_layout, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);

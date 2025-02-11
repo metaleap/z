@@ -1,5 +1,4 @@
-#include "./vkguide.h"
-#include "cglm/struct/quat.h"
+#include "./vkg.h"
 
 
 LIST_DEFINE_C(RenderObjects, RenderObjects, RenderObject);
